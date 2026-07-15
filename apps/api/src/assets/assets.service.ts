@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
 import { UpdateAssetDto } from './dto/update-asset.dto';
 
 @Injectable()
 export class AssetsService {
+  constructor(private readonly prisma: PrismaService) {}
+
   create(createAssetDto: CreateAssetDto) {
-    return 'This action adds a new asset';
+    return this.prisma.hardwareAsset.create({ data: createAssetDto as any });
   }
 
   findAll() {
-    return `This action returns all assets`;
+    return this.prisma.hardwareAsset.findMany({
+      include: {
+        assignedUser: { select: { id: true, name: true, email: true } },
+        location: { select: { id: true, name: true, type: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} asset`;
+  async findOne(id: string) {
+    const asset = await this.prisma.hardwareAsset.findUnique({
+      where: { id },
+      include: {
+        assignedUser: true,
+        location: true,
+        repairs: { orderBy: { createdAt: 'desc' }, take: 5 },
+      },
+    });
+    if (!asset) throw new NotFoundException(`Asset ${id} not found`);
+    return asset;
   }
 
-  update(id: number, updateAssetDto: UpdateAssetDto) {
-    return `This action updates a #${id} asset`;
+  update(id: string, updateAssetDto: UpdateAssetDto) {
+    return this.prisma.hardwareAsset.update({
+      where: { id },
+      data: updateAssetDto as any,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} asset`;
+  remove(id: string) {
+    return this.prisma.hardwareAsset.delete({ where: { id } });
   }
 }
