@@ -1,0 +1,15 @@
+{
+  "name": "xiphos-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "XIPHOS IT Operations Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces"
+  }
+}
