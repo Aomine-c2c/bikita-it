@@ -20,11 +20,24 @@ const getQuantityColor = (quantity: number, reorderLevel: number) => {
 };
 
 export function InventoryTable() {
+  const [search, setSearch] = React.useState("");
+
+  const filtered = mockInventory.filter((item) =>
+    [item.id, item.item, item.category, item.supplier, item.warehouse, item.shelf]
+      .some((v) => v && typeof v === 'string' && v.toLowerCase().includes(search.toLowerCase()))
+  );
+
   return (
     <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden flex flex-col mt-6">
       <div className="p-4 border-b border-border/40 bg-[#FAFAFA] flex items-center justify-between gap-4 sticky left-0">
         <div className="flex items-center gap-3">
-            <input type="text" placeholder="Search inventory by item name, SKU..." className="w-72 px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs outline-none focus:border-primary shadow-sm" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search inventory by item name, SKU..."
+              className="w-72 px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs outline-none focus:border-primary shadow-sm"
+            />
             <select className="text-xs bg-white border border-border/60 rounded-md px-2 py-1.5 outline-none shadow-sm">
               <option>All Warehouses</option>
               <option>Main HQ</option>
@@ -57,7 +70,13 @@ export function InventoryTable() {
             </tr>
           </thead>
           <tbody>
-            {mockInventory.map((item, idx) => (
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={12} className="text-center py-16 text-sm text-muted-foreground">
+                  No inventory items found matching &ldquo;{search}&rdquo;
+                </td>
+              </tr>
+            ) : filtered.map((item, idx) => (
               <tr key={idx} className="border-b border-border/20 last:border-0 hover:bg-slate-50/80 transition-colors group">
                 <td className="px-5 py-3 sticky left-0 bg-white group-hover:bg-slate-50/80 z-10 border-r border-border/20 transition-colors">
                   <input type="checkbox" className="rounded border-muted-foreground/30 text-primary" />

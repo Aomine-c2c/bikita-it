@@ -1,16 +1,39 @@
 import { Injectable, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
-import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService) {}
 
-  private hashPassword(password: string): string {
-    const salt = crypto.randomBytes(16).toString('hex');
-    const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-    return `${salt}:${hash}`;
+  /**
+   * Hash password using bcrypt with 12 rounds (industry standard)
+   * @param password Plain text password
+   * @returns Hashed password
+   */
+  private async hashPassword(password: string): Promise<string> {
+    const rounds = 12; // Standard for production
+    return bcrypt.hash(password, rounds);
+  }
+
+  /**
+   * Validate password meets minimum requirements
+   * @param password Plain text password
+   * @returns True if password meets requirements
+   */
+  private validatePassword(password: string): boolean {
+    return password.length >= 12;
+  }
+
+  /**
+   * Verify password against hash
+   * @param password Plain text password
+   * @param hash Stored hash
+   * @returns True if password matches
+   */
+  async verifyPassword(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
   }
 
   async checkSetupStatus() {
@@ -31,14 +54,20 @@ export class AuthService {
     }
 
     if (!data.email || !data.password || !data.name) {
-      throw new InternalServerErrorException('Missing required fields');
+      throw new InternalServerErrorException('Missing required fields: email, password, name');
     }
+
+    if (!this.validatePassword(data.password)) {
+      throw new InternalServerErrorException('Password must be at least 12 characters long');
+    }
+
+    const passwordHash = await this.hashPassword(data.password);
 
     const newAdmin = await this.prisma.employee.create({
       data: {
         name: data.name,
         email: data.email,
-        passwordHash: this.hashPassword(data.password),
+        passwordHash,
         role: Role.ADMIN,
         department: 'IT',
         position: 'System Administrator'

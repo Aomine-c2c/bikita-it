@@ -75,7 +75,7 @@ export function Sidebar() {
               className="flex flex-col overflow-hidden whitespace-nowrap"
             >
               <span className="text-[11px] font-semibold text-muted-foreground leading-tight">Bikita Minerals</span>
-              <span className="font-bold text-sm text-foreground leading-tight">Xiphos Platform</span>
+              <span className="font-bold text-sm text-foreground leading-tight">IT</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -97,7 +97,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden py-2 space-y-5", collapsed ? "px-2" : "px-3")}>
+      <nav id="tour-sidebar-nav" className={cn("flex-1 overflow-y-auto overflow-x-hidden py-2 space-y-5", collapsed ? "px-2" : "px-3")}>
         {sidebarSections.map((section, idx) => (
           <div key={idx} className="space-y-0.5">
             {/* Section Label */}

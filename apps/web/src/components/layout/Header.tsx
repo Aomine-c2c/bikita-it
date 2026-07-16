@@ -35,7 +35,7 @@ export function Header({ onToggleAI, isAIOpen }: HeaderProps = {}) {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative w-64">
+        <div className="relative w-64" id="tour-search">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <input
             type="text"
@@ -52,6 +52,7 @@ export function Header({ onToggleAI, isAIOpen }: HeaderProps = {}) {
         <div className="flex items-center gap-1.5 pl-2">
           {/* AI Assistant Toggle */}
           <button
+            id="tour-ai"
             onClick={onToggleAI}
             className={cn(
               "p-1.5 rounded-md transition-colors border shadow-sm flex items-center justify-center",

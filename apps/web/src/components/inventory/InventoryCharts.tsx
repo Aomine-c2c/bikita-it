@@ -56,7 +56,7 @@ export function InventoryCharts() {
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dx={-10} />
               <Tooltip 
-                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(15, 23, 42, 0.9)', color: '#fff', fontSize: '12px' }}
+                contentStyle={{ borderRadius: '10px', border: '1px solid #e4e4e7', backgroundColor: '#ffffff', color: '#09090b', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                 itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
               />
               <Line type="monotone" dataKey="received" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
@@ -81,7 +81,7 @@ export function InventoryCharts() {
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
               <Tooltip 
                 cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}
-                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(15, 23, 42, 0.9)', color: '#fff', fontSize: '12px' }}
+                contentStyle={{ borderRadius: '10px', border: '1px solid #e4e4e7', backgroundColor: '#ffffff', color: '#09090b', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
               />
               <Bar dataKey="value" fill="#a855f7" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -109,7 +109,7 @@ export function InventoryCharts() {
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(val) => `$${val/1000}k`} dx={-10} />
               <Tooltip 
-                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(15, 23, 42, 0.9)', color: '#fff', fontSize: '12px' }}
+                contentStyle={{ borderRadius: '10px', border: '1px solid #e4e4e7', backgroundColor: '#ffffff', color: '#09090b', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                 formatter={(val: any) => [`$${val.toLocaleString()}`, "Value"]}
               />
               <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />

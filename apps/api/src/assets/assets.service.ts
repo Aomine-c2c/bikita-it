@@ -8,17 +8,40 @@ export class AssetsService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createAssetDto: CreateAssetDto) {
-    return this.prisma.hardwareAsset.create({ data: createAssetDto as any });
-  }
-
-  findAll() {
-    return this.prisma.hardwareAsset.findMany({
+    return this.prisma.hardwareAsset.create({ 
+      data: createAssetDto,
       include: {
         assignee: { select: { id: true, name: true, email: true } },
         location: { select: { id: true, name: true, type: true } },
-      },
-      orderBy: { createdAt: 'desc' },
+      }
     });
+  }
+
+  async findAll(page: number = 1, limit: number = 50) {
+    const skip = (page - 1) * limit;
+    
+    const [assets, total] = await Promise.all([
+      this.prisma.hardwareAsset.findMany({
+        include: {
+          assignee: { select: { id: true, name: true, email: true } },
+          location: { select: { id: true, name: true, type: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.hardwareAsset.count()
+    ]);
+
+    return {
+      data: assets,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      }
+    };
   }
 
   async findOne(id: string) {
@@ -37,7 +60,11 @@ export class AssetsService {
   update(id: string, updateAssetDto: UpdateAssetDto) {
     return this.prisma.hardwareAsset.update({
       where: { id },
-      data: updateAssetDto as any,
+      data: updateAssetDto,
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        location: { select: { id: true, name: true, type: true } },
+      }
     });
   }
 

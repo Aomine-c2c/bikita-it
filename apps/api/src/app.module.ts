@@ -12,6 +12,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from './auth/auth.module';
 import { BackupModule } from './backup/backup.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { BackupModule } from './backup/backup.module';
     InventoryModule,
     AuthModule,
     BackupModule,
+    DashboardModule,
+    SettingsModule,
     ScheduleModule.forRoot()
   ],
   controllers: [AppController],

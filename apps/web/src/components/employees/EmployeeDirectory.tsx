@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Laptop, Ticket, Building, Mail, Phone, MoreHorizontal, X, ShieldAlert, Monitor, HardDrive, Key } from "lucide-react";
+import { Laptop, Ticket, Building, Mail, Phone, MoreHorizontal, X, Monitor, Key } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -42,10 +42,38 @@ const getStatusColor = (status: string) => {
 
 export function EmployeeDirectory() {
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="bg-white border border-border/60 rounded-2xl shadow-sm overflow-hidden animate-pulse">
+            <div className="h-16 bg-slate-100" />
+            <div className="px-5 pb-5">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 -mt-8 mb-3 border-4 border-white" />
+              <div className="h-4 bg-slate-100 rounded w-3/4 mb-2" />
+              <div className="h-3 bg-slate-100 rounded w-1/2 mb-4" />
+              <div className="space-y-2 mb-5">
+                <div className="h-3 bg-slate-100 rounded w-full" />
+                <div className="h-3 bg-slate-100 rounded w-5/6" />
+                <div className="h-3 bg-slate-100 rounded w-2/3" />
+              </div>
+              <div className="h-8 bg-slate-100 rounded w-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
-      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {mockEmployees.map((emp) => (
           <div key={emp.id} onClick={() => setSelectedEmp(emp)} className="block group cursor-pointer">
@@ -95,7 +123,6 @@ export function EmployeeDirectory() {
         ))}
       </div>
 
-      {/* Drawer */}
       <AnimatePresence>
         {selectedEmp && (
           <div className="fixed inset-0 z-50 flex justify-end">
@@ -113,7 +140,6 @@ export function EmployeeDirectory() {
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="relative w-full max-w-xl bg-[#FAFAFA] h-full border-l border-border/60 flex flex-col z-10"
             >
-              {/* Drawer Header */}
               <div className="bg-white px-6 py-8 border-b border-border/40 relative">
                 <button onClick={() => setSelectedEmp(null)} className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 transition-colors">
                   <X className="w-5 h-5 text-muted-foreground" />
@@ -135,10 +161,7 @@ export function EmployeeDirectory() {
                 </div>
               </div>
 
-              {/* Drawer Content */}
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                
-                {/* Contact Info */}
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Contact Information</h3>
                   <div className="bg-white border border-border/60 rounded-xl overflow-hidden">
@@ -166,7 +189,6 @@ export function EmployeeDirectory() {
                   </div>
                 </div>
 
-                {/* Assigned Assets */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Assigned Assets & Equipment</h3>
@@ -194,7 +216,6 @@ export function EmployeeDirectory() {
                   </div>
                 </div>
 
-                {/* Ticket History */}
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Recent Tickets</h3>
                   <div className="bg-white border border-border/60 rounded-xl overflow-hidden">
@@ -214,7 +235,6 @@ export function EmployeeDirectory() {
                     ))}
                   </div>
                 </div>
-
               </div>
             </motion.div>
           </div>

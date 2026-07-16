@@ -100,14 +100,14 @@ export function EmployeeHero({ employeeId }: EmployeeHeroProps) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="bg-slate-950 rounded-2xl p-6 text-white min-w-[240px] shadow-lg relative overflow-hidden"
+          className="bg-white border border-border/60 rounded-2xl p-6 min-w-[240px] shadow-sm relative overflow-hidden"
         >
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 relative z-10">Total Equipment Value</p>
-          <p className="text-4xl font-bold tracking-tight relative z-10">{emp.equipmentValue}</p>
-          <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs relative z-10">
-            <span className="text-slate-300 font-medium">4 Active Assets</span>
-            <span className="font-bold">Good Standing</span>
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1 relative z-10">Total Equipment Value</p>
+          <p className="text-4xl font-bold tracking-tight text-foreground relative z-10">{emp.equipmentValue}</p>
+          <div className="mt-4 pt-4 border-t border-border/40 flex justify-between items-center text-xs relative z-10">
+            <span className="text-muted-foreground font-medium">4 Active Assets</span>
+            <span className="font-bold text-emerald-600">Good Standing</span>
           </div>
         </motion.div>
 

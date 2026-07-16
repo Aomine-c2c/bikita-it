@@ -39,22 +39,35 @@ interface RepairQueueProps {
 }
 
 export function RepairQueue({ activeId, onSelect }: RepairQueueProps) {
+  const [search, setSearch] = React.useState("");
+
+  const filtered = repairQueue.filter((item) =>
+    [item.id, item.ticketId, item.device, item.issue, item.status]
+      .some((v) => v && typeof v === 'string' && v.toLowerCase().includes(search.toLowerCase()))
+  );
+
   return (
     <div className="bg-white border border-border/60 rounded-xl shadow-sm flex flex-col h-full overflow-hidden">
       <div className="p-4 border-b border-border/40 bg-[#FAFAFA]">
         <h2 className="text-sm font-bold text-foreground mb-3">Active Repairs</h2>
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input 
-            type="text" 
-            placeholder="Search repairs..." 
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search repairs..."
             className="w-full pl-9 pr-3 py-1.5 bg-white border border-border/60 rounded-md text-xs outline-none focus:border-primary shadow-sm"
           />
         </div>
       </div>
       
       <div className="flex-1 overflow-y-auto divide-y divide-border/40">
-        {repairQueue.map((item) => (
+        {filtered.length === 0 ? (
+          <div className="flex items-center justify-center h-32 text-xs text-muted-foreground">
+            No repairs match &ldquo;{search}&rdquo;
+          </div>
+        ) : filtered.map((item) => (
           <div 
             key={item.id}
             onClick={() => onSelect(item.id)}

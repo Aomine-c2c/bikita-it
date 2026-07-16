@@ -47,7 +47,7 @@ const stockConsumption = [
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-900 text-white text-xs p-3 rounded-lg shadow-xl border border-white/10">
+      <div className="bg-white text-foreground text-xs p-3 rounded-lg shadow-xl border border-border/60">
         <p className="font-bold mb-2">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center justify-between gap-4">

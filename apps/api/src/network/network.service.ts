@@ -5,20 +5,41 @@ import { PrismaService } from '../prisma/prisma.service';
 export class NetworkService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: any) {
-    return this.prisma.connectedDevice.create({ data });
-  }
-
-  findAll() {
-    return this.prisma.connectedDevice.findMany({
-      include: { employee: true },
-      orderBy: { lastSeen: 'desc' },
+  async create(data: any) {
+    return this.prisma.connectedDevice.create({ 
+      data,
+      include: { employee: { select: { id: true, name: true, email: true } } }
     });
   }
 
-  findStaged() {
+  async findAll(page: number = 1, limit: number = 50) {
+    const skip = (page - 1) * limit;
+    
+    const [devices, total] = await Promise.all([
+      this.prisma.connectedDevice.findMany({
+        include: { employee: { select: { id: true, name: true, email: true } } },
+        orderBy: { lastSeen: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.connectedDevice.count()
+    ]);
+
+    return {
+      data: devices,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      }
+    };
+  }
+
+  async findStaged() {
     return this.prisma.connectedDevice.findMany({
       where: { connectionStatus: 'STAGED' },
+      include: { employee: { select: { id: true, name: true, email: true } } },
       orderBy: { lastSeen: 'desc' },
     });
   }
@@ -32,14 +53,15 @@ export class NetworkService {
     return device;
   }
 
-  update(id: string, data: any) {
+  async update(id: string, data: any) {
     return this.prisma.connectedDevice.update({
       where: { id },
       data,
+      include: { employee: { select: { id: true, name: true, email: true } } }
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     return this.prisma.connectedDevice.delete({ where: { id } });
   }
 }

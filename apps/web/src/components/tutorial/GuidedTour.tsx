@@ -22,25 +22,88 @@ export function GuidedTour() {
             element: "body",
             popover: {
               title: "Welcome to Xiphos! 👋",
-              description: "This is your enterprise IT operations platform. Let's take a quick tour of the main features.",
+              description: "This is your enterprise IT operations platform. Let's take a comprehensive tour of the main features.",
               side: "top",
               align: "center"
             }
           },
           {
-            element: "nav", // The sidebar
+            element: "#tour-sidebar-nav",
             popover: {
-              title: "Navigation",
-              description: "Use the sidebar to jump between Inventory, Network topology, Repairs, and more.",
+              title: "Navigation Menu",
+              description: "Use the sidebar to jump between Core Operations, Infrastructure, and Governance modules. You can manage Assets, Network topology, Repairs, and more.",
               side: "right",
               align: "start"
             }
           },
           {
-            element: ".fixed.bottom-6.right-6", // The FAB button (if present)
+            element: "#tour-search",
+            popover: {
+              title: "Global Search",
+              description: "Quickly find assets, tickets, users, or any other resource across the platform using the global search.",
+              side: "bottom",
+              align: "start"
+            }
+          },
+          {
+            element: "#tour-ai",
+            popover: {
+              title: "AI Assistant",
+              description: "Stuck? Ask the integrated AI Assistant for help with IT queries, troubleshooting, or navigating the platform.",
+              side: "bottom",
+              align: "center"
+            }
+          },
+          {
+            element: "#tour-dashboard-kpis",
+            popover: {
+              title: "Critical KPIs",
+              description: "At a glance, monitor Total Hardware Assets, Assets At Risk, Low Stock Items, and Active Network Devices. These metrics reflect real-time database data.",
+              side: "bottom",
+              align: "start"
+            }
+          },
+          {
+            element: "#tour-inventory-trend",
+            popover: {
+              title: "Inventory Transactions Trend",
+              description: "Visualize hardware intake vs issue trends over the last 7 days to forecast equipment needs.",
+              side: "top",
+              align: "start"
+            }
+          },
+          {
+            element: "#tour-system-status",
+            popover: {
+              title: "System Status",
+              description: "Monitor the uptime and latency of core infrastructure systems like the VPN Gateway, ERP Integration, and Email Servers.",
+              side: "left",
+              align: "start"
+            }
+          },
+          {
+            element: "#tour-recent-activity",
+            popover: {
+              title: "Recent Activity Feed",
+              description: "A chronological audit trail of all recent operations and transactions across the platform.",
+              side: "top",
+              align: "start"
+            }
+          },
+          {
+            element: "#tour-active-repairs",
+            popover: {
+              title: "Active Repairs",
+              description: "Stay on top of ongoing maintenance. View current repair tickets, assigned technicians, and expected resolution times.",
+              side: "left",
+              align: "start"
+            }
+          },
+          {
+            element: ".fixed.bottom-6.right-6",
             popover: {
               title: "Quick Actions",
-              description: "Click this floating button anytime to add new assets or receive stock quickly.",
+              description: "Click this floating action button anytime to add new assets or log transactions quickly from anywhere.",
               side: "left",
               align: "end"
             }
@@ -55,10 +118,10 @@ export function GuidedTour() {
       });
 
       driverObj.drive();
-    }, 1000);
+    }, 1500); // Increased delay slightly to ensure network fetches are done before tour triggers
 
     return () => clearTimeout(timer);
   }, []);
 
-  return null; // This component doesn't render any UI itself
+  return null;
 }

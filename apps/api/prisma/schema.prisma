@@ -116,6 +116,12 @@ model HardwareAsset {
   
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+
+  // Database indexes for query performance
+  @@index([locationId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model InventoryItem {
@@ -132,6 +138,10 @@ model InventoryItem {
   dateReceived  DateTime? @default(now())
   
   stockTransactions StockTransaction[]
+
+  // Database indexes
+  @@index([category])
+  @@index([sku])
 }
 
 model Repair {
@@ -148,6 +158,11 @@ model Repair {
   
   technicianId        String?
   technician          Employee?        @relation("AssignedRepairs", fields: [technicianId], references: [id])
+
+  // Database indexes
+  @@index([hardwareId])
+  @@index([technicianId])
+  @@index([status])
   
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
@@ -214,4 +229,19 @@ model ConnectedDevice {
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String   // Store JSON stringified values
+  updatedAt DateTime @updatedAt
+}
+
+model SystemService {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  status    String   @default("online")
+  uptime    String?
+  latency   String?
+  updatedAt DateTime @updatedAt
 }

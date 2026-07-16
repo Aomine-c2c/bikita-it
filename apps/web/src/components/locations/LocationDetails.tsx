@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { Server, Monitor, HardDrive, Shield, Plus, MoreHorizontal, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DndContext, DragEndEvent, useDraggable, useDroppable } from "@dnd-kit/core";
+import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 // Mock assets for the Rack
 const initialRackAssets = [
@@ -138,7 +139,26 @@ export function LocationDetails({ location }: { location: any }) {
       
       const assetToMount = unmountedAssets.find(a => a.id === active.id);
       if (assetToMount && u) {
-        // Check if there is enough space (this is a simplified check)
+        // Check if the target position is already occupied
+        const isOccupied = mountedAssets.some(a => {
+          const assetEnd = a.position + a.uSize - 1;
+          const newAssetEnd = u + assetToMount.uSize - 1;
+          return (u >= a.position && u <= assetEnd) || 
+                 (a.position >= u && a.position <= newAssetEnd);
+        });
+
+        if (isOccupied) {
+          console.warn('Cannot mount asset: space already occupied');
+          return;
+        }
+
+        // Check if there's enough space from the target position
+        const spaceAvailable = u - assetToMount.uSize >= 0;
+        if (!spaceAvailable) {
+          console.warn('Cannot mount asset: insufficient space in rack');
+          return;
+        }
+
         setMountedAssets([...mountedAssets, { ...assetToMount, position: u }]);
         setUnmountedAssets(unmountedAssets.filter(a => a.id !== active.id));
       }

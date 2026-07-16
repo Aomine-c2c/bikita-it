@@ -17,7 +17,7 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
 
     const checkSetup = async () => {
       try {
-        const res = await fetch("http://localhost:3001/setup/check");
+        const res = await fetch("/api/setup/check");
         if (res.ok) {
           const data = await res.json();
           if (!data.isSetupComplete) {
