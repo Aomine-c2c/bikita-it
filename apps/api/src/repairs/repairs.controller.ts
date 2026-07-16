@@ -19,16 +19,16 @@ export class RepairsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.repairsService.findOne(+id);
+    return this.repairsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRepairDto: UpdateRepairDto) {
-    return this.repairsService.update(+id, updateRepairDto);
+    return this.repairsService.update(id, updateRepairDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.repairsService.remove(+id);
+    return this.repairsService.remove(id);
   }
 }

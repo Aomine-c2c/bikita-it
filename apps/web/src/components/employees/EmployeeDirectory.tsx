@@ -1,34 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { Laptop, Ticket, Building, Mail, Phone, MoreHorizontal, X, Monitor, Key } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Laptop, Ticket, Building, Mail, Phone, MoreHorizontal, X, Monitor, Key, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-
-const mockEmployees = [
-  { id: "EMP-001", name: "Sarah Jenkins", role: "Senior Software Engineer", department: "Engineering", email: "sarah.j@xiphos.com", phone: "+1 (555) 019-2831", status: "Active", avatar: "SJ", assets: 4, value: "$6,250", tickets: 2 },
-  { id: "EMP-002", name: "Mike Ross", role: "Product Designer", department: "Design", email: "mike.r@xiphos.com", phone: "+1 (555) 018-9273", status: "Active", avatar: "MR", assets: 3, value: "$4,800", tickets: 0 },
-  { id: "EMP-003", name: "Emily Chen", role: "DevOps Specialist", department: "Engineering", email: "emily.c@xiphos.com", phone: "+1 (555) 012-4451", status: "Active", avatar: "EC", assets: 5, value: "$8,900", tickets: 1 },
-  { id: "EMP-004", name: "David Kim", role: "Marketing Director", department: "Marketing", email: "david.k@xiphos.com", phone: "+1 (555) 016-7782", status: "Active", avatar: "DK", assets: 2, value: "$2,400", tickets: 0 },
-  { id: "EMP-005", name: "Alex Mercer", role: "Data Scientist", department: "Engineering", email: "alex.m@xiphos.com", phone: "+1 (555) 019-3321", status: "Onboarding", avatar: "AM", assets: 0, value: "$0", tickets: 0 },
-  { id: "EMP-006", name: "Jessica Day", role: "HR Manager", department: "HR & Ops", email: "jessica.d@xiphos.com", phone: "+1 (555) 015-8899", status: "Leave", avatar: "JD", assets: 2, value: "$1,800", tickets: 3 },
-  { id: "EMP-007", name: "Harvey Specter", role: "Chief Executive Officer", department: "Executive", email: "harvey.s@xiphos.com", phone: "+1 (555) 011-1000", status: "Active", avatar: "HS", assets: 6, value: "$12,500", tickets: 0 },
-  { id: "EMP-008", name: "Rachel Zane", role: "Legal Counsel", department: "Executive", email: "rachel.z@xiphos.com", phone: "+1 (555) 017-4433", status: "Active", avatar: "RZ", assets: 2, value: "$3,200", tickets: 1 },
-];
-
-const mockAssignedAssets = [
-  { id: "XIP-1024", name: "MacBook Pro 16\"", category: "Hardware", status: "Healthy", icon: Laptop },
-  { id: "XIP-3091", name: "Dell UltraSharp 27\"", category: "Hardware", status: "Healthy", icon: Monitor },
-  { id: "INV-004", name: "Makita Hammer Drill", category: "Tool (Loan)", status: "Active", icon: Key },
-  { id: "INV-081", name: "Fluke Multimeter", category: "Tool (Loan)", status: "Active", icon: Key },
-  { id: "NET-042", name: "Cisco IP Phone", category: "Hardware", status: "Healthy", icon: Phone },
-];
-
-const mockTicketHistory = [
-  { id: "TKT-1004", title: "Cannot access VPN", date: "2 days ago", status: "Resolved", priority: "High" },
-  { id: "TKT-0892", title: "Need Figma License", date: "1 month ago", status: "Resolved", priority: "Low" },
-  { id: "TKT-0811", title: "Monitor flickering", date: "2 months ago", status: "Resolved", priority: "Medium" },
-];
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -40,14 +15,56 @@ const getStatusColor = (status: string) => {
   }
 };
 
+// Mapping from Prisma Employee role/status to display-friendly labels
+function deriveStatus(emp: any): string {
+  if (!emp) return "Active";
+  // Use the role field as a proxy since status doesn't exist in DB
+  const statusMap: Record<string, string> = {
+    ADMIN: "Active",
+    IT_SUPPORT: "Active",
+    MANAGER: "Active",
+    STOREKEEPER: "Active",
+    EMPLOYEE: "Active",
+  };
+  return statusMap[emp.role] ?? "Active";
+}
+
 export function EmployeeDirectory() {
+  const [employees, setEmployees] = useState<any[]>([]);
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    fetchEmployees();
   }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : data.data ?? data ?? [];
+        const mapped = items.map((emp: any) => ({
+          id: emp.id?.substring(0, 8) ?? emp.id,
+          name: emp.name,
+          role: emp.position ?? emp.role ?? 'Employee',
+          department: emp.department ?? '—',
+          email: emp.email,
+          phone: emp.office ?? '—',
+          status: deriveStatus(emp),
+          avatar: emp.name ? emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "?",
+          assets: 0,
+          value: "$0",
+          tickets: 0,
+        }));
+        setEmployees(mapped);
+      }
+    } catch (e) {
+      console.error('Failed to fetch employees:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -75,7 +92,12 @@ export function EmployeeDirectory() {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {mockEmployees.map((emp) => (
+        {employees.length === 0 && (
+          <div className="col-span-full text-center py-16 text-sm text-muted-foreground">
+            No employees found. Add employees through the Employees section.
+          </div>
+        )}
+        {employees.map((emp) => (
           <div key={emp.id} onClick={() => setSelectedEmp(emp)} className="block group cursor-pointer">
             <div className="bg-white border border-border/60 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group-hover:border-primary/30">
               <div className="h-16 bg-gradient-to-r from-slate-100 to-slate-50" />
@@ -190,58 +212,16 @@ export function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Assigned Assets & Equipment</h3>
-                    <span 
-                      onClick={() => alert('Assign asset functionality - Would open asset assignment modal')}
-                      className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
-                    >
-                      Assign New
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {mockAssignedAssets.map((asset) => (
-                      <div 
-                        key={asset.id} 
-                        onClick={() => alert('Asset details functionality - Would navigate to asset details page')}
-                        className="bg-white border border-border/60 rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-colors cursor-pointer group"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
-                            <asset.icon className="w-5 h-5 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{asset.name}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[10px] font-mono text-muted-foreground">{asset.id}</span>
-                              <span className="text-[10px] text-muted-foreground/50">•</span>
-                              <span className="text-[10px] font-medium text-muted-foreground">{asset.category}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <MoreHorizontal className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    ))}
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Assigned Assets & Equipment</h3>
+                  <div className="p-8 text-center text-sm text-muted-foreground bg-white border border-border/60 rounded-xl">
+                    <p>Asset assignment tracking coming soon.</p>
                   </div>
                 </div>
 
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Recent Tickets</h3>
-                  <div className="bg-white border border-border/60 rounded-xl overflow-hidden">
-                    {mockTicketHistory.map((tkt, idx) => (
-                      <div key={tkt.id} className="p-4 border-b border-border/40 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer">
-                        <div className="flex justify-between items-start mb-1">
-                          <p className="text-sm font-bold text-foreground">{tkt.title}</p>
-                          <span className="text-[10px] font-medium text-muted-foreground">{tkt.date}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono text-muted-foreground">{tkt.id}</span>
-                          <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-slate-100 text-slate-600 border border-slate-200">
-                            {tkt.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="p-8 text-center text-sm text-muted-foreground bg-white border border-border/60 rounded-xl">
+                    <p>No tickets found for this employee.</p>
                   </div>
                 </div>
               </div>
