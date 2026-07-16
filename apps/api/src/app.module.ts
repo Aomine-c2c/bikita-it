@@ -7,9 +7,24 @@ import { AssetsModule } from './assets/assets.module';
 import { NetworkModule } from './network/network.module';
 import { RepairsModule } from './repairs/repairs.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { ScheduleModule } from '@nestjs/schedule';
+
+
+import { AuthModule } from './auth/auth.module';
+import { BackupModule } from './backup/backup.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AssetsModule, NetworkModule, RepairsModule, InventoryModule],
+  imports: [
+    PrismaModule,
+    UsersModule,
+    AssetsModule,
+    NetworkModule,
+    RepairsModule,
+    InventoryModule,
+    AuthModule,
+    BackupModule,
+    ScheduleModule.forRoot()
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -16,6 +16,13 @@ export class NetworkService {
     });
   }
 
+  findStaged() {
+    return this.prisma.connectedDevice.findMany({
+      where: { connectionStatus: 'STAGED' },
+      orderBy: { lastSeen: 'desc' },
+    });
+  }
+
   async findOne(id: string) {
     const device = await this.prisma.connectedDevice.findUnique({
       where: { id },

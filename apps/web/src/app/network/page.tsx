@@ -6,6 +6,7 @@ import { NetworkHealth } from "@/components/network/NetworkHealth";
 import { NetworkTopology } from "@/components/network/NetworkTopology";
 import { SwitchDetails } from "@/components/network/SwitchDetails";
 import { NetworkAlerts } from "@/components/network/NetworkAlerts";
+import { DiscoveryStagingTable } from "@/components/network/DiscoveryStagingTable";
 import { motion } from "framer-motion";
 
 export default function NetworkOperationsPage() {
@@ -78,6 +79,16 @@ export default function NetworkOperationsPage() {
           </motion.div>
 
         </div>
+
+        {/* Discovery Staging Queue */}
+        <motion.div
+          className="mt-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <DiscoveryStagingTable />
+        </motion.div>
 
       </div>
     </DashboardLayout>

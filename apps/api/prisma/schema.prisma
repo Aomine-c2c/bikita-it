@@ -69,6 +69,7 @@ model Employee {
   id              String            @id @default(uuid())
   name            String
   email           String            @unique
+  passwordHash    String?
   department      String?
   position        String?
   office          String?

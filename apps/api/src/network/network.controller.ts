@@ -1,9 +1,25 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { NetworkService } from './network.service';
+import { DiscoveryService } from './discovery.service';
 
 @Controller('network')
 export class NetworkController {
-  constructor(private readonly networkService: NetworkService) {}
+  constructor(
+    private readonly networkService: NetworkService,
+    private readonly discoveryService: DiscoveryService
+  ) {}
+
+  @Post('discovery/scan')
+  async triggerScan() {
+    // Run asynchronously without awaiting so it doesn't block the request
+    this.discoveryService.scanNetwork();
+    return { message: 'Network scan started' };
+  }
+
+  @Get('discovery/staged')
+  findStaged() {
+    return this.networkService.findStaged();
+  }
 
   @Post()
   create(@Body() createNetworkDto: any) {
