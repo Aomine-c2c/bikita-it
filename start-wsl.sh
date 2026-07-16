@@ -16,6 +16,10 @@ npm install
 echo "[3/4] 🏗️ Building the project..."
 # Push schema and generate Prisma client
 cd apps/api
+if [ ! -f .env ]; then
+  echo "DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/bikitait?schema=public\"" > .env
+  echo "Created default .env for Prisma."
+fi
 npx prisma db push --accept-data-loss
 npx prisma generate
 cd ../..

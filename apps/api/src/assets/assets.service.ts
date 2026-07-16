@@ -14,7 +14,7 @@ export class AssetsService {
   findAll() {
     return this.prisma.hardwareAsset.findMany({
       include: {
-        assignedUser: { select: { id: true, name: true, email: true } },
+        assignee: { select: { id: true, name: true, email: true } },
         location: { select: { id: true, name: true, type: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -25,7 +25,7 @@ export class AssetsService {
     const asset = await this.prisma.hardwareAsset.findUnique({
       where: { id },
       include: {
-        assignedUser: true,
+        assignee: true,
         location: true,
         repairs: { orderBy: { createdAt: 'desc' }, take: 5 },
       },
