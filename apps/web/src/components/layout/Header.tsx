@@ -65,12 +65,20 @@ export function Header({ onToggleAI, isAIOpen }: HeaderProps = {}) {
             <Sparkles className="w-4 h-4" />
           </button>
 
-          <button className="p-1.5 rounded-md hover:bg-zinc-50 transition-colors text-muted-foreground hover:text-foreground border border-border/50 bg-white shadow-sm relative">
+          <button 
+            onClick={() => window.location.href = '/settings'}
+            className="p-1.5 rounded-md hover:bg-zinc-50 transition-colors text-muted-foreground hover:text-foreground border border-border/50 bg-white shadow-sm relative"
+            title="Notifications"
+          >
             <Bell className="w-4 h-4" />
             <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full" />
           </button>
 
-          <button className="p-1.5 rounded-md hover:bg-zinc-50 transition-colors text-muted-foreground hover:text-foreground border border-border/50 bg-white shadow-sm">
+          <button 
+            onClick={() => window.location.href = '/settings'}
+            className="p-1.5 rounded-md hover:bg-zinc-50 transition-colors text-muted-foreground hover:text-foreground border border-border/50 bg-white shadow-sm"
+            title="Settings"
+          >
             <Settings className="w-4 h-4" />
           </button>
 

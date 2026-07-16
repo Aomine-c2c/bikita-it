@@ -51,7 +51,9 @@ export function AssetTable() {
     setError(null);
     try {
       const data = await assetApi.getAll();
-      setAssets(data);
+      // API returns { data: assets[], pagination: {...} }
+      const assetsArray = Array.isArray(data) ? data : (data as any)?.data ?? [];
+      setAssets(assetsArray);
     } catch (e: any) {
       console.warn("API unavailable, falling back to mock data:", e.message);
       setAssets(MOCK_ASSETS);

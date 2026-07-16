@@ -173,13 +173,17 @@ export function Sidebar() {
       <div className={cn("shrink-0 p-3", collapsed ? "flex justify-center" : "")}>
         {collapsed ? (
           <div
+            onClick={() => window.location.href = '/settings'}
             title="John Doe — IT Administrator"
             className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-300 transition-colors"
           >
             <span className="text-xs font-bold text-primary">JD</span>
           </div>
         ) : (
-          <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.04)] border border-border/50 cursor-pointer hover:bg-slate-50 transition-colors">
+          <div 
+            onClick={() => window.location.href = '/settings'}
+            className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.04)] border border-border/50 cursor-pointer hover:bg-slate-50 transition-colors"
+          >
             <div className="w-8 h-8 rounded-full shrink-0 bg-slate-100 flex items-center justify-center border border-border/40">
               <span className="text-xs font-bold text-primary">JD</span>
             </div>

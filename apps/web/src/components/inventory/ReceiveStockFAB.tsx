@@ -129,7 +129,13 @@ export function ReceiveStockFAB() {
                 {step === 1 ? (
                   <>
                     <button onClick={handleClose} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
-                    <button onClick={() => setStep(2)} className="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors">
+                    <button 
+                      onClick={() => {
+                        alert('Stock intake functionality - Would call API to create inventory item and log transaction');
+                        setStep(2);
+                      }} 
+                      className="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors"
+                    >
                       Confirm Intake
                     </button>
                   </>

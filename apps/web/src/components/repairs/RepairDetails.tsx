@@ -35,7 +35,10 @@ export function RepairDetails({ repair }: RepairDetailsProps) {
             </h1>
             <p className="text-sm text-muted-foreground mt-1">Reported Issue: {repair.issue}</p>
           </div>
-          <button className="flex items-center gap-2 bg-slate-950 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm">
+          <button 
+            onClick={() => alert('Customer update functionality - Would open communication modal')}
+            className="flex items-center gap-2 bg-slate-950 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm"
+          >
             <MessageSquare className="w-4 h-4" /> Update Customer
           </button>
         </div>
@@ -111,7 +114,10 @@ export function RepairDetails({ repair }: RepairDetailsProps) {
                   </div>
                   <span className="text-sm font-bold text-slate-400">Before Repair (Damage)</span>
                 </div>
-                <div className="aspect-video bg-slate-100 rounded-xl border border-border/60 border-dashed flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors cursor-pointer">
+                <div 
+                  onClick={() => alert('Photo upload functionality - Would open file picker and upload to server')}
+                  className="aspect-video bg-slate-100 rounded-xl border border-border/60 border-dashed flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors cursor-pointer"
+                >
                   <Wrench className="w-6 h-6 mb-2" />
                   <span className="text-xs font-bold uppercase tracking-wider">Upload After Photo</span>
                 </div>

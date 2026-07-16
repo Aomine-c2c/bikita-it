@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
-import { Laptop, Smartphone, Printer, Search } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Laptop, Smartphone, Printer, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// --- Mock Data ---
+// --- Real API Data ---
 export interface RepairItem {
   id: string;
   ticketId: string;
@@ -15,13 +15,20 @@ export interface RepairItem {
   date: string;
 }
 
-const repairQueue: RepairItem[] = [
-  { id: "REP-901", ticketId: "TKT-1003", device: "MacBook Pro M2 Max", issue: "Battery Swelling", status: "Repairing", icon: Laptop, date: "Today" },
-  { id: "REP-902", ticketId: "TKT-1044", device: "Dell XPS 15", issue: "Display flickering", status: "Waiting Parts", icon: Laptop, date: "Yesterday" },
-  { id: "REP-903", ticketId: "TKT-1089", device: "iPhone 14 Pro", issue: "Shattered screen", status: "Diagnosis", icon: Smartphone, date: "Oct 12" },
-  { id: "REP-904", ticketId: "TKT-1092", device: "HP LaserJet Pro", issue: "Paper jam error 42", status: "Ready", icon: Printer, date: "Oct 10" },
-  { id: "REP-905", ticketId: "TKT-1101", device: "Lenovo ThinkPad X1", issue: "Keyboard sticky", status: "Repairing", icon: Laptop, date: "Oct 09" },
-];
+const STATUS_MAP: Record<string, string> = {
+  QUEUED: "Diagnosis",
+  WAITING_PARTS: "Waiting Parts",
+  IN_PROGRESS: "Repairing",
+  COMPLETED: "Ready",
+};
+
+const ICON_MAP: Record<string, any> = {
+  LAPTOP: Laptop,
+  DESKTOP: Laptop,
+  MONITOR: Laptop,
+  MOBILE: Smartphone,
+  PRINTING: Printer,
+};
 
 const getStatusStyle = (status: string) => {
   switch (status) {
@@ -40,8 +47,39 @@ interface RepairQueueProps {
 
 export function RepairQueue({ activeId, onSelect }: RepairQueueProps) {
   const [search, setSearch] = React.useState("");
+  const [repairs, setRepairs] = useState<RepairItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = repairQueue.filter((item) =>
+  useEffect(() => {
+    fetchRepairs();
+  }, []);
+
+  const fetchRepairs = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/repairs');
+      if (res.ok) {
+        const data = await res.json();
+        const rawRepairs = data.data ?? data ?? [];
+        const mapped = rawRepairs.map((r: any) => ({
+          id: r.id?.substring(0, 8) ?? r.id,
+          ticketId: r.id?.substring(0, 8) ?? r.id,
+          device: r.hardware ? `${r.hardware.make ?? 'Unknown'} ${r.hardware.model ?? ''}` : 'Unknown Device',
+          issue: r.description ?? '',
+          status: STATUS_MAP[r.status] ?? 'Diagnosis',
+          icon: ICON_MAP[r.hardware?.category] ?? Laptop,
+          date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) : '—',
+        }));
+        setRepairs(mapped);
+      }
+    } catch (e) {
+      console.error('Failed to fetch repairs:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filtered = repairs.filter((item) =>
     [item.id, item.ticketId, item.device, item.issue, item.status]
       .some((v) => v && typeof v === 'string' && v.toLowerCase().includes(search.toLowerCase()))
   );
@@ -63,9 +101,13 @@ export function RepairQueue({ activeId, onSelect }: RepairQueueProps) {
       </div>
       
       <div className="flex-1 overflow-y-auto divide-y divide-border/40">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-xs text-muted-foreground">
-            No repairs match &ldquo;{search}&rdquo;
+            {repairs.length === 0 ? 'No repairs found.' : `No repairs match "${search}"`}
           </div>
         ) : filtered.map((item) => (
           <div 
@@ -105,5 +147,3 @@ export function RepairQueue({ activeId, onSelect }: RepairQueueProps) {
     </div>
   );
 }
-
-export { repairQueue };

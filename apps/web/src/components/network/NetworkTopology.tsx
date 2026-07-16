@@ -35,7 +35,10 @@ function NetworkNode({ data }: { data: any }) {
   const Icon = data.icon ?? Server;
 
   return (
-    <div className={cn("px-3 py-2.5 rounded-xl border-2 shadow-sm bg-white min-w-[130px] cursor-pointer hover:shadow-md transition-shadow", statusColor)}>
+    <div 
+      onClick={() => alert(`Device details: ${data.label} - ${data.sub}\nStatus: ${data.status}\n\nWould open device configuration panel`)}
+      className={cn("px-3 py-2.5 rounded-xl border-2 shadow-sm bg-white min-w-[130px] cursor-pointer hover:shadow-md transition-shadow", statusColor)}
+    >
       <Handle type="target" position={Position.Top} className="!bg-slate-300 !border-slate-300 !w-2 !h-2" />
       <div className="flex items-center gap-2">
         <div className={cn("w-6 h-6 rounded-lg flex items-center justify-center shrink-0", {

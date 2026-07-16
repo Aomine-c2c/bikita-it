@@ -29,7 +29,10 @@ export default function AssetsPage() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-2"
           >
-            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground border border-primary hover:bg-primary/90 rounded-md text-xs font-semibold transition-colors shadow-sm">
+            <button 
+              onClick={() => alert('Add Asset functionality - Would open asset creation modal')}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground border border-primary hover:bg-primary/90 rounded-md text-xs font-semibold transition-colors shadow-sm"
+            >
               <Plus className="w-3.5 h-3.5" />
               Add Asset
             </button>

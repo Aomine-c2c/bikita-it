@@ -1,17 +1,8 @@
 "use client";
 
-import React from "react";
-import { MoreHorizontal, Box, QrCode, Barcode, Plus } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { MoreHorizontal, Box, QrCode, Barcode, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const mockInventory = [
-  { id: "INV-001", item: "Logitech MX Master 3S", category: "Peripherals", quantity: 42, minStock: 10, maxStock: 50, reorderLevel: 15, warehouse: "Main HQ", shelf: "A-12", supplier: "TechData", cost: "$99.00", trackable: "SERIALIZED" },
-  { id: "INV-002", item: "Cat6 Ethernet Cable (Box)", category: "Cables", quantity: 8, minStock: 20, maxStock: 100, reorderLevel: 25, warehouse: "Main HQ", shelf: "B-04", supplier: "Amazon Business", cost: "$14.50", trackable: "CONSUMABLE" },
-  { id: "INV-003", item: "PTZ Dome Camera", category: "Cameras", quantity: 5, minStock: 2, maxStock: 20, reorderLevel: 5, warehouse: "Processing Plant", shelf: "C-01", supplier: "CDW", cost: "$450.00", trackable: "NON_RETURNABLE" },
-  { id: "INV-004", item: "Makita Hammer Drill", category: "Tools", quantity: 3, minStock: 2, maxStock: 5, reorderLevel: 2, warehouse: "Main HQ", shelf: "A-09", supplier: "Home Depot", cost: "$180.00", trackable: "RETURNABLE" },
-  { id: "INV-005", item: "HP Toner Cartridge Black", category: "Printers", quantity: 12, minStock: 15, maxStock: 40, reorderLevel: 20, warehouse: "Main HQ", shelf: "D-11", supplier: "Staples", cost: "$85.00", trackable: "CONSUMABLE" },
-  { id: "INV-006", item: "Screwdriver Set", category: "Tools", quantity: 14, minStock: 10, maxStock: 30, reorderLevel: 15, warehouse: "Processing Plant", shelf: "E-02", supplier: "CDW", cost: "$35.00", trackable: "RETURNABLE" },
-];
 
 const getQuantityColor = (quantity: number, reorderLevel: number) => {
   if (quantity === 0) return "bg-destructive/10 text-destructive border-destructive/20";
@@ -20,12 +11,59 @@ const getQuantityColor = (quantity: number, reorderLevel: number) => {
 };
 
 export function InventoryTable() {
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] = useState("");
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockInventory.filter((item) =>
-    [item.id, item.item, item.category, item.supplier, item.warehouse, item.shelf]
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const fetchInventory = async () => {
+    try {
+      const res = await fetch('/api/inventory');
+      if (res.ok) {
+        const data = await res.json();
+        // API returns { data: items[], pagination: {...} }
+        const rawItems = data.data ?? data.items ?? [];
+        // Map Prisma field names to what the table expects
+        const mapped = rawItems.map((item: any) => ({
+          id: item.sku ?? item.id,
+          sku: item.sku ?? item.id,
+          item: item.name,
+          name: item.name,
+          category: item.category,
+          quantity: item.quantity,
+          reorderLevel: item.minStock,
+          warehouse: item.binLocation?.split('-')[0] ?? 'Main HQ',
+          shelf: item.binLocation ?? '—',
+          supplier: item.supplier ?? '—',
+          cost: item.unitCost ? `$${item.unitCost.toFixed(2)}` : '—',
+          trackable: item.type ?? 'CONSUMABLE',
+        }));
+        setInventory(mapped);
+      }
+    } catch (error) {
+      console.error('Failed to fetch inventory:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filtered = inventory.filter((item) =>
+    [item.id, item.item, item.name, item.category, item.supplier, item.warehouse, item.shelf]
       .some((v) => v && typeof v === 'string' && v.toLowerCase().includes(search.toLowerCase()))
   );
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden flex flex-col mt-6">
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden flex flex-col mt-6">

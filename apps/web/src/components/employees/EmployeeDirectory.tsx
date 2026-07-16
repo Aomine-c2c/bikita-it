@@ -192,11 +192,20 @@ export function EmployeeDirectory() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Assigned Assets & Equipment</h3>
-                    <span className="text-[11px] font-bold text-primary hover:underline cursor-pointer">Assign New</span>
+                    <span 
+                      onClick={() => alert('Assign asset functionality - Would open asset assignment modal')}
+                      className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
+                    >
+                      Assign New
+                    </span>
                   </div>
                   <div className="space-y-3">
                     {mockAssignedAssets.map((asset) => (
-                      <div key={asset.id} className="bg-white border border-border/60 rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-colors cursor-pointer group">
+                      <div 
+                        key={asset.id} 
+                        onClick={() => alert('Asset details functionality - Would navigate to asset details page')}
+                        className="bg-white border border-border/60 rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-colors cursor-pointer group"
+                      >
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
                             <asset.icon className="w-5 h-5 text-muted-foreground" />

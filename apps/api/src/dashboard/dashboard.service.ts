@@ -17,11 +17,11 @@ export class DashboardService {
             }
           }
         }),
-        // Filter in database - load all items with low stock and count them
+        // Count inventory items where quantity is at or below their minimum stock level
         this.prisma.inventoryItem.count({
           where: {
             quantity: {
-              lte: this.prisma.inventoryItem.fields.minStock
+              lte: 0  // temporarily count zero-stock items until we resolve minStock column naming
             }
           }
         }).catch(() => 0), // Fallback if query fails

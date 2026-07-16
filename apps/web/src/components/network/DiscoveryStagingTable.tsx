@@ -23,10 +23,11 @@ export function DiscoveryStagingTable() {
   const fetchStagedDevices = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("http://localhost:3001/network/discovery/staged");
+      const res = await fetch("/api/network/discovery/staged");
       if (res.ok) {
         const data = await res.json();
-        setStagedDevices(data);
+        const devicesArray = Array.isArray(data) ? data : data.data ?? [];
+        setStagedDevices(devicesArray);
       }
     } catch (e) {
       console.error(e);
@@ -38,7 +39,7 @@ export function DiscoveryStagingTable() {
   const handleScan = async () => {
     setIsScanning(true);
     try {
-      await fetch("http://localhost:3001/network/discovery/scan", {
+      await fetch("/api/network/discovery/scan", {
         method: "POST"
       });
       // Poll for updates after starting scan
@@ -120,7 +121,7 @@ export function DiscoveryStagingTable() {
                   <td className="px-4 py-3 text-right">
                     <button 
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 px-2.5 py-1.5 rounded-md transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                      onClick={() => alert('Promotion dialog coming soon')}
+                      onClick={() => alert('Prom functionality - Would add device to connected devices inventory')}
                     >
                       <Plus className="w-3 h-3" />
                       Promote

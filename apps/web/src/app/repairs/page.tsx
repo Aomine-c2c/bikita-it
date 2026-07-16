@@ -1,16 +1,39 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RepairKPIs } from "@/components/repairs/RepairKPIs";
-import { RepairQueue, repairQueue } from "@/components/repairs/RepairQueue";
+import { RepairQueue } from "@/components/repairs/RepairQueue";
 import { RepairDetails } from "@/components/repairs/RepairDetails";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RepairsPage() {
-  const [activeRepairId, setActiveRepairId] = useState<string | null>(repairQueue[0].id);
+  const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
+  const [repairItems, setRepairItems] = useState<any[]>([]);
 
-  const activeRepair = repairQueue.find((r) => r.id === activeRepairId) || repairQueue[0];
+  useEffect(() => {
+    fetchRepairs();
+  }, []);
+
+  const fetchRepairs = async () => {
+    try {
+      const res = await fetch('/api/repairs');
+      if (res.ok) {
+        const data = await res.json();
+        const items = data.data ?? data ?? [];
+        setRepairItems(items);
+        if (items.length > 0 && !activeRepairId) {
+          setActiveRepairId(items[0].id?.substring(0, 8) ?? items[0].id);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch repairs:', e);
+    }
+  };
+
+  const activeRepair = repairItems.length > 0 
+    ? repairItems.find((r: any) => (r.id?.substring(0, 8) ?? r.id) === activeRepairId) || repairItems[0]
+    : null;
 
   return (
     <DashboardLayout>
@@ -61,16 +84,18 @@ export default function RepairsPage() {
             className="flex-1 h-full min-w-0"
           >
             <AnimatePresence mode="wait">
-              <motion.div
-                key={activeRepairId}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="h-full"
-              >
-                <RepairDetails repair={activeRepair} />
-              </motion.div>
+              {activeRepair && (
+                <motion.div
+                  key={activeRepairId}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full"
+                >
+                  <RepairDetails repair={activeRepair} />
+                </motion.div>
+              )}
             </AnimatePresence>
           </motion.div>
 

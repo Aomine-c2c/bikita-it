@@ -212,7 +212,10 @@ export function LocationDetails({ location }: { location: any }) {
             </div>
             <h2 className="text-xl font-bold text-foreground">{location.name}</h2>
           </div>
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-md hover:bg-primary/90 shadow-sm transition-all">
+          <button 
+            onClick={() => alert('Add asset functionality - Would open asset creation modal pre-selected for this location')}
+            className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-md hover:bg-primary/90 shadow-sm transition-all"
+          >
             <Plus className="w-3.5 h-3.5" /> Add Asset
           </button>
         </div>

@@ -1,27 +1,62 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, ShieldCheck, User, Building, MapPin, Calendar, Edit2, Repeat, Archive } from "lucide-react";
+import { ChevronRight, ShieldCheck, User, Building, MapPin, Calendar, Edit2, Repeat, Archive, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { assetApi, type Asset } from "@/lib/api";
 
 interface AssetHeroProps {
   assetId: string;
 }
 
+const STATUS_STYLES: Record<string, string> = {
+  ACTIVE: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  IN_STOCK: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  UNDER_REPAIR: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  ASSIGNED: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+  RETIRED: "bg-slate-100 text-slate-600 border-slate-200",
+};
+
 export function AssetHero({ assetId }: AssetHeroProps) {
-  // Mock Data based on ID
-  const asset = {
-    name: "MacBook Pro M2 Max",
-    id: assetId,
-    status: "Active",
-    assignedUser: "Sarah Jenkins",
-    department: "Engineering",
-    location: "HQ - Floor 3",
-    warranty: "Dec 12, 2026",
-    avatar: "SJ"
-  };
+  const [asset, setAsset] = useState<Asset | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAsset = async () => {
+      try {
+        const data = await assetApi.getOne(assetId);
+        setAsset(data);
+      } catch (e) {
+        console.error('Failed to fetch asset:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAsset();
+  }, [assetId]);
+
+  if (loading) {
+    return (
+      <div className="bg-white border-b border-border/60 pb-6 pt-2">
+        <div className="px-8 flex items-center gap-3">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Loading asset...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!asset) {
+    return (
+      <div className="bg-white border-b border-border/60 pb-6 pt-2">
+        <div className="px-8">
+          <p className="text-sm text-muted-foreground">Asset not found.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border-b border-border/60 pb-6 pt-2">
