@@ -13,6 +13,11 @@ echo "[2/4] 📦 Installing dependencies..."
 npm install
 
 echo "[3/4] 🏗️ Building the project..."
+# Push schema and generate Prisma client
+cd apps/api
+npx prisma db push --accept-data-loss
+npx prisma generate
+cd ../..
 npm run build
 
 echo "[4/4] 🚀 Starting BikitaIT platform via PM2..."
@@ -21,7 +26,7 @@ echo "[4/4] 🚀 Starting BikitaIT platform via PM2..."
 if ! command -v pm2 &> /dev/null
 then
     echo "PM2 could not be found, installing globally..."
-    sudo npm install -g pm2
+    npm install -g pm2
 fi
 
 # Restart processes if they exist, or start them
@@ -29,10 +34,14 @@ pm2 delete bikita-api 2>/dev/null || true
 pm2 delete bikita-web 2>/dev/null || true
 
 # Start NestJS API
-pm2 start npm --name "bikita-api" -- run start:prod --workspace=apps/api
+cd apps/api
+pm2 start npm --name "bikita-api" -- run start:prod
+cd ../..
 
 # Start Next.js Web App
-pm2 start npm --name "bikita-web" -- run start --workspace=apps/web
+cd apps/web
+pm2 start npm --name "bikita-web" -- run start
+cd ../..
 
 # Save PM2 state to resurrect on boot
 pm2 save
