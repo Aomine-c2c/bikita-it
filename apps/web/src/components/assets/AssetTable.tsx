@@ -6,15 +6,7 @@ import { cn } from "@/lib/utils";
 import { AssetProfileDrawer } from "./AssetProfileDrawer";
 import { assetApi, type Asset } from "@/lib/api";
 
-// Fallback mock data used when API is unreachable (dev convenience)
-const MOCK_ASSETS: Asset[] = [
-  { id: "XIP-4910", name: "Sarah's MacBook", category: "LAPTOP", manufacturer: "Apple", model: "MacBook Pro M2", serialNumber: "C02ZK0XXMD6R", assetTag: "TAG-4910", status: "ACTIVE", condition: "Excellent", purchaseDate: "2023-11-01", warrantyExpiry: "2026-12-01", purchaseCost: 2450, ipAddress: "10.0.1.20", macAddress: "A4:CF:99:AB:CD:01", assignedUser: { id: "u1", name: "Sarah Jenkins", email: "sarah@example.com" }, location: { id: "l1", name: "HQ - Floor 3", type: "ROOM" }, createdAt: new Date().toISOString() },
-  { id: "XIP-4911", name: "Design Monitor 1", category: "MONITOR", manufacturer: "Dell", model: 'UltraSharp 32"', serialNumber: "CN-0V2D9P-74", assetTag: "TAG-4911", status: "ACTIVE", condition: "Good", purchaseDate: "2024-01-01", warrantyExpiry: "2027-01-01", purchaseCost: 890, assignedUser: { id: "u2", name: "Mike Ross", email: "mike@example.com" }, location: { id: "l2", name: "HQ - Floor 2", type: "ROOM" }, createdAt: new Date().toISOString() },
-  { id: "XIP-4912", name: "Spare ThinkPad", category: "LAPTOP", manufacturer: "Lenovo", model: "ThinkPad T14", serialNumber: "PF3R9X2L", assetTag: "TAG-4912", status: "IN_STOCK", condition: "New", purchaseDate: "2023-03-01", warrantyExpiry: "2026-03-01", purchaseCost: 1250, location: { id: "l3", name: "IT Storeroom", type: "ROOM" }, createdAt: new Date().toISOString() },
-  { id: "XIP-4913", name: "Core Switch 01", category: "NETWORKING", manufacturer: "Cisco", model: "Meraki MS120", serialNumber: "Q2KP-4XN9-6", assetTag: "TAG-4913", status: "ACTIVE", condition: "Fair", purchaseDate: "2019-08-01", purchaseCost: 1750, ipAddress: "10.0.0.1", location: { id: "l4", name: "Processing Plant", type: "ROOM" }, createdAt: new Date().toISOString() },
-  { id: "XIP-4914", name: "Dev Laptop 42", category: "LAPTOP", manufacturer: "Apple", model: "MacBook Air M1", serialNumber: "FVFD202XQ6L", assetTag: "TAG-4914", status: "IN_REPAIR", condition: "Poor", purchaseDate: "2022-08-01", warrantyExpiry: "2025-08-01", purchaseCost: 999, assignedUser: { id: "u3", name: "Emily Chen", email: "emily@example.com" }, location: { id: "l5", name: "IT Workshop", type: "ROOM" }, createdAt: new Date().toISOString() },
-  { id: "XIP-4915", name: "DB Node A", category: "SERVER", manufacturer: "Dell", model: "PowerEdge R740", serialNumber: "7J9X2W3", assetTag: "TAG-4915", status: "ACTIVE", condition: "Excellent", purchaseDate: "2022-11-01", warrantyExpiry: "2027-11-01", purchaseCost: 8500, ipAddress: "10.0.1.45", macAddress: "00:1A:2B:3C:4D:5E", location: { id: "l6", name: "Server Room A", type: "RACK" }, createdAt: new Date().toISOString() },
-];
+
 
 const STATUS_STYLES: Record<string, { dot: string; badge: string; label: string }> = {
   ACTIVE:    { dot: "bg-emerald-500", badge: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20", label: "Active" },
@@ -55,9 +47,8 @@ export function AssetTable() {
       const assetsArray = Array.isArray(data) ? data : (data as any)?.data ?? [];
       setAssets(assetsArray);
     } catch (e: any) {
-      console.warn("API unavailable, falling back to mock data:", e.message);
-      setAssets(MOCK_ASSETS);
-      setError("API offline — showing sample data");
+      console.error("API unavailable:", e.message);
+      setError("API offline — unable to load assets");
     } finally {
       setLoading(false);
     }

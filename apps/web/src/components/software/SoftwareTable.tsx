@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Search, Filter, Download, MoreHorizontal, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +68,14 @@ export function SoftwareTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40">
-            {softwareData.map((software) => {
+            {software.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  No software licenses found.
+                </td>
+              </tr>
+            )}
+            {software.map((software) => {
               const availableSeats = software.totalSeats - software.assignedSeats;
               const utilization = (software.assignedSeats / software.totalSeats) * 100;
               

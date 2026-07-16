@@ -8,40 +8,11 @@ import {
 
 // --- Mock Data ---
 
-const departmentSpend = [
-  { name: "Engineering", value: 450000 },
-  { name: "Sales", value: 320000 },
-  { name: "Marketing", value: 150000 },
-  { name: "HR", value: 80000 },
-  { name: "Operations", value: 240000 },
-];
+const departmentSpend: any[] = [];
 const COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#F43F5E", "#8B5CF6"];
-
-const assetAge = [
-  { age: "< 1 Yr", count: 420 },
-  { age: "1-2 Yrs", count: 850 },
-  { age: "2-3 Yrs", count: 640 },
-  { age: "3-4 Yrs", count: 320 },
-  { age: "4+ Yrs", count: 110 },
-];
-
-const ticketTrend = [
-  { month: "Jan", tickets: 450, cost: 2100 },
-  { month: "Feb", tickets: 420, cost: 1800 },
-  { month: "Mar", tickets: 580, cost: 3200 },
-  { month: "Apr", tickets: 490, cost: 2500 },
-  { month: "May", tickets: 610, cost: 4100 },
-  { month: "Jun", tickets: 550, cost: 3800 },
-];
-
-const stockConsumption = [
-  { month: "Jan", cables: 45, peripherals: 20 },
-  { month: "Feb", cables: 52, peripherals: 24 },
-  { month: "Mar", cables: 38, peripherals: 18 },
-  { month: "Apr", cables: 65, peripherals: 32 },
-  { month: "May", cables: 48, peripherals: 22 },
-  { month: "Jun", cables: 55, peripherals: 28 },
-];
+const assetAge: any[] = [];
+const ticketTrend: any[] = [];
+const stockConsumption: any[] = [];
 
 // --- Custom Tooltip ---
 const CustomTooltip = ({ active, payload, label }: any) => {

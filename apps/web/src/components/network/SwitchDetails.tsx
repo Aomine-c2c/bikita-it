@@ -16,14 +16,8 @@ const bandwidthData = [
 ];
 
 export function SwitchDetails() {
-  // Mock 24 ports
-  const ports = Array.from({ length: 24 }).map((_, i) => {
-    if (i === 0 || i === 1) return "uplink"; // Blue
-    if (i === 23) return "down"; // Red
-    if (i % 5 === 0) return "poe"; // Yellow
-    if (i % 2 === 0) return "active"; // Green
-    return "inactive"; // Gray
-  });
+  // No ports retrieved yet
+  const ports = Array.from({ length: 0 });
 
   const getPortColor = (status: string) => {
     switch (status) {

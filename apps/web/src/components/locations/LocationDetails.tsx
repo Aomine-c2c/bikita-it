@@ -7,20 +7,9 @@ import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 // Mock assets for the Rack
-const initialRackAssets = [
-  { id: "XIP-4915", name: "DB Node A", category: "Servers", model: "PowerEdge R740", uSize: 2, position: 40 },
-  { id: "XIP-4916", name: "DB Node B", category: "Servers", model: "PowerEdge R740", uSize: 2, position: 38 },
-  { id: "XIP-4917", name: "Core Switch", category: "Networking", model: "Meraki MS120", uSize: 1, position: 36 },
-  { id: "XIP-4918", name: "SAN Array", category: "Storage", model: "NetApp AFF A250", uSize: 2, position: 32 },
-  { id: "XIP-4919", name: "Firewall", category: "Security", model: "Palo Alto PA-450", uSize: 1, position: 42 },
-];
+const initialRackAssets: any[] = [];
 
-const unassignedAssets = [
-  { id: "XIP-5001", name: "Backup Server", category: "Servers", model: "PowerEdge R640", uSize: 1 },
-  { id: "XIP-5002", name: "UPS Unit", category: "Power", model: "APC Smart-UPS", uSize: 3 },
-  { id: "XIP-5003", name: "Patch Panel", category: "Networking", model: "Cat6 48-port", uSize: 1 },
-  { id: "INV-003", name: "PTZ Dome Camera", category: "Security", model: "Sony 4K PTZ", uSize: 1 },
-];
+const unassignedAssets: any[] = [];
 
 const getIcon = (category: string) => {
   switch (category) {

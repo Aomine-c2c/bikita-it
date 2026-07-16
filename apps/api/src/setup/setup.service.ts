@@ -1,26 +1,53 @@
-import { Injectable } from '@nestjs/common';
-import { CreateSetupDto } from './dto/create-setup.dto';
-import { UpdateSetupDto } from './dto/update-setup.dto';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class SetupService {
-  create(createSetupDto: CreateSetupDto) {
-    return 'This action adds a new setup';
+  constructor(private prisma: PrismaService) {}
+
+  async checkSetup() {
+    try {
+      const setting = await this.prisma.systemSetting.findUnique({
+        where: { key: 'setup_complete' },
+      });
+      return { isSetupComplete: setting?.value === 'true' };
+    } catch (e) {
+      console.error(e);
+      // Database might not be initialized yet
+      return { isSetupComplete: false };
+    }
   }
 
-  findAll() {
-    return `This action returns all setup`;
-  }
+  async initializeSetup(data: any) {
+    try {
+      // Create admin user
+      const { name, email, password } = data;
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-  findOne(id: number) {
-    return `This action returns a #${id} setup`;
-  }
+      await this.prisma.employee.create({
+        data: {
+          name,
+          email,
+          passwordHash: hashedPassword,
+          role: 'ADMIN',
+          department: 'IT',
+          position: 'System Administrator',
+          status: 'ACTIVE',
+        },
+      });
 
-  update(id: number, updateSetupDto: UpdateSetupDto) {
-    return `This action updates a #${id} setup`;
-  }
+      // Mark setup as complete
+      await this.prisma.systemSetting.upsert({
+        where: { key: 'setup_complete' },
+        update: { value: 'true' },
+        create: { key: 'setup_complete', value: 'true' },
+      });
 
-  remove(id: number) {
-    return `This action removes a #${id} setup`;
+      return { success: true };
+    } catch (e) {
+      console.error('Error during setup initialization:', e);
+      throw new InternalServerErrorException('Failed to initialize setup');
+    }
   }
 }

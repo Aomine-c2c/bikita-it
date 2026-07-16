@@ -29,53 +29,14 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
     setQuery("");
     setIsTyping(true);
 
-    // Mock AI Response Delay
+    // Empty state mock AI Response
     setTimeout(() => {
       setIsTyping(false);
-      // Hardcoded mock response based on the prompt
-      if (text.includes("IT-0241")) {
-        setMessages(prev => [...prev, { 
-          role: "ai", 
-          content: (
-            <div className="bg-white border border-border/60 rounded-xl p-4 shadow-sm w-full">
-              <p className="text-sm text-foreground mb-4">Laptop <span className="font-mono font-bold text-primary">IT-0241</span> is currently assigned to <span className="font-semibold">Sarah Jenkins</span>.</p>
-              
-              <div className="flex items-center justify-between p-3 border border-border/40 rounded-lg bg-slate-50">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold">SJ</div>
-                  <div>
-                    <p className="text-xs font-bold text-foreground">Sarah Jenkins</p>
-                    <p className="text-[10px] text-muted-foreground">Product Design</p>
-                  </div>
-                </div>
-                <button className="text-[10px] font-bold text-primary hover:underline">View Profile</button>
-              </div>
-            </div>
-          )
-        }]);
-      } else if (text.includes("replacement")) {
-        setMessages(prev => [...prev, { 
-          role: "ai", 
-          content: (
-            <div className="bg-white border border-border/60 rounded-xl p-4 shadow-sm w-full">
-              <p className="text-sm text-foreground mb-3">I found <span className="font-bold text-amber-500">14 devices</span> that have reached their 4-year lifecycle and are due for replacement.</p>
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex items-start gap-3">
-                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-bold text-amber-700">Procurement Alert</p>
-                  <p className="text-[10px] text-amber-600 mt-1">Estimated replacement cost is $28,500. Would you like me to draft a procurement request?</p>
-                </div>
-              </div>
-            </div>
-          )
-        }]);
-      } else {
-        setMessages(prev => [...prev, { 
-          role: "ai", 
-          content: <p className="text-sm text-foreground leading-relaxed">I've analyzed the platform data. How else can I assist you with this?</p> 
-        }]);
-      }
-    }, 1500);
+      setMessages(prev => [...prev, { 
+        role: "ai", 
+        content: <p className="text-sm text-foreground leading-relaxed">AI integration pending backend implementation.</p> 
+      }]);
+    }, 500);
   };
 
   return (
