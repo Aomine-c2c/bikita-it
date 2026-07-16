@@ -2,6 +2,20 @@
 # start-wsl.sh
 # This script pulls the latest code, installs dependencies, builds, and starts the apps using PM2.
 
+set -e
+
+# Error handler function
+handle_error() {
+    echo ""
+    echo "❌ ERROR: The script failed to execute a command."
+    echo "Please check the logs above to see what went wrong."
+    echo "============================================="
+    exit 1
+}
+
+# Trap ERR to run the error handler
+trap 'handle_error' ERR
+
 echo "============================================="
 echo "   BikitaIT Auto-Update & Start Script (WSL) "
 echo "============================================="
