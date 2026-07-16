@@ -47,7 +47,7 @@ cd ../..
 pm2 save
 
 # Get the WSL host IP
-WSL_IP=$(hostname -I | awk '{print $1}')
+WSL_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 
 echo "============================================="
 echo "✅ BikitaIT is running successfully!"
