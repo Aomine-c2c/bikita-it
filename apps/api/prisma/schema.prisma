@@ -14,9 +14,6 @@ enum Role {
   ADMIN
   IT_SUPPORT
   STOREKEEPER
-  PROCUREMENT
-  FINANCE
-  AUDITOR
   MANAGER
   EMPLOYEE
 }
@@ -39,25 +36,13 @@ enum HardwareCategory {
 }
 
 enum HardwareStatus {
-  ACTIVE
-  IN_REPAIR
-  RETIRED
   IN_STOCK
+  INSTALLED
   ASSIGNED
-}
-
-enum TicketStatus {
-  OPEN
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
-}
-
-enum TicketPriority {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
+  BORROWED
+  UNDER_REPAIR
+  MAINTENANCE
+  RETIRED
 }
 
 enum RepairStatus {
@@ -85,15 +70,15 @@ model Employee {
   name            String
   email           String            @unique
   department      String?
+  position        String?
+  office          String?
   role            Role              @default(EMPLOYEE)
   
   // Relations
   hardwareAssets  HardwareAsset[]   @relation("AssignedHardware")
-  softwareSeats   SoftwareSeat[]    @relation("AssignedSeats")
-  authoredTickets SupportTicket[]   @relation("AuthoredTickets")
-  assignedTickets SupportTicket[]   @relation("AssignedTickets")
   repairsAssigned Repair[]          @relation("AssignedRepairs")
   stockTransactions StockTransaction[]
+  connectedDevices ConnectedDevice[]
   
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -102,19 +87,22 @@ model Employee {
 model HardwareAsset {
   id              String           @id @default(uuid())
   tag             String           @unique // e.g. IT-0241
+  name            String?
   category        HardwareCategory
   status          HardwareStatus   @default(IN_STOCK)
   make            String
   model           String
   serialNumber    String?          @unique
-  purchaseCost    Float?
-  purchaseDate    DateTime?
-  warrantyExpiry  DateTime?
   
-  // Expanded Specs (Digital Twin)
+  // Specs / Network
   macAddress      String?
   ipAddress       String?
+  network         String?
+  computerName    String?
+  operatingSystem String?
   specs           Json?            // Stores CPU, RAM, OS, Storage, firmware, etc.
+  
+  installationDate DateTime?
   
   // Relations
   locationId      String?
@@ -123,7 +111,6 @@ model HardwareAsset {
   assigneeId      String?
   assignee        Employee?        @relation("AssignedHardware", fields: [assigneeId], references: [id])
   repairs         Repair[]
-  tickets         SupportTicket[]
   stockTransactions StockTransaction[]
   
   createdAt       DateTime         @default(now())
@@ -135,78 +122,23 @@ model InventoryItem {
   sku           String    @unique
   name          String
   category      String
+  type          String?   // Consumable, Fixed Asset, Returnable Tool
   quantity      Int       @default(0)
   minStock      Int
   maxStock      Int
   binLocation   String?
-  costPerUnit   Float
-  supplier      String?
+  remarks       String?
+  dateReceived  DateTime? @default(now())
+  
   stockTransactions StockTransaction[]
-}
-
-model SoftwareLicense {
-  id              String           @id @default(uuid())
-  name            String
-  vendor          String
-  version         String?
-  totalSeats      Int
-  costPerSeat     Float?
-  renewalDate     DateTime?
-  
-  // Relations
-  assignedSeats   SoftwareSeat[]
-  tickets         SupportTicket[]
-  
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-}
-
-model SoftwareSeat {
-  id              String           @id @default(uuid())
-  
-  // Relations
-  licenseId       String
-  license         SoftwareLicense  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
-  
-  assigneeId      String
-  assignee        Employee         @relation("AssignedSeats", fields: [assigneeId], references: [id], onDelete: Cascade)
-  
-  assignedAt      DateTime         @default(now())
-  
-  @@unique([licenseId, assigneeId])
-}
-
-model SupportTicket {
-  id              String           @id @default(uuid())
-  title           String
-  description     String
-  status          TicketStatus     @default(OPEN)
-  priority        TicketPriority   @default(MEDIUM)
-  
-  // Relations
-  authorId        String
-  author          Employee         @relation("AuthoredTickets", fields: [authorId], references: [id])
-  
-  assigneeId      String?
-  assignee        Employee?        @relation("AssignedTickets", fields: [assigneeId], references: [id])
-  
-  hardwareId      String?
-  hardware        HardwareAsset?   @relation(fields: [hardwareId], references: [id])
-  
-  softwareId      String?
-  software        SoftwareLicense? @relation(fields: [softwareId], references: [id])
-  
-  repairs         Repair[]
-  
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
 }
 
 model Repair {
   id                  String           @id @default(uuid())
   description         String
-  cost                Float?
   status              RepairStatus     @default(QUEUED)
+  condition           String?
+  remarks             String?
   estimatedCompletion DateTime?
   
   // Relations
@@ -216,9 +148,6 @@ model Repair {
   technicianId        String?
   technician          Employee?        @relation("AssignedRepairs", fields: [technicianId], references: [id])
   
-  ticketId            String?
-  ticket              SupportTicket?   @relation(fields: [ticketId], references: [id])
-  
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 }
@@ -226,7 +155,7 @@ model Repair {
 model AuditLog {
   id              String           @id @default(uuid())
   action          String
-  entityType      String           // e.g. HardwareAsset, SoftwareLicense
+  entityType      String           // e.g. HardwareAsset
   entityId        String
   details         String           // JSON stringified details
   performedById   String?          // The user who made the change
@@ -237,9 +166,10 @@ model AuditLog {
 enum TransactionType {
   INTAKE       // Receiving new stock
   INSTALL      // Placed permanently at a location (Cameras)
-  CHECKOUT     // Loaned to an employee (Tools)
+  ISSUE        // Given to an employee (Laptops, Tools)
   RETURN       // Brought back to stock
   CONSUME      // Used and discarded (Cables)
+  TRANSFER     // Moved to a new location
 }
 
 model StockTransaction {
@@ -247,20 +177,40 @@ model StockTransaction {
   type            TransactionType
   quantity        Int      @default(1)
   notes           String?
+  remarks         String?
   
-  // What was moved? (Can be a specific asset OR bulk inventory)
+  // What was moved?
   hardwareAssetId String?
-  hardwareAsset   HardwareAsset? @relation(fields: [hardwareAssetId], references: [id])
+  hardwareAsset   HardwareAsset? @relation(fields: [hardwareAssetId], references: [id], onDelete: Cascade)
 
   inventoryItemId String?
-  inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+  inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
   
   // Where did it go?
-  locationId      String?  // For INSTALL
+  locationId      String?  
   location        Location? @relation(fields: [locationId], references: [id])
 
-  assigneeId      String?  // For CHECKOUT
+  assigneeId      String?  
   assignee        Employee? @relation(fields: [assigneeId], references: [id])
   
   createdAt       DateTime @default(now())
+}
+
+model ConnectedDevice {
+  id              String   @id @default(uuid())
+  hostname        String
+  macAddress      String   @unique
+  ipAddress       String
+  os              String?
+  deviceType      String?
+  connectionStatus String? @default("CONNECTED")
+  accessPoint     String?
+  lastSeen        DateTime @default(now())
+  
+  // Who owns it?
+  employeeId      String?
+  employee        Employee? @relation(fields: [employeeId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

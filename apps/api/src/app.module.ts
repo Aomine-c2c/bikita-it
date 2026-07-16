@@ -5,13 +5,11 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AssetsModule } from './assets/assets.module';
 import { NetworkModule } from './network/network.module';
-import { TicketsModule } from './tickets/tickets.module';
 import { RepairsModule } from './repairs/repairs.module';
-import { SoftwareModule } from './software/software.module';
 import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AssetsModule, NetworkModule, TicketsModule, RepairsModule, SoftwareModule, InventoryModule],
+  imports: [PrismaModule, UsersModule, AssetsModule, NetworkModule, RepairsModule, InventoryModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -8,7 +8,7 @@ export class NetworkController {
   constructor(private readonly networkService: NetworkService) {}
 
   @Post()
-  create(@Body() createNetworkDto: CreateNetworkDto) {
+  create(@Body() createNetworkDto: any) {
     return this.networkService.create(createNetworkDto);
   }
 
@@ -19,16 +19,16 @@ export class NetworkController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.networkService.findOne(+id);
+    return this.networkService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateNetworkDto: UpdateNetworkDto) {
-    return this.networkService.update(+id, updateNetworkDto);
+  update(@Param('id') id: string, @Body() updateNetworkDto: any) {
+    return this.networkService.update(id, updateNetworkDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.networkService.remove(+id);
+    return this.networkService.remove(id);
   }
 }

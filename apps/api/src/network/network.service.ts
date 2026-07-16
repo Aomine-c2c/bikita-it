@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { CreateNetworkDto } from './dto/create-network.dto';
-import { UpdateNetworkDto } from './dto/update-network.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class NetworkService {
-  create(createNetworkDto: CreateNetworkDto) {
-    return 'This action adds a new network';
+  constructor(private prisma: PrismaService) {}
+
+  create(data: any) {
+    return this.prisma.connectedDevice.create({ data });
   }
 
   findAll() {
-    return `This action returns all network`;
+    return this.prisma.connectedDevice.findMany({
+      include: { employee: true },
+      orderBy: { lastSeen: 'desc' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} network`;
+  async findOne(id: string) {
+    const device = await this.prisma.connectedDevice.findUnique({
+      where: { id },
+      include: { employee: true },
+    });
+    if (!device) throw new NotFoundException('Device not found');
+    return device;
   }
 
-  update(id: number, updateNetworkDto: UpdateNetworkDto) {
-    return `This action updates a #${id} network`;
+  update(id: string, data: any) {
+    return this.prisma.connectedDevice.update({
+      where: { id },
+      data,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} network`;
+  remove(id: string) {
+    return this.prisma.connectedDevice.delete({ where: { id } });
   }
 }
