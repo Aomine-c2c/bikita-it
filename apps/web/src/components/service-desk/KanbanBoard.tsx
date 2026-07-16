@@ -55,15 +55,6 @@ const initialColumns: Column[] = [
   { id: "closed", title: "Closed" },
 ];
 
-const initialTickets: Ticket[] = [
-  { id: "TKT-1001", title: "Cannot access VPN from home", priority: "High",     assignee: "Sarah J.",    assigneeAvatar: "SJ", reporter: "Mike T.", comments: 3, attachments: 1, columnId: "new",      slaHours: 2,  category: "Access" },
-  { id: "TKT-1002", title: "Need Adobe CC license",        priority: "Medium",   assignee: "Unassigned", assigneeAvatar: "?",  reporter: "Emma W.", comments: 0, attachments: 0, columnId: "new",      slaHours: 24, category: "Software" },
-  { id: "TKT-1003", title: "MacBook battery swelling",     priority: "Critical", assignee: "David L.",   assigneeAvatar: "DL", reporter: "John C.", comments: 5, attachments: 2, columnId: "assigned", slaHours: 0,  category: "Hardware" },
-  { id: "TKT-1004", title: "Update Wi-Fi certificates",    priority: "Medium",   assignee: "Sarah J.",   assigneeAvatar: "SJ", reporter: "System",   comments: 1, attachments: 0, columnId: "working",  slaHours: 8,  category: "Network" },
-  { id: "TKT-1005", title: "Printer out of toner (Floor 2)",priority: "Low",     assignee: "David L.",   assigneeAvatar: "DL", reporter: "HR Dept",  comments: 0, attachments: 0, columnId: "working",  slaHours: 48, category: "Hardware" },
-  { id: "TKT-1006", title: "New employee onboarding",      priority: "High",     assignee: "Sarah J.",   assigneeAvatar: "SJ", reporter: "HR Dept",  comments: 4, attachments: 1, columnId: "testing",  slaHours: 6,  category: "Onboarding" },
-];
-
 // --- Helpers ---
 const getPriorityColor = (priority: Priority) => {
   switch (priority) {
@@ -147,7 +138,7 @@ function SortableTicket({ ticket, onClick }: { ticket: Ticket; onClick?: () => v
 
 // --- Main Board Component ---
 export function KanbanBoard({ onTicketClick }: { onTicketClick: (ticketId: string) => void }) {
-  const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(

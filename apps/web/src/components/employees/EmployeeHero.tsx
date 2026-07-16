@@ -11,20 +11,55 @@ interface EmployeeHeroProps {
 }
 
 export function EmployeeHero({ employeeId }: EmployeeHeroProps) {
-  // Mock Data
-  const emp = {
-    id: employeeId,
-    name: "Sarah Jenkins",
-    role: "Senior Software Engineer",
-    department: "Engineering",
-    email: "sarah.j@xiphos.com",
-    phone: "+1 (555) 019-2831",
-    manager: "Michael Chang",
-    avatar: "SJ",
-    status: "Active",
-    equipmentValue: "$6,250",
-    joinDate: "Mar 2021"
-  };
+  const [emp, setEmp] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetch(`/api/users/${employeeId}`)
+      .then(res => res.json())
+      .then(data => {
+        setEmp({
+          id: data.id,
+          name: data.name,
+          role: data.position ?? data.role ?? 'Employee',
+          department: data.department ?? '—',
+          email: data.email,
+          phone: data.office ?? '—',
+          manager: '—', // Or fetch from a manager relation if added later
+          avatar: data.name ? data.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "?",
+          status: 'Active',
+          equipmentValue: '$0', // Or calculate from assets if value is tracked
+          activeAssets: data.assets ?? 0,
+        });
+        setLoading(false);
+      })
+      .catch(e => {
+        console.error("Failed to fetch employee:", e);
+        setLoading(false);
+      });
+  }, [employeeId]);
+
+  if (loading || !emp) {
+    return (
+      <div className="bg-white border-b border-border/60 pb-8 pt-2 animate-pulse">
+        <div className="h-8 bg-slate-100 rounded w-1/4 mx-8 mb-8" />
+        <div className="px-8 flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="flex items-center gap-6">
+            <div className="w-24 h-24 rounded-3xl bg-slate-100" />
+            <div className="space-y-3">
+              <div className="h-8 bg-slate-100 rounded w-48" />
+              <div className="h-4 bg-slate-100 rounded w-32" />
+              <div className="flex gap-2">
+                <div className="h-6 bg-slate-100 rounded-full w-20" />
+                <div className="h-6 bg-slate-100 rounded-full w-24" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-slate-100 rounded-2xl w-64 h-32" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border-b border-border/60 pb-8 pt-2">
@@ -106,7 +141,7 @@ export function EmployeeHero({ employeeId }: EmployeeHeroProps) {
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1 relative z-10">Total Equipment Value</p>
           <p className="text-4xl font-bold tracking-tight text-foreground relative z-10">{emp.equipmentValue}</p>
           <div className="mt-4 pt-4 border-t border-border/40 flex justify-between items-center text-xs relative z-10">
-            <span className="text-muted-foreground font-medium">4 Active Assets</span>
+            <span className="text-muted-foreground font-medium">{emp.activeAssets} Active Assets</span>
             <span className="font-bold text-emerald-600">Good Standing</span>
           </div>
         </motion.div>

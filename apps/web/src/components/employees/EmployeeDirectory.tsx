@@ -53,9 +53,9 @@ export function EmployeeDirectory() {
           phone: emp.office ?? '—',
           status: deriveStatus(emp),
           avatar: emp.name ? emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "?",
-          assets: 0,
+          assets: emp.assets ?? 0,
           value: "$0",
-          tickets: 0,
+          tickets: emp.tickets ?? 0,
         }));
         setEmployees(mapped);
       }

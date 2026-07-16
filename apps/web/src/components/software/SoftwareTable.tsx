@@ -17,16 +17,6 @@ interface SoftwareLicense {
   status: "Active" | "Expiring" | "Expired";
 }
 
-const softwareData: SoftwareLicense[] = [
-  { id: "SW-001", name: "Microsoft 365 E5", version: "Cloud", vendor: "Microsoft", totalSeats: 500, assignedSeats: 489, costPerSeat: 38.00, expiryDate: "2027-01-15", status: "Active" },
-  { id: "SW-002", name: "Adobe Creative Cloud", version: "2024", vendor: "Adobe", totalSeats: 100, assignedSeats: 55, costPerSeat: 84.99, expiryDate: "2026-11-01", status: "Active" },
-  { id: "SW-003", name: "GitHub Enterprise", version: "Cloud", vendor: "Microsoft", totalSeats: 250, assignedSeats: 248, costPerSeat: 21.00, expiryDate: "2026-07-20", status: "Expiring" },
-  { id: "SW-004", name: "Figma Organization", version: "Cloud", vendor: "Figma", totalSeats: 80, assignedSeats: 80, costPerSeat: 45.00, expiryDate: "2026-09-10", status: "Active" },
-  { id: "SW-005", name: "JetBrains All Products", version: "2023.3", vendor: "JetBrains", totalSeats: 40, assignedSeats: 38, costPerSeat: 24.90, expiryDate: "2026-06-30", status: "Expired" },
-  { id: "SW-006", name: "Zoom One Business", version: "Cloud", vendor: "Zoom Video", totalSeats: 400, assignedSeats: 310, costPerSeat: 19.99, expiryDate: "2027-03-01", status: "Active" },
-  { id: "SW-007", name: "1Password Business", version: "Cloud", vendor: "AgileBits", totalSeats: 600, assignedSeats: 580, costPerSeat: 7.99, expiryDate: "2027-05-15", status: "Active" },
-];
-
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "Active": return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
@@ -37,6 +27,8 @@ const getStatusBadge = (status: string) => {
 };
 
 export function SoftwareTable() {
+  const [software, setSoftware] = useState<SoftwareLicense[]>([]);
+
   return (
     <div className="bg-white border border-border/60 rounded-xl shadow-sm flex flex-col h-full overflow-hidden">
       

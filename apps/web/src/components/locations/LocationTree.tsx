@@ -1,53 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronRight, ChevronDown, Map, Building, DoorOpen, Server, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Mock Data representing the self-referential Prisma Location table
-const mockLocations = [
-  {
-    id: "LOC-01",
-    name: "Bikita Minerals HQ",
-    type: "MINE",
-    children: [
-      {
-        id: "LOC-02",
-        name: "Main Office Block",
-        type: "BUILDING",
-        children: [
-          {
-            id: "LOC-03",
-            name: "Server Room A",
-            type: "ROOM",
-            children: [
-              { id: "LOC-04", name: "Rack 01 - Core", type: "RACK", assetCount: 12 },
-              { id: "LOC-05", name: "Rack 02 - Storage", type: "RACK", assetCount: 8 }
-            ]
-          },
-          { id: "LOC-06", name: "IT Workshop", type: "ROOM", assetCount: 45 }
-        ]
-      },
-      {
-        id: "LOC-07",
-        name: "Petalite Plant",
-        type: "BUILDING",
-        children: [
-          { id: "LOC-08", name: "Control Room", type: "ROOM", assetCount: 15 },
-          { id: "LOC-09", name: "Network Cabinet 1", type: "RACK", assetCount: 3 }
-        ]
-      },
-      {
-        id: "LOC-10",
-        name: "Powerhouse",
-        type: "BUILDING",
-        children: [
-          { id: "LOC-11", name: "Main Substation", type: "ROOM", assetCount: 5 }
-        ]
-      }
-    ]
-  }
-];
+
 
 const LocationIcon = ({ type, className }: { type: string, className?: string }) => {
   switch (type) {
@@ -119,7 +76,22 @@ const TreeNode = ({ node, level = 0, selectedId, onSelect }: any) => {
 };
 
 export function LocationTree({ onSelectLocation }: { onSelectLocation: (loc: any) => void }) {
-  const [selectedId, setSelectedId] = useState<string | null>("LOC-01");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/locations/tree')
+      .then(res => res.json())
+      .then(data => {
+        setLocations(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(e => {
+        console.error("Failed to fetch locations:", e);
+        setLoading(false);
+      });
+  }, []);
 
   const handleSelect = (node: any) => {
     setSelectedId(node.id);
@@ -134,14 +106,27 @@ export function LocationTree({ onSelectLocation }: { onSelectLocation: (loc: any
       </div>
       
       <div className="p-2 flex-1 overflow-y-auto">
-        {mockLocations.map(root => (
-          <TreeNode 
-            key={root.id} 
-            node={root} 
-            selectedId={selectedId} 
-            onSelect={handleSelect} 
-          />
-        ))}
+        {loading ? (
+          <div className="p-4 space-y-3">
+            {[1,2,3].map(i => (
+              <div key={i} className="animate-pulse flex items-center gap-2">
+                <div className="w-4 h-4 bg-slate-200 rounded" />
+                <div className="h-4 bg-slate-200 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : locations.length === 0 ? (
+          <div className="p-4 text-sm text-muted-foreground">No locations found.</div>
+        ) : (
+          locations.map(root => (
+            <TreeNode 
+              key={root.id} 
+              node={root} 
+              selectedId={selectedId} 
+              onSelect={handleSelect} 
+            />
+          ))
+        )}
       </div>
     </div>
   );
