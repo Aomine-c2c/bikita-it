@@ -3,7 +3,6 @@
 import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { InventoryKPIs } from "@/components/inventory/InventoryKPIs";
-import { InventoryCharts } from "@/components/inventory/InventoryCharts";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { ReceiveStockFAB } from "@/components/inventory/ReceiveStockFAB";
 import { motion } from "framer-motion";
@@ -34,7 +33,6 @@ export default function InventoryPage() {
 
         {/* Dashboard Elements */}
         <InventoryKPIs />
-        <InventoryCharts />
         
         {/* Mega Table */}
         <motion.div

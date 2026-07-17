@@ -3,8 +3,6 @@
 import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ReportToolbar } from "@/components/reports/ReportToolbar";
-import { ReportKPIs } from "@/components/reports/ReportKPIs";
-import { ReportCharts } from "@/components/reports/ReportCharts";
 import { motion } from "framer-motion";
 
 export default function ReportsPage() {
@@ -40,20 +38,10 @@ export default function ReportsPage() {
           <ReportToolbar />
         </motion.div>
 
-        {/* Financial KPIs */}
-        <div className="shrink-0">
-          <ReportKPIs />
-        </div>
-
-        {/* Chart Grid */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="flex-1"
-        >
-          <ReportCharts />
-        </motion.div>
+        <section className="mt-6 rounded-xl border bg-white p-8 text-center">
+          <h2 className="font-bold">No reporting data source configured</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Reports will appear when a reporting API is connected. No sample financial figures are shown.</p>
+        </section>
 
       </div>
     </DashboardLayout>

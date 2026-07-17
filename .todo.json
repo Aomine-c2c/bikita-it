@@ -12,11 +12,11 @@
   {
     "content": "Implement the fix",
     "active_form": "Implementing the fix",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Run tests and verify behavior",
     "active_form": "Running tests and verifying behavior",
-    "status": "pending"
+    "status": "completed"
   }
 ]
