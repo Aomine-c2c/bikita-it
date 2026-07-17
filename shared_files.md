@@ -1,2 +1,11 @@
 - C:\Users\armut\404\BikitaIT\harden_project.py: One-time repository hardening script used to apply launch-readiness fixes.- C:\Users\armut\404\BikitaIT\fix_validation.py: One-time script for lint configuration and concrete validation fixes.
 - C:\Users\armut\404\BikitaIT\finalize_validation.py: One-time script that finalizes lint compatibility and resolves remaining actionable API warnings.
+- C:\Users\armut\404\BikitaIT\fix_tests.py: One-time script that repairs isolated Auth unit tests and adds setup-status coverage.
+- C:\Users\armut\404\BikitaIT\.env.example: Placeholder-only environment variable template.
+- C:\Users\armut\404\BikitaIT\README.md: Setup, validation, migration, and production deployment documentation.
+- C:\Users\armut\404\BikitaIT\LAUNCH_READINESS.md: Concise launch audit summary, validation outcomes, blockers, required variables, and preview URL.
+- C:\Users\armut\404\BikitaIT\scripts\smoke-test.mjs: Automated HTTP/product-marker preview smoke test.
+- C:\Users\armut\404\BikitaIT\apps\web\test\config.test.mjs: Automated same-origin frontend API configuration test.
+- C:\Users\armut\404\BikitaIT\apps\api\src\auth\initialize-admin.dto.ts: Validated first-admin request DTO.
+
+- C:\Users\armut\404\BikitaIT\QA_LAUNCH_READINESS.md: Independent browser-based launch QA report covering all primary routes, API/console evidence, flow results, nine reproducible defects with severities, launch gates, and NO-GO recommendation.
