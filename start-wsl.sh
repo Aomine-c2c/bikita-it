@@ -1,79 +1,91 @@
 #!/bin/bash
 # start-wsl.sh
-# This script pulls the latest code, installs dependencies, builds, and starts the apps using PM2.
+# Starts BikitaIT platform using PM2 on WSL.
+#
+# WARNING: Removed the destructive `git reset --hard origin/main`.
+# That command was wiping out local fixes every time you ran this script.
+# If you want to update from GitHub, run manually:
+#   git pull origin main
+# then run this script again.
 
 set -e
 
-# Error handler function
 handle_error() {
     echo ""
     echo "❌ ERROR: The script failed to execute a command."
     echo "Please check the logs above to see what went wrong."
-    echo "============================================="
     exit 1
 }
-
-# Trap ERR to run the error handler
 trap 'handle_error' ERR
 
 echo "============================================="
-echo "   BikitaIT Auto-Update & Start Script (WSL) "
+echo "   BikitaIT  Start Script (WSL) "
 echo "============================================="
 
-echo "[1/4] 🔄 Pulling latest changes from GitHub..."
-git fetch origin main
-git reset --hard origin/main
+# ── Ensure .env files exist ───────────────────────
+echo "[1/4] 📁 Checking environment files..."
 
+# API .env
+if [ ! -f apps/api/.env ]; then
+  cat > apps/api/.env << 'EOF'
+DATABASE_URL="postgresql://xiphos:xiphos_password@localhost:5432/xiphos_db?schema=public"
+PORT=3001
+ALLOWED_ORIGINS=http://localhost:3000
+EOF
+  echo "   Created apps/api/.env with defaults."
+fi
+
+# Web .env
+if [ ! -f apps/web/.env ]; then
+  cat > apps/web/.env << 'EOF'
+API_INTERNAL_URL=http://127.0.0.1:3001
+NEXT_PUBLIC_API_URL=/api
+EOF
+  echo "   Created apps/web/.env with defaults."
+fi
+
+# ── Install dependencies (cached) ────────────────
 echo "[2/4] 📦 Installing dependencies..."
-npm install
+npm ci --prefer-offline 2>/dev/null || npm install
+(cd apps/api && npm ci --prefer-offline 2>/dev/null || npm install)
+(cd apps/web && npm ci --prefer-offline 2>/dev/null || npm install)
 
-echo "[3/4] 🏗️ Building the project..."
-# Push schema and generate Prisma client
+# ── Build ─────────────────────────────────────────
+echo "[3/4] 🏗️ Building project..."
 cd apps/api
-if [ ! -f .env ]; then
-  echo "DATABASE_URL=\"postgresql://xiphos:xiphos_password@localhost:5432/xiphos_db?schema=public\"" > .env
-  echo "Created default .env for Prisma."
-fi
-npx prisma db push --accept-data-loss
-npx prisma generate
+npx prisma generate --no-hints 2>/dev/null || npx prisma generate
+npx prisma db push --accept-data-loss 2>/dev/null || echo "   ⚠️  DB push failed — check Postgres is running"
 cd ../..
-npm run build
 
-echo "[4/4] 🚀 Starting BikitaIT platform via PM2..."
+npm run build 2>/dev/null || {
+  echo "   ⚠️  Root build skipped (workspaces may handle this)."
+  (cd apps/api && npm run build)
+  (cd apps/web && npm run build)
+}
 
-# Check if PM2 is installed, if not, install it globally
-if ! command -v pm2 &> /dev/null
-then
-    echo "PM2 could not be found, installing globally..."
-    npm install -g pm2
-fi
+# ── Start with PM2 ────────────────────────────────
+echo "[4/4] 🚀 Starting services via PM2..."
+command -v pm2 &>/dev/null || npm install -g pm2
 
-# Restart processes if they exist, or start them
-pm2 delete bikita-api 2>/dev/null || true
-pm2 delete bikita-web 2>/dev/null || true
+pm2 delete bikita-api bikita-web 2>/dev/null || true
 
-# Start NestJS API
 cd apps/api
 pm2 start npm --name "bikita-api" -- run start:prod
 cd ../..
 
-# Start Next.js Web App
 cd apps/web
 pm2 start npm --name "bikita-web" -- run start
 cd ../..
 
-# Save PM2 state to resurrect on boot
 pm2 save
 
-# Get the WSL host IP
-WSL_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+WSL_IP=$(ip -4 addr show eth0 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' || echo "localhost")
 
-echo "============================================="
-echo "✅ BikitaIT is running successfully!"
-echo "🌐 Access the Web UI from any PC on your network:"
-echo "   http://$WSL_IP:3000"
 echo ""
-echo "📊 Access the API at:"
-echo "   http://$WSL_IP:3001/api"
 echo "============================================="
-echo "To view live logs, run: pm2 logs"
+echo "✅ BikitaIT is running!"
+echo "🌐 Web UI:  http://$WSL_IP:3000"
+echo "📊 API:     http://$WSL_IP:3001/api"
+echo "============================================="
+echo "📋 Logs: pm2 logs"
+echo "🛑 Stop:  pm2 delete all"
