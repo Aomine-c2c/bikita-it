@@ -16,8 +16,15 @@ const bandwidthData = [
 ];
 
 export function SwitchDetails() {
-  // No ports retrieved yet
-  const ports: string[] = [];
+  // Cisco Catalyst 9500 port map — simulating real-world data
+  const ports: string[] = [
+    "uplink", "uplink", "active", "active", "active", "active", "active", "active",
+    "active", "active", "active", "active", "active", "active", "active", "active",
+    "active", "active", "active", "active", "active", "active", "down",   "poe",
+    "poe",   "poe",   "poe",   "poe",   "active", "active", "active", "active",
+    "active", "active", "active", "active", "active", "active", "active", "active",
+    "poe",   "poe",   "poe",   "down",  "active", "active", "active", "active",
+  ];
 
   const getPortColor = (status: string) => {
     switch (status) {
