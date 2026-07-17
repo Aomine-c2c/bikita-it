@@ -1,0 +1,1 @@
+export function DemoDataNotice() { return <div role="status" className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs font-semibold text-amber-900">Prototype visualization — displayed metrics and topology are sample data, not live operational records.</div>; }

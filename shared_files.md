@@ -9,3 +9,5 @@
 - C:\Users\armut\404\BikitaIT\apps\api\src\auth\initialize-admin.dto.ts: Validated first-admin request DTO.
 
 - C:\Users\armut\404\BikitaIT\QA_LAUNCH_READINESS.md: Independent browser-based launch QA report covering all primary routes, API/console evidence, flow results, nine reproducible defects with severities, launch gates, and NO-GO recommendation.
+- C:\Users\armut\404\BikitaIT\finalize_qa_fixes.py: One-time scripted patch for independent QA remediation (fail-closed setup, CSP, mock-data disclosure, 404 semantics, mobile/accessibility/tour fixes).
+- C:\Users\armut\404\BikitaIT\complete_qa_fixes.py: Follow-up deterministic patch completing responsive navigation, semantics, invalid-record handling, and regression tests after a source-text mismatch.

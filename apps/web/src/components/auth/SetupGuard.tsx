@@ -1,53 +1,21 @@
 "use client";
-
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export function SetupGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isChecking, setIsChecking] = useState(true);
-
+  const pathname = usePathname(); const router = useRouter();
+  const [state, setState] = useState<"checking"|"ready"|"unavailable">("checking");
   useEffect(() => {
-    // Don't check on the setup page itself
-    if (pathname === "/setup") {
-      setIsChecking(false);
-      return;
-    }
-
-    const checkSetup = async () => {
-      try {
-        const res = await fetch("/api/setup/check");
-        if (res.ok) {
-          const data = await res.json();
-          if (!data.isSetupComplete) {
-            router.push("/setup");
-          } else {
-            setIsChecking(false);
-          }
-        } else {
-          // If API fails, just let it through for now or show error
-          setIsChecking(false);
-        }
-      } catch (error) {
-        console.error("Failed to check setup status:", error);
-        setIsChecking(false);
-      }
-    };
-
-    checkSetup();
+    let active=true;
+    fetch("/api/setup/check", { cache: "no-store" }).then(async res => {
+      if (!res.ok) throw new Error("status unavailable");
+      const data=await res.json(); if(!active) return;
+      if (pathname === "/setup") { if(data.isSetupComplete) router.replace("/"); else setState("ready"); }
+      else if (!data.isSetupComplete) router.replace("/setup"); else setState("ready");
+    }).catch(() => active && setState("unavailable"));
+    return () => { active=false; };
   }, [pathname, router]);
-
-  if (isChecking && pathname !== "/setup") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-muted-foreground font-medium">Initializing Xiphos...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+  if(state === "ready") return <>{children}</>;
+  if(state === "unavailable") return <main className="min-h-screen grid place-items-center p-6 bg-slate-50"><section role="alert" className="max-w-lg rounded-xl border bg-white p-8 text-center shadow-sm"><h1 className="text-xl font-bold">Service temporarily unavailable</h1><p className="mt-3 text-sm text-muted-foreground">Xiphos could not securely verify system initialization. Access is denied until the API and database are healthy.</p><button className="mt-5 rounded-md bg-primary px-4 py-2 text-sm text-white" onClick={() => location.reload()}>Retry</button></section></main>;
+  return <main className="min-h-screen grid place-items-center" aria-live="polite"><p>Verifying secure initialization…</p></main>;
 }

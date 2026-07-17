@@ -1,0 +1,22 @@
+[
+  {
+    "content": "Inspect project and determine expected behavior",
+    "active_form": "Inspecting project and expected behavior",
+    "status": "completed"
+  },
+  {
+    "content": "Reproduce and identify the failure",
+    "active_form": "Reproducing and identifying the failure",
+    "status": "completed"
+  },
+  {
+    "content": "Implement the fix",
+    "active_form": "Implementing the fix",
+    "status": "in_progress"
+  },
+  {
+    "content": "Run tests and verify behavior",
+    "active_form": "Running tests and verifying behavior",
+    "status": "pending"
+  }
+]

@@ -58,7 +58,7 @@ export function Sidebar() {
     <motion.aside
       animate={{ width: collapsed ? 64 : 260 }}
       transition={{ duration: 0.25, ease: "easeInOut" }}
-      className="h-full bg-[#F4F4F5] flex flex-col z-20 shrink-0 relative overflow-hidden"
+      className="hidden md:flex h-full bg-[#F4F4F5] flex flex-col z-20 shrink-0 relative overflow-hidden"
     >
       {/* Brand Header */}
       <div className={cn("flex items-center shrink-0 overflow-hidden", collapsed ? "p-3 justify-center" : "p-5 pb-2 gap-3")}>

@@ -20,6 +20,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 // ---------- Asset API ----------
+export interface Paginated<T> { data: T[]; pagination: { total: number; page: number; limit: number; pages: number } }
+
 export interface Asset {
   id: string;
   name: string;
@@ -37,13 +39,29 @@ export interface Asset {
   macAddress?: string | null;
   specs?: Record<string, string> | null;
   assignedUser?: { id: string; name: string; email: string } | null;
+  repairs?: Array<{ id: string; description: string; status: string; createdAt: string }>;
   location?: { id: string; name: string; type: string } | null;
   createdAt: string;
 }
 
+function normalizeAsset(raw: any): Asset {
+  return {
+    ...raw,
+    manufacturer: raw.manufacturer ?? raw.make ?? null,
+    assetTag: raw.assetTag ?? raw.tag ?? null,
+    assignedUser: raw.assignedUser ?? raw.assignee ?? null,
+    purchaseDate: raw.purchaseDate ?? raw.installationDate ?? null,
+    warrantyExpiry: raw.warrantyExpiry ?? null,
+  };
+}
+
 export const assetApi = {
-  getAll: () => apiFetch<Asset[]>('/assets'),
-  getOne: (id: string) => apiFetch<Asset>(`/assets/${id}`),
+  getAll: async () => {
+    const result = await apiFetch<Paginated<any> | any[]>('/assets');
+    const rows = Array.isArray(result) ? result : result.data;
+    return rows.map(normalizeAsset);
+  },
+  getOne: async (id: string) => normalizeAsset(await apiFetch<any>(`/assets/${id}`)),
   create: (data: Partial<Asset>) =>
     apiFetch<Asset>('/assets', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Asset>) =>
@@ -67,5 +85,8 @@ export interface InventoryItem {
 }
 
 export const inventoryApi = {
-  getAll: () => apiFetch<InventoryItem[]>('/inventory'),
+  getAll: async () => {
+    const result = await apiFetch<Paginated<InventoryItem> | InventoryItem[]>('/inventory');
+    return Array.isArray(result) ? result : result.data;
+  },
 };

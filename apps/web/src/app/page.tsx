@@ -1,5 +1,6 @@
 "use client";
 
+import { GuidedTour } from "@/components/tutorial/GuidedTour";
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import Link from "next/link";
@@ -78,6 +79,7 @@ export default function MissionControl() {
   if (loading) {
     return (
       <DashboardLayout>
+      <GuidedTour />
         <div className="flex items-center justify-center h-[60vh]">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
@@ -138,6 +140,7 @@ export default function MissionControl() {
 
   return (
     <DashboardLayout>
+      <GuidedTour />
       <div className="pb-10 space-y-5 max-w-[1500px] mx-auto">
 
         {/* Page Header */}

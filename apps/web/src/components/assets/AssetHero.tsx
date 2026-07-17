@@ -1,15 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, ShieldCheck, User, Building, MapPin, Calendar, Edit2, Repeat, Archive, Loader2 } from "lucide-react";
+import { ChevronRight, ShieldCheck, MapPin, Calendar, Edit2, Repeat, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { assetApi, type Asset } from "@/lib/api";
+import type { Asset } from "@/lib/api";
 
-interface AssetHeroProps {
-  assetId: string;
-}
+interface AssetHeroProps { asset: Asset }
 
 const STATUS_STYLES: Record<string, string> = {
   ACTIVE: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
@@ -29,45 +27,7 @@ function initials(name?: string | null): string {
   return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export function AssetHero({ assetId }: AssetHeroProps) {
-  const [asset, setAsset] = useState<Asset | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAsset = async () => {
-      try {
-        const data = await assetApi.getOne(assetId);
-        setAsset(data);
-      } catch (e) {
-        console.error('Failed to fetch asset:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAsset();
-  }, [assetId]);
-
-  if (loading) {
-    return (
-      <div className="bg-white border-b border-border/60 pb-6 pt-2">
-        <div className="px-8 flex items-center gap-3">
-          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Loading asset...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (!asset) {
-    return (
-      <div className="bg-white border-b border-border/60 pb-6 pt-2">
-        <div className="px-8">
-          <p className="text-sm text-muted-foreground">Asset not found.</p>
-        </div>
-      </div>
-    );
-  }
-
+export function AssetHero({ asset }: AssetHeroProps) {
   const assignedUserName = asset.assignedUser?.name ?? "Unassigned";
   const locationName = asset.location?.name ?? "—";
   const warrantyDate = asset.warrantyExpiry

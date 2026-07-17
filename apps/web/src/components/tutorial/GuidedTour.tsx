@@ -17,6 +17,9 @@ export function GuidedTour() {
       const driverObj = driver({
         showProgress: true,
         animate: true,
+        allowClose: true,
+        overlayClickBehavior: "close",
+        popoverClass: "max-w-[calc(100vw-2rem)]",
         steps: [
           {
             element: "body",
