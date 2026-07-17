@@ -17,7 +17,7 @@ const bandwidthData = [
 
 export function SwitchDetails() {
   // No ports retrieved yet
-  const ports = Array.from({ length: 0 });
+  const ports: string[] = [];
 
   const getPortColor = (status: string) => {
     switch (status) {

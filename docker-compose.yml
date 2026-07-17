@@ -1,22 +1,19 @@
-version: '3.8'
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: xiphos
-      POSTGRES_PASSWORD: xiphos_password
-      POSTGRES_DB: xiphos_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: always
-
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck: { test: [CMD-SHELL, 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB'], interval: 10s, timeout: 5s, retries: 5 }
+    restart: unless-stopped
   redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
-    restart: always
-
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes: [redis_data:/data]
+    healthcheck: { test: [CMD, redis-cli, ping], interval: 10s, timeout: 5s, retries: 5 }
+    restart: unless-stopped
 volumes:
   postgres_data:
+  redis_data:

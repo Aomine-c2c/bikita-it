@@ -9,20 +9,20 @@ export class InventoryService {
 
   async create(createInventoryDto: CreateInventoryDto) {
     return this.prisma.inventoryItem.create({
-      data: createInventoryDto
+      data: createInventoryDto,
     });
   }
 
   async findAll(page: number = 1, limit: number = 50) {
     const skip = (page - 1) * limit;
-    
+
     const [items, total] = await Promise.all([
       this.prisma.inventoryItem.findMany({
         orderBy: { dateReceived: 'desc' },
         skip,
         take: limit,
       }),
-      this.prisma.inventoryItem.count()
+      this.prisma.inventoryItem.count(),
     ]);
 
     return {
@@ -31,8 +31,8 @@ export class InventoryService {
         total,
         page,
         limit,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -40,27 +40,27 @@ export class InventoryService {
     const item = await this.prisma.inventoryItem.findUnique({
       where: { id },
       include: {
-        stockTransactions: { take: 10, orderBy: { createdAt: 'desc' } }
-      }
+        stockTransactions: { take: 10, orderBy: { createdAt: 'desc' } },
+      },
     });
-    
+
     if (!item) {
       throw new NotFoundException(`Inventory item ${id} not found`);
     }
-    
+
     return item;
   }
 
   async update(id: string, updateInventoryDto: UpdateInventoryDto) {
     return this.prisma.inventoryItem.update({
       where: { id },
-      data: updateInventoryDto
+      data: updateInventoryDto,
     });
   }
 
   async remove(id: string) {
     return this.prisma.inventoryItem.delete({
-      where: { id }
+      where: { id },
     });
   }
 }

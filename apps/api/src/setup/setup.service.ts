@@ -33,7 +33,6 @@ export class SetupService {
           role: 'ADMIN',
           department: 'IT',
           position: 'System Administrator',
-          status: 'ACTIVE',
         },
       });
 

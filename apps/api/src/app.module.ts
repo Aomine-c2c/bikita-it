@@ -9,13 +9,11 @@ import { RepairsModule } from './repairs/repairs.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
-
 import { AuthModule } from './auth/auth.module';
 import { BackupModule } from './backup/backup.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SettingsModule } from './settings/settings.module';
 import { LocationsModule } from './locations/locations.module';
-import { SetupModule } from './setup/setup.module';
 
 @Module({
   imports: [
@@ -31,7 +29,6 @@ import { SetupModule } from './setup/setup.module';
     SettingsModule,
     ScheduleModule.forRoot(),
     LocationsModule,
-    SetupModule
   ],
   controllers: [AppController],
   providers: [AppService],

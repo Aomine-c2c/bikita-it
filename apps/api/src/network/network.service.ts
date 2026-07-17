@@ -6,23 +6,25 @@ export class NetworkService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: any) {
-    return this.prisma.connectedDevice.create({ 
+    return this.prisma.connectedDevice.create({
       data,
-      include: { employee: { select: { id: true, name: true, email: true } } }
+      include: { employee: { select: { id: true, name: true, email: true } } },
     });
   }
 
   async findAll(page: number = 1, limit: number = 50) {
     const skip = (page - 1) * limit;
-    
+
     const [devices, total] = await Promise.all([
       this.prisma.connectedDevice.findMany({
-        include: { employee: { select: { id: true, name: true, email: true } } },
+        include: {
+          employee: { select: { id: true, name: true, email: true } },
+        },
         orderBy: { lastSeen: 'desc' },
         skip,
         take: limit,
       }),
-      this.prisma.connectedDevice.count()
+      this.prisma.connectedDevice.count(),
     ]);
 
     return {
@@ -31,8 +33,8 @@ export class NetworkService {
         total,
         page,
         limit,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -57,7 +59,7 @@ export class NetworkService {
     return this.prisma.connectedDevice.update({
       where: { id },
       data,
-      include: { employee: { select: { id: true, name: true, email: true } } }
+      include: { employee: { select: { id: true, name: true, email: true } } },
     });
   }
 

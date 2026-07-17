@@ -8,18 +8,18 @@ export class AssetsService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createAssetDto: CreateAssetDto) {
-    return this.prisma.hardwareAsset.create({ 
+    return this.prisma.hardwareAsset.create({
       data: createAssetDto,
       include: {
         assignee: { select: { id: true, name: true, email: true } },
         location: { select: { id: true, name: true, type: true } },
-      }
+      },
     });
   }
 
   async findAll(page: number = 1, limit: number = 50) {
     const skip = (page - 1) * limit;
-    
+
     const [assets, total] = await Promise.all([
       this.prisma.hardwareAsset.findMany({
         include: {
@@ -30,7 +30,7 @@ export class AssetsService {
         skip,
         take: limit,
       }),
-      this.prisma.hardwareAsset.count()
+      this.prisma.hardwareAsset.count(),
     ]);
 
     return {
@@ -39,8 +39,8 @@ export class AssetsService {
         total,
         page,
         limit,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -64,7 +64,7 @@ export class AssetsService {
       include: {
         assignee: { select: { id: true, name: true, email: true } },
         location: { select: { id: true, name: true, type: true } },
-      }
+      },
     });
   }
 

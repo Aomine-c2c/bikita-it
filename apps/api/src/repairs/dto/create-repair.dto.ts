@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsEnum, IsNotEmpty, IsDateString, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNotEmpty,
+  IsDateString,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { RepairStatus } from '@prisma/client';
 
 export class CreateRepairDto {

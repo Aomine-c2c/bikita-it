@@ -1,0 +1,2 @@
+- C:\Users\armut\404\BikitaIT\harden_project.py: One-time repository hardening script used to apply launch-readiness fixes.- C:\Users\armut\404\BikitaIT\fix_validation.py: One-time script for lint configuration and concrete validation fixes.
+- C:\Users\armut\404\BikitaIT\finalize_validation.py: One-time script that finalizes lint compatibility and resolves remaining actionable API warnings.

@@ -12,25 +12,27 @@ export class RepairsService {
       data: createRepairDto,
       include: {
         hardware: { select: { id: true, tag: true, make: true, model: true } },
-        technician: { select: { id: true, name: true, email: true } }
-      }
+        technician: { select: { id: true, name: true, email: true } },
+      },
     });
   }
 
   async findAll(page: number = 1, limit: number = 50) {
     const skip = (page - 1) * limit;
-    
+
     const [repairs, total] = await Promise.all([
       this.prisma.repair.findMany({
         include: {
-          hardware: { select: { id: true, tag: true, make: true, model: true } },
-          technician: { select: { id: true, name: true, email: true } }
+          hardware: {
+            select: { id: true, tag: true, make: true, model: true },
+          },
+          technician: { select: { id: true, name: true, email: true } },
         },
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       }),
-      this.prisma.repair.count()
+      this.prisma.repair.count(),
     ]);
 
     return {
@@ -39,8 +41,8 @@ export class RepairsService {
         total,
         page,
         limit,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -49,14 +51,14 @@ export class RepairsService {
       where: { id },
       include: {
         hardware: true,
-        technician: true
-      }
+        technician: true,
+      },
     });
-    
+
     if (!repair) {
       throw new NotFoundException(`Repair ${id} not found`);
     }
-    
+
     return repair;
   }
 
@@ -66,14 +68,14 @@ export class RepairsService {
       data: updateRepairDto,
       include: {
         hardware: { select: { id: true, tag: true, make: true, model: true } },
-        technician: { select: { id: true, name: true, email: true } }
-      }
+        technician: { select: { id: true, name: true, email: true } },
+      },
     });
   }
 
   async remove(id: string) {
     return this.prisma.repair.delete({
-      where: { id }
+      where: { id },
     });
   }
 }

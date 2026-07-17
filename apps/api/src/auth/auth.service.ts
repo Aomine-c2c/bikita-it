@@ -1,7 +1,12 @@
-import { Injectable, InternalServerErrorException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { InitializeAdminDto } from './initialize-admin.dto';
 
 @Injectable()
 export class AuthService {
@@ -39,26 +44,32 @@ export class AuthService {
   async checkSetupStatus() {
     // Check if any admin exists
     const adminCount = await this.prisma.employee.count({
-      where: { role: Role.ADMIN }
+      where: { role: Role.ADMIN },
     });
-    
+
     return {
-      isSetupComplete: adminCount > 0
+      isSetupComplete: adminCount > 0,
     };
   }
 
-  async initializeAdmin(data: any) {
+  async initializeAdmin(data: InitializeAdminDto) {
     const status = await this.checkSetupStatus();
     if (status.isSetupComplete) {
-      throw new ConflictException('System is already initialized. Cannot create another master admin this way.');
+      throw new ConflictException(
+        'System is already initialized. Cannot create another master admin this way.',
+      );
     }
 
     if (!data.email || !data.password || !data.name) {
-      throw new InternalServerErrorException('Missing required fields: email, password, name');
+      throw new BadRequestException(
+        'Missing required fields: email, password, name',
+      );
     }
 
     if (!this.validatePassword(data.password)) {
-      throw new InternalServerErrorException('Password must be at least 12 characters long');
+      throw new BadRequestException(
+        'Password must be at least 12 characters long',
+      );
     }
 
     const passwordHash = await this.hashPassword(data.password);
@@ -70,8 +81,8 @@ export class AuthService {
         passwordHash,
         role: Role.ADMIN,
         department: 'IT',
-        position: 'System Administrator'
-      }
+        position: 'System Administrator',
+      },
     });
 
     return {
@@ -81,8 +92,8 @@ export class AuthService {
         id: newAdmin.id,
         name: newAdmin.name,
         email: newAdmin.email,
-        role: newAdmin.role
-      }
+        role: newAdmin.role,
+      },
     };
   }
 }

@@ -15,12 +15,12 @@ export class UsersService {
     const employees = await this.prisma.employee.findMany({
       include: {
         _count: {
-          select: { hardwareAssets: true, repairsAssigned: true }
-        }
-      }
+          select: { hardwareAssets: true, repairsAssigned: true },
+        },
+      },
     });
 
-    return employees.map(emp => ({
+    return employees.map((emp) => ({
       ...emp,
       assets: emp._count.hardwareAssets,
       tickets: emp._count.repairsAssigned,
@@ -32,11 +32,11 @@ export class UsersService {
       where: { id },
       include: {
         _count: {
-          select: { hardwareAssets: true, repairsAssigned: true }
-        }
-      }
+          select: { hardwareAssets: true, repairsAssigned: true },
+        },
+      },
     });
-    
+
     if (!employee) {
       throw new NotFoundException(`Employee #${id} not found`);
     }
@@ -49,7 +49,10 @@ export class UsersService {
   }
 
   update(id: string, updateUserDto: UpdateUserDto) {
-    return this.prisma.employee.update({ where: { id }, data: updateUserDto as any });
+    return this.prisma.employee.update({
+      where: { id },
+      data: updateUserDto as any,
+    });
   }
 
   remove(id: string) {

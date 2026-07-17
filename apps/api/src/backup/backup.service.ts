@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
@@ -31,13 +31,15 @@ export class BackupService implements OnApplicationBootstrap {
     const filePath = path.join(this.backupDir, fileName);
 
     // Default postgres user, or read from env
-    const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/xiphos_db';
+    const dbUrl =
+      process.env.DATABASE_URL ||
+      'postgresql://postgres:postgres@localhost:5432/xiphos_db';
 
     try {
       // NOTE: pg_dump must be installed on the system (postgresql-client)
       await execAsync(`pg_dump "${dbUrl}" > "${filePath}"`);
       this.logger.log(`Backup successful: ${fileName}`);
-      
+
       this.cleanOldBackups();
     } catch (error) {
       this.logger.error('Database backup failed', error);

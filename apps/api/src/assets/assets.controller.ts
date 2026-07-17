@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { AssetsService } from './assets.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
 import { UpdateAssetDto } from './dto/update-asset.dto';
@@ -15,7 +26,7 @@ export class AssetsController {
       if (error.status === 404) throw error;
       throw new HttpException(
         { message: 'Failed to create asset', error: error.message },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -23,7 +34,7 @@ export class AssetsController {
   @Get()
   async findAll(
     @Query('page') page: string = '1',
-    @Query('limit') limit: string = '50'
+    @Query('limit') limit: string = '50',
   ) {
     try {
       const pageNum = Math.max(1, parseInt(page) || 1);
@@ -33,7 +44,7 @@ export class AssetsController {
       if (error.status === 404) throw error;
       throw new HttpException(
         { message: 'Failed to fetch assets', error: error.message },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -46,7 +57,7 @@ export class AssetsController {
       if (error.status === 404) throw error;
       throw new HttpException(
         { message: 'Failed to fetch asset', error: error.message },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -54,7 +65,7 @@ export class AssetsController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateAssetDto: UpdateAssetDto
+    @Body() updateAssetDto: UpdateAssetDto,
   ) {
     try {
       return await this.assetsService.update(id, updateAssetDto);
@@ -62,7 +73,7 @@ export class AssetsController {
       if (error.status === 404) throw error;
       throw new HttpException(
         { message: 'Failed to update asset', error: error.message },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -75,9 +86,8 @@ export class AssetsController {
       if (error.status === 404) throw error;
       throw new HttpException(
         { message: 'Failed to delete asset', error: error.message },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 }
-

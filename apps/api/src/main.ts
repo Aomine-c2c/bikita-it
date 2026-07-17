@@ -1,37 +1,46 @@
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  // Validate required environment variables
-  if (!process.env.DATABASE_URL) {
+  const logger = new Logger('Bootstrap');
+  if (!process.env.DATABASE_URL)
     throw new Error('DATABASE_URL environment variable is not set');
-  }
+  const port = Number(process.env.PORT ?? 3001);
+  if (!Number.isInteger(port) || port < 1 || port > 65535)
+    throw new Error('PORT must be a valid TCP port');
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (process.env.NODE_ENV === 'production' && allowedOrigins.length === 0)
+    throw new Error('ALLOWED_ORIGINS is required in production');
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.use(helmet());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
   app.setGlobalPrefix('api');
-  
-  // Configure CORS - only allow trusted origins
-  const allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : [];
-  
-  if (allowedOrigins.length === 0) {
-    console.warn('WARNING: No ALLOWED_ORIGINS configured. CORS will be disabled.');
-  }
-  
   app.enableCors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+    origin: allowedOrigins.length ? allowedOrigins : false,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
-  
-  const port = process.env.PORT ?? 3001;
+  app.enableShutdownHooks();
   await app.listen(port, '0.0.0.0');
-  console.log(`✓ API running on port ${port}`);
+  logger.log(`API listening on port ${port}`);
 }
-
-bootstrap().catch(error => {
-  console.error('Failed to start application:', error);
+bootstrap().catch((error: unknown) => {
+  const logger = new Logger('Bootstrap');
+  logger.error(
+    'Application startup failed',
+    error instanceof Error ? error.stack : undefined,
+  );
   process.exit(1);
 });
-

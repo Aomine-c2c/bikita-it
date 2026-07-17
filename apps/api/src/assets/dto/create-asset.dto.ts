@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsEnum, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNotEmpty,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { HardwareCategory, HardwareStatus } from '@prisma/client';
 
 export class CreateAssetDto {

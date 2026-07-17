@@ -20,31 +20,31 @@ export class LocationsService {
       where: { parentId: null },
       include: {
         _count: {
-          select: { assets: true }
+          select: { assets: true },
         },
         children: {
           include: {
             _count: {
-              select: { assets: true }
+              select: { assets: true },
             },
             children: {
               include: {
                 _count: {
-                  select: { assets: true }
+                  select: { assets: true },
                 },
                 children: {
                   include: {
                     _count: {
-                      select: { assets: true }
+                      select: { assets: true },
                     },
                     children: true,
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     // Helper to format nodes recursively
@@ -53,7 +53,7 @@ export class LocationsService {
       name: node.name,
       type: node.type,
       assetCount: node._count?.assets || 0,
-      children: node.children ? node.children.map(formatNode) : []
+      children: node.children ? node.children.map(formatNode) : [],
     });
 
     return locations.map(formatNode);
@@ -64,7 +64,10 @@ export class LocationsService {
   }
 
   update(id: string, updateLocationDto: UpdateLocationDto) {
-    return this.prisma.location.update({ where: { id }, data: updateLocationDto as any });
+    return this.prisma.location.update({
+      where: { id },
+      data: updateLocationDto as any,
+    });
   }
 
   remove(id: string) {
