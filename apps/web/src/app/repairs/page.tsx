@@ -6,6 +6,7 @@ import { RepairKPIs } from "@/components/repairs/RepairKPIs";
 import { RepairQueue } from "@/components/repairs/RepairQueue";
 import { RepairDetails } from "@/components/repairs/RepairDetails";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiFetch } from "@/lib/api";
 
 export default function RepairsPage() {
   const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
@@ -17,14 +18,11 @@ export default function RepairsPage() {
 
   const fetchRepairs = async () => {
     try {
-      const res = await fetch('/api/repairs');
-      if (res.ok) {
-        const data = await res.json();
-        const items = data.data ?? data ?? [];
-        setRepairItems(items);
-        if (items.length > 0 && !activeRepairId) {
-          setActiveRepairId(items[0].id?.substring(0, 8) ?? items[0].id);
-        }
+      const data = await apiFetch<any>('/repairs');
+      const items = data.data ?? data ?? [];
+      setRepairItems(items);
+      if (items.length > 0 && !activeRepairId) {
+        setActiveRepairId(items[0].id?.substring(0, 8) ?? items[0].id);
       }
     } catch (e) {
       console.error('Failed to fetch repairs:', e);

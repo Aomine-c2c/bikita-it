@@ -5,6 +5,7 @@ import { Server, Monitor, HardDrive, Shield, Plus, MoreHorizontal, GripVertical 
 import { cn } from "@/lib/utils";
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
+import { AddAssetModal } from "@/components/assets/AddAssetModal";
 
 // Mock assets for the Rack
 const initialRackAssets: any[] = [];
@@ -115,6 +116,7 @@ function RackSlot({ u, asset, isOver }: { u: number; asset?: any; isOver: boolea
 // --- Main Component ---
 
 export function LocationDetails({ location }: { location: any }) {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [mountedAssets, setMountedAssets] = useState(initialRackAssets);
   const [unmountedAssets, setUnmountedAssets] = useState(unassignedAssets);
 
@@ -202,7 +204,7 @@ export function LocationDetails({ location }: { location: any }) {
             <h2 className="text-xl font-bold text-foreground">{location.name}</h2>
           </div>
           <button 
-            onClick={() => alert('Add asset functionality - Would open asset creation modal pre-selected for this location')}
+            onClick={() => setIsAddModalOpen(true)}
             className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-md hover:bg-primary/90 shadow-sm transition-all"
           >
             <Plus className="w-3.5 h-3.5" /> Add Asset
@@ -252,6 +254,7 @@ export function LocationDetails({ location }: { location: any }) {
           </div>
         )}
       </div>
+      <AddAssetModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSuccess={() => {}} />
     </div>
   );
 }

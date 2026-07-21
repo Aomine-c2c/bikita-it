@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, Mail, Phone, Building, UserCircle, DownloadCloud } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 interface EmployeeHeroProps {
   employeeId: string;
@@ -15,8 +16,7 @@ export function EmployeeHero({ employeeId }: EmployeeHeroProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetch(`/api/users/${employeeId}`)
-      .then(res => res.json())
+    apiFetch<any>(`/users/${employeeId}`)
       .then(data => {
         setEmp({
           id: data.id,

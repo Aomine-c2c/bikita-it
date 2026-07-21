@@ -19,10 +19,10 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         if (!active) return;
         if (pathname === "/setup") {
-          if (data.isSetupComplete) router.replace("/");
+          if (data.isSetupComplete) window.location.href = "/";
           else setState("ready");
         } else if (!data.isSetupComplete) {
-          router.replace("/setup");
+          window.location.href = "/setup";
         } else {
           setState("ready");
         }

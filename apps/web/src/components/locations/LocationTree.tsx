@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { ChevronRight, ChevronDown, Map, Building, DoorOpen, Server, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-
+import { apiFetch } from "@/lib/api";
 
 const LocationIcon = ({ type, className }: { type: string, className?: string }) => {
   switch (type) {
@@ -81,8 +81,7 @@ export function LocationTree({ onSelectLocation }: { onSelectLocation: (loc: any
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/locations/tree')
-      .then(res => res.json())
+    apiFetch<any>('/locations/tree')
       .then(data => {
         setLocations(Array.isArray(data) ? data : []);
         setLoading(false);

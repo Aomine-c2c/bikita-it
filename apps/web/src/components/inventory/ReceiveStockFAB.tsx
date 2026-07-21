@@ -2,12 +2,25 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PackagePlus, X, Box, CheckCircle2 } from "lucide-react";
+import { PackagePlus, X, Box, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { inventoryApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export function ReceiveStockFAB() {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState({
+    type: "bulk",
+    name: "Cat6 Ethernet Cable (50ft)",
+    category: "Networking",
+    quantity: 50,
+    destination: "Main HQ (Warehouse)",
+    binLocation: "C-02",
+    sku: "SKU-123",
+  });
 
   const handleClose = () => {
     setIsOpen(false);
@@ -59,16 +72,27 @@ export function ReceiveStockFAB() {
               <div className="p-6">
                 {step === 1 && (
                   <div className="space-y-6">
+                    {error && (
+                      <div className="p-3 bg-red-50 text-red-700 rounded-md flex items-center gap-2 text-sm">
+                        <AlertCircle className="w-4 h-4" /> {error}
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-semibold text-foreground mb-2">Item Type</label>
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="border-2 border-primary bg-primary/5 rounded-xl p-4 cursor-pointer">
-                          <Box className="w-6 h-6 text-primary mb-2" />
+                        <div 
+                          onClick={() => setFormData({ ...formData, type: 'bulk' })}
+                          className={cn("border rounded-xl p-4 cursor-pointer transition-colors", formData.type === 'bulk' ? "border-2 border-primary bg-primary/5" : "border-border/60 hover:border-primary/50 bg-white")}
+                        >
+                          <Box className={cn("w-6 h-6 mb-2", formData.type === 'bulk' ? "text-primary" : "text-muted-foreground")} />
                           <h3 className="font-bold text-foreground">Bulk / Consumables</h3>
                           <p className="text-xs text-muted-foreground mt-1">Cables, screws, tools tracked by quantity.</p>
                         </div>
-                        <div className="border border-border/60 hover:border-primary/50 bg-white rounded-xl p-4 cursor-pointer transition-colors">
-                          <PackagePlus className="w-6 h-6 text-muted-foreground mb-2" />
+                        <div 
+                          onClick={() => setFormData({ ...formData, type: 'serialized' })}
+                          className={cn("border rounded-xl p-4 cursor-pointer transition-colors", formData.type === 'serialized' ? "border-2 border-primary bg-primary/5" : "border-border/60 hover:border-primary/50 bg-white")}
+                        >
+                          <PackagePlus className={cn("w-6 h-6 mb-2", formData.type === 'serialized' ? "text-primary" : "text-muted-foreground")} />
                           <h3 className="font-bold text-foreground">Serialized Assets</h3>
                           <p className="text-xs text-muted-foreground mt-1">Laptops, cameras with unique serials.</p>
                         </div>
@@ -77,16 +101,16 @@ export function ReceiveStockFAB() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-foreground mb-1.5">SKU / Item Name</label>
-                        <input type="text" defaultValue="Cat6 Ethernet Cable (50ft)" className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">Item Name</label>
+                        <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-foreground mb-1.5">Category</label>
-                        <select className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm">
-                          <option>Networking (CONSUMABLE)</option>
-                          <option>Tools (RETURNABLE)</option>
-                          <option>Hardware (NON_RETURNABLE)</option>
-                          <option>Peripherals (SERIALIZED)</option>
+                        <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm">
+                          <option value="Networking">Networking</option>
+                          <option value="Tools">Tools</option>
+                          <option value="Hardware">Hardware</option>
+                          <option value="Peripherals">Peripherals</option>
                         </select>
                       </div>
                     </div>
@@ -94,18 +118,15 @@ export function ReceiveStockFAB() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-foreground mb-1.5">Quantity Received</label>
-                        <input type="number" defaultValue={50} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
+                        <input type="number" value={formData.quantity} onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 0})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-foreground mb-1.5">Destination</label>
-                        <select className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm">
-                          <option>Main HQ (Warehouse)</option>
-                          <option>Processing Plant</option>
-                        </select>
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">SKU (Optional)</label>
+                        <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" placeholder="SKU-XXX" />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-foreground mb-1.5">Shelf / Bin</label>
-                        <input type="text" defaultValue="C-02" className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
+                        <input type="text" value={formData.binLocation} onChange={e => setFormData({...formData, binLocation: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
                       </div>
                     </div>
                   </div>
@@ -130,12 +151,30 @@ export function ReceiveStockFAB() {
                   <>
                     <button onClick={handleClose} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
                     <button 
-                      onClick={() => {
-                        alert('Stock intake functionality - Would call API to create inventory item and log transaction');
-                        setStep(2);
+                      disabled={isSubmitting}
+                      onClick={async () => {
+                        setIsSubmitting(true);
+                        setError(null);
+                        try {
+                          await inventoryApi.create({
+                            name: formData.name,
+                            category: formData.category,
+                            quantity: formData.quantity,
+                            sku: formData.sku || `${formData.category.substring(0,3).toUpperCase()}-${Math.floor(Math.random()*1000)}`,
+                            binLocation: formData.binLocation,
+                            minStock: 10, // Default defaults
+                            maxStock: 500,
+                          });
+                          setStep(2);
+                        } catch (err: any) {
+                          setError(err.message || "Failed to intake stock");
+                        } finally {
+                          setIsSubmitting(false);
+                        }
                       }} 
-                      className="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors"
+                      className="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-2"
                     >
+                      {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                       Confirm Intake
                     </button>
                   </>

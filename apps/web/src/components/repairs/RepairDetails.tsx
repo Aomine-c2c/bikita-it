@@ -4,6 +4,9 @@ import React from "react";
 import { Wrench, ArrowRight, ShieldCheck, UserCircle, Receipt, Box, ExternalLink, MessageSquare } from "lucide-react";
 import { RepairItem } from "./RepairQueue";
 import { cn } from "@/lib/utils";
+import { CustomerUpdateModal } from "./CustomerUpdateModal";
+import { repairsApi } from "@/lib/api";
+import { useRef, useState } from "react";
 
 interface RepairDetailsProps {
   repair: RepairItem;
@@ -12,6 +15,25 @@ interface RepairDetailsProps {
 const steps = ["Diagnosis", "Waiting Parts", "Repairing", "Ready", "Returned"];
 
 export function RepairDetails({ repair }: RepairDetailsProps) {
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      await repairsApi.uploadPhoto(repair.id, file);
+      alert('Photo uploaded successfully');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload photo');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Determine current step index based on status
   let currentStep = 0;
   if (repair.status === "Waiting Parts") currentStep = 1;
@@ -36,7 +58,7 @@ export function RepairDetails({ repair }: RepairDetailsProps) {
             <p className="text-sm text-muted-foreground mt-1">Reported Issue: {repair.issue}</p>
           </div>
           <button 
-            onClick={() => alert('Customer update functionality - Would open communication modal')}
+            onClick={() => setIsUpdateModalOpen(true)}
             className="flex items-center gap-2 bg-slate-950 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm"
           >
             <MessageSquare className="w-4 h-4" /> Update Customer
@@ -115,11 +137,18 @@ export function RepairDetails({ repair }: RepairDetailsProps) {
                   <span className="text-sm font-bold text-slate-400">Before Repair (Damage)</span>
                 </div>
                 <div 
-                  onClick={() => alert('Photo upload functionality - Would open file picker and upload to server')}
-                  className="aspect-video bg-slate-100 rounded-xl border border-border/60 border-dashed flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-video bg-slate-100 rounded-xl border border-border/60 border-dashed flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors cursor-pointer relative"
                 >
-                  <Wrench className="w-6 h-6 mb-2" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Upload After Photo</span>
+                  <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
+                  {isUploading ? (
+                    <span className="text-xs font-bold uppercase tracking-wider animate-pulse">Uploading...</span>
+                  ) : (
+                    <>
+                      <Wrench className="w-6 h-6 mb-2" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Upload After Photo</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -180,6 +209,7 @@ export function RepairDetails({ repair }: RepairDetailsProps) {
 
         </div>
       </div>
+      <CustomerUpdateModal isOpen={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)} repairId={repair.id} />
     </div>
   );
 }

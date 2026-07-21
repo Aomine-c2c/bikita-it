@@ -1,6 +1,6 @@
 # Todo
 
-- ✅ Inspect project and determine expected behavior
-- ✅ Reproduce and identify the failure
-- ✅ Implement the fix
-- ✅ Run tests and verify behavior
+- 🔄 Audit the project and launch requirements
+- ⬜ Fix launch-blocking issues
+- ⬜ Run tests and production build
+- ⬜ Document launch steps and remaining risks

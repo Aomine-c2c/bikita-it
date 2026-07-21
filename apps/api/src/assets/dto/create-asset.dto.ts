@@ -6,7 +6,7 @@ import {
   MinLength,
   MaxLength,
 } from 'class-validator';
-import { HardwareCategory, HardwareStatus } from '@prisma/client';
+import { HardwareCategory, HardwareStatus } from '../../enums';
 
 export class CreateAssetDto {
   @IsString()

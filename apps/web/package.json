@@ -8,7 +8,11 @@
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:signer": "tauri signer generate -w ~/.tauri/xiphos.key"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

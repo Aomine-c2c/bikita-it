@@ -7,7 +7,7 @@ import {
   MinLength,
   MaxLength,
 } from 'class-validator';
-import { RepairStatus } from '@prisma/client';
+import { RepairStatus } from '../../enums';
 
 export class CreateRepairDto {
   @IsString()

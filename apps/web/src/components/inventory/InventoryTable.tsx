@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { MoreHorizontal, Box, QrCode, Barcode, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { apiFetch } from "@/lib/api";
+
 const getQuantityColor = (quantity: number, reorderLevel: number) => {
   if (quantity === 0) return "bg-destructive/10 text-destructive border-destructive/20";
   if (quantity <= reorderLevel) return "bg-amber-500/10 text-amber-600 border-amber-500/20";
@@ -21,28 +23,25 @@ export function InventoryTable() {
 
   const fetchInventory = async () => {
     try {
-      const res = await fetch('/api/inventory');
-      if (res.ok) {
-        const data = await res.json();
-        // API returns { data: items[], pagination: {...} }
-        const rawItems = data.data ?? data.items ?? [];
-        // Map Prisma field names to what the table expects
-        const mapped = rawItems.map((item: any) => ({
-          id: item.sku ?? item.id,
-          sku: item.sku ?? item.id,
-          item: item.name,
-          name: item.name,
-          category: item.category,
-          quantity: item.quantity,
-          reorderLevel: item.minStock,
-          warehouse: item.binLocation?.split('-')[0] ?? 'Main HQ',
-          shelf: item.binLocation ?? '—',
-          supplier: item.supplier ?? '—',
-          cost: item.unitCost ? `$${item.unitCost.toFixed(2)}` : '—',
-          trackable: item.type ?? 'CONSUMABLE',
-        }));
-        setInventory(mapped);
-      }
+      const data = await apiFetch<any>('/inventory');
+      // API returns { data: items[], pagination: {...} }
+      const rawItems = data.data ?? data.items ?? [];
+      // Map Prisma field names to what the table expects
+      const mapped = rawItems.map((item: any) => ({
+        id: item.sku ?? item.id,
+        sku: item.sku ?? item.id,
+        item: item.name,
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity,
+        reorderLevel: item.minStock,
+        warehouse: item.binLocation?.split('-')[0] ?? 'Main HQ',
+        shelf: item.binLocation ?? '—',
+        supplier: item.supplier ?? '—',
+        cost: item.unitCost ? `$${item.unitCost.toFixed(2)}` : '—',
+        trackable: item.type ?? 'CONSUMABLE',
+      }));
+      setInventory(mapped);
     } catch (error) {
       console.error('Failed to fetch inventory:', error);
     } finally {

@@ -5,6 +5,8 @@ import { Laptop, Ticket, Building, Mail, Phone, MoreHorizontal, X, Monitor, Key,
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { apiFetch } from "@/lib/api";
+
 const getStatusColor = (status: string) => {
   switch (status) {
     case "Active": return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
@@ -40,25 +42,22 @@ export function EmployeeDirectory() {
 
   const fetchEmployees = async () => {
     try {
-      const res = await fetch('/api/users');
-      if (res.ok) {
-        const data = await res.json();
-        const items = Array.isArray(data) ? data : data.data ?? data ?? [];
-        const mapped = items.map((emp: any) => ({
-          id: emp.id?.substring(0, 8) ?? emp.id,
-          name: emp.name,
-          role: emp.position ?? emp.role ?? 'Employee',
-          department: emp.department ?? '—',
-          email: emp.email,
-          phone: emp.office ?? '—',
-          status: deriveStatus(emp),
-          avatar: emp.name ? emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "?",
-          assets: emp.assets ?? 0,
-          value: "$0",
-          tickets: emp.tickets ?? 0,
-        }));
-        setEmployees(mapped);
-      }
+      const data = await apiFetch<any>('/users');
+      const items = Array.isArray(data) ? data : data.data ?? data ?? [];
+      const mapped = items.map((emp: any) => ({
+        id: emp.id?.substring(0, 8) ?? emp.id,
+        name: emp.name,
+        role: emp.position ?? emp.role ?? 'Employee',
+        department: emp.department ?? '—',
+        email: emp.email,
+        phone: emp.office ?? '—',
+        status: deriveStatus(emp),
+        avatar: emp.name ? emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "?",
+        assets: emp.assets ?? 0,
+        value: "$0",
+        tickets: emp.tickets ?? 0,
+      }));
+      setEmployees(mapped);
     } catch (e) {
       console.error('Failed to fetch employees:', e);
     } finally {

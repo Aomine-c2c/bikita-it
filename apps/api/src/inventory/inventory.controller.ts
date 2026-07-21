@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
@@ -16,30 +18,68 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Post()
-  create(@Body() createInventoryDto: CreateInventoryDto) {
-    return this.inventoryService.create(createInventoryDto);
+  async create(@Body() createInventoryDto: CreateInventoryDto) {
+    try {
+      return await this.inventoryService.create(createInventoryDto);
+    } catch (error) {
+      throw new HttpException(
+        { message: 'Failed to create inventory item', error: error.message },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Get()
-  findAll() {
-    return this.inventoryService.findAll();
+  async findAll() {
+    try {
+      return await this.inventoryService.findAll();
+    } catch (error) {
+      throw new HttpException(
+        { message: 'Failed to fetch inventory items', error: error.message },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.inventoryService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    try {
+      return await this.inventoryService.findOne(id);
+    } catch (error) {
+      if (error.status === 404) throw error;
+      throw new HttpException(
+        { message: 'Failed to fetch inventory item', error: error.message },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateInventoryDto: UpdateInventoryDto,
   ) {
-    return this.inventoryService.update(id, updateInventoryDto);
+    try {
+      return await this.inventoryService.update(id, updateInventoryDto);
+    } catch (error) {
+      if (error.status === 404) throw error;
+      throw new HttpException(
+        { message: 'Failed to update inventory item', error: error.message },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.inventoryService.remove(id);
+  async remove(@Param('id') id: string) {
+    try {
+      return await this.inventoryService.remove(id);
+    } catch (error) {
+      if (error.status === 404) throw error;
+      throw new HttpException(
+        { message: 'Failed to delete inventory item', error: error.message },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

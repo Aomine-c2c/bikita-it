@@ -10,6 +10,7 @@ import {
   Server,
   Plus
 } from "lucide-react";
+import { apiFetch, networkApi } from "@/lib/api";
 
 export function DiscoveryStagingTable() {
   const [stagedDevices, setStagedDevices] = useState<any[]>([]);
@@ -23,12 +24,9 @@ export function DiscoveryStagingTable() {
   const fetchStagedDevices = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/network/discovery/staged");
-      if (res.ok) {
-        const data = await res.json();
-        const devicesArray = Array.isArray(data) ? data : data.data ?? [];
-        setStagedDevices(devicesArray);
-      }
+      const data = await apiFetch<any>("/network/discovery/staged");
+      const devicesArray = Array.isArray(data) ? data : data.data ?? [];
+      setStagedDevices(devicesArray);
     } catch (e) {
       console.error(e);
     } finally {
@@ -39,7 +37,7 @@ export function DiscoveryStagingTable() {
   const handleScan = async () => {
     setIsScanning(true);
     try {
-      await fetch("/api/network/discovery/scan", {
+      await apiFetch<any>("/network/discovery/scan", {
         method: "POST"
       });
       // Poll for updates after starting scan
@@ -121,7 +119,14 @@ export function DiscoveryStagingTable() {
                   <td className="px-4 py-3 text-right">
                     <button 
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 px-2.5 py-1.5 rounded-md transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                      onClick={() => alert('Prom functionality - Would add device to connected devices inventory')}
+                      onClick={async () => {
+                        try {
+                          await networkApi.promoteDevice(device.id);
+                          fetchStagedDevices();
+                        } catch (err) {
+                          console.error("Failed to promote", err);
+                        }
+                      }}
                     >
                       <Plus className="w-3 h-3" />
                       Promote

@@ -1,0 +1,9 @@
+C:\Users\armut\404\BikitaIT\apps\web\src-tauri\target_fresh\release\deps\bcrypt-5ee10ecef9f33078.d: C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\lib.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\bcrypt.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\errors.rs
+
+C:\Users\armut\404\BikitaIT\apps\web\src-tauri\target_fresh\release\deps\libbcrypt-5ee10ecef9f33078.rlib: C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\lib.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\bcrypt.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\errors.rs
+
+C:\Users\armut\404\BikitaIT\apps\web\src-tauri\target_fresh\release\deps\libbcrypt-5ee10ecef9f33078.rmeta: C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\lib.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\bcrypt.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\errors.rs
+
+C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\lib.rs:
+C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\bcrypt.rs:
+C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bcrypt-0.15.1\src\errors.rs:

@@ -16,6 +16,9 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
+import { SwitchDetails } from "./SwitchDetails";
 import { Wifi, WifiOff, Router, Server, Globe } from "lucide-react";
 
 // ---- Custom Node ----
@@ -36,7 +39,7 @@ function NetworkNode({ data }: { data: any }) {
 
   return (
     <div 
-      onClick={() => alert(`Device details: ${data.label} - ${data.sub}\nStatus: ${data.status}\n\nWould open device configuration panel`)}
+      
       className={cn("px-3 py-2.5 rounded-xl border-2 shadow-sm bg-white min-w-[130px] cursor-pointer hover:shadow-md transition-shadow", statusColor)}
     >
       <Handle type="target" position={Position.Top} className="!bg-slate-300 !border-slate-300 !w-2 !h-2" />
@@ -64,7 +67,6 @@ function NetworkNode({ data }: { data: any }) {
     </div>
   );
 }
-
 const nodeTypes = { networkNode: NetworkNode };
 
 const INIT_NODES: Node[] = [
@@ -96,6 +98,11 @@ const INIT_EDGES: Edge[] = [
 export function NetworkTopology() {
   const [nodes, setNodes, onNodesChange] = useNodesState(INIT_NODES);
   const [edges, setEdges, onEdgesChange] = useEdgesState(INIT_EDGES);
+  const [selectedDevice, setSelectedDevice] = useState<any>(null);
+
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setSelectedDevice(node.data);
+  }, []);
 
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
@@ -116,6 +123,7 @@ export function NetworkTopology() {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
+        onNodeClick={onNodeClick}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
@@ -126,6 +134,32 @@ export function NetworkTopology() {
         <Controls className="!bg-white !border-border/60 !shadow-sm" />
         <Background gap={16} size={1} color="#e4e4e7" />
       </ReactFlow>
+
+
+      <AnimatePresence>
+        {selectedDevice && (
+          <motion.div
+            initial={{ x: "100%", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="absolute top-0 right-0 h-full w-[400px] z-20 shadow-2xl bg-slate-950 flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-white">Device Details</h3>
+              <button 
+                onClick={() => setSelectedDevice(null)}
+                className="p-1 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <SwitchDetails />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

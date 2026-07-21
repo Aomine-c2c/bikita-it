@@ -7,12 +7,19 @@ export class DashboardService {
 
   async getStats() {
     try {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+
       // Use parallel queries for independent operations
       const [
         totalHardware,
         atRiskHardware,
         lowStockItemsCount,
         activeNetworkDevices,
+        activeRepairs,
+        recentActivity,
+        rawTrend,
       ] = await Promise.all([
         this.prisma.hardwareAsset.count(),
         this.prisma.hardwareAsset.count({
@@ -22,41 +29,37 @@ export class DashboardService {
             },
           },
         }),
-        // Count inventory items where quantity is at or below their minimum stock level
-        this.prisma.inventoryItem
-          .count({
-            where: {
-              quantity: {
-                lte: 0, // temporarily count zero-stock items until we resolve minStock column naming
-              },
-            },
-          })
-          .catch(() => 0), // Fallback if query fails
+        this.prisma
+          .$queryRaw<[{ count: bigint }]>`
+            SELECT COUNT(*)::int as count FROM "InventoryItem" WHERE quantity <= "minStock"
+          `
+          .then((rows) => Number(rows[0].count))
+          .catch(() => 0),
         this.prisma.connectedDevice.count({
           where: {
             connectionStatus: 'CONNECTED',
           },
         }),
+        this.prisma.repair.findMany({
+          where: { status: { not: 'COMPLETED' } },
+          include: { hardware: true, technician: true },
+          take: 3,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.stockTransaction.findMany({
+          include: { hardwareAsset: true, inventoryItem: true, assignee: true },
+          take: 7,
+          orderBy: { createdAt: 'desc' },
+        }),
+        // Single query fetching all transactions in date range (fixes 14-query N+1)
+        this.prisma.stockTransaction.findMany({
+          where: { createdAt: { gte: sevenDaysAgo } },
+          select: { type: true, createdAt: true },
+          orderBy: { createdAt: 'asc' },
+        }),
       ]);
 
-      const activeRepairs = await this.prisma.repair.findMany({
-        where: { status: { not: 'COMPLETED' } },
-        include: { hardware: true, technician: true },
-        take: 3,
-        orderBy: { createdAt: 'desc' },
-      });
-
-      const recentActivity = await this.prisma.stockTransaction.findMany({
-        include: { hardwareAsset: true, inventoryItem: true, assignee: true },
-        take: 7,
-        orderBy: { createdAt: 'desc' },
-      });
-
-      // Build 7-day trend with proper date grouping
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-      sevenDaysAgo.setHours(0, 0, 0, 0);
-
+      // Build 7-day trend by grouping in memory (O(n) instead of 14 DB roundtrips)
       const transactionTrend = [];
       for (let i = 6; i >= 0; i--) {
         const date = new Date();
@@ -67,21 +70,12 @@ export class DashboardService {
         dayEnd.setHours(23, 59, 59, 999);
         const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
 
-        // Get counts for this specific day
-        const [intakeCount, issueCount] = await Promise.all([
-          this.prisma.stockTransaction.count({
-            where: {
-              type: 'INTAKE',
-              createdAt: { gte: dayStart, lte: dayEnd },
-            },
-          }),
-          this.prisma.stockTransaction.count({
-            where: {
-              type: 'ISSUE',
-              createdAt: { gte: dayStart, lte: dayEnd },
-            },
-          }),
-        ]);
+        const intakeCount = rawTrend.filter(
+          (e) => e.type === 'INTAKE' && e.createdAt >= dayStart && e.createdAt <= dayEnd,
+        ).length;
+        const issueCount = rawTrend.filter(
+          (e) => e.type === 'ISSUE' && e.createdAt >= dayStart && e.createdAt <= dayEnd,
+        ).length;
 
         transactionTrend.push({
           day: dayName,

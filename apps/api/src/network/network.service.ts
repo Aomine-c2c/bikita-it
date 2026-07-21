@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateNetworkDto } from './dto/create-network.dto';
+import { UpdateNetworkDto } from './dto/update-network.dto';
 
 @Injectable()
 export class NetworkService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: any) {
+  async create(data: CreateNetworkDto) {
     return this.prisma.connectedDevice.create({
       data,
       include: { employee: { select: { id: true, name: true, email: true } } },
@@ -38,6 +40,17 @@ export class NetworkService {
     };
   }
 
+    async promoteStaged(id: string) {
+    const device = await this.prisma.connectedDevice.findUnique({ where: { id } });
+    if (!device) throw new NotFoundException('Device not found');
+    
+    return this.prisma.connectedDevice.update({
+      where: { id },
+      data: { connectionStatus: 'CONNECTED' },
+      include: { employee: { select: { id: true, name: true, email: true } } },
+    });
+  }
+
   async findStaged() {
     return this.prisma.connectedDevice.findMany({
       where: { connectionStatus: 'STAGED' },
@@ -55,7 +68,7 @@ export class NetworkService {
     return device;
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: UpdateNetworkDto) {
     return this.prisma.connectedDevice.update({
       where: { id },
       data,

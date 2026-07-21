@@ -3,36 +3,21 @@
 import { GuidedTour } from "@/components/tutorial/GuidedTour";
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import Link from "next/link";
 import {
-  Box, LifeBuoy, ShoppingCart, AlertTriangle, Package,
-  CheckCircle2, Clock, ArrowRight, Wifi, WifiOff,
-  TrendingUp, TrendingDown, Minus, Activity, Wrench,
-  ServerCrash, ChevronRight, Loader2
+  Box, AlertTriangle, Package,
+  ArrowRight, Wifi, 
+  Activity, Wrench,
+  ChevronRight, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from "recharts";
-
-function ActivityIcon({ type }: { type: string }) {
-  const map: Record<string, { icon: React.ElementType; color: string }> = {
-    ticket: { icon: LifeBuoy, color: "text-blue-500 bg-blue-50" },
-    asset: { icon: Box, color: "text-slate-600 bg-slate-100" },
-    network: { icon: Wifi, color: "text-emerald-600 bg-emerald-50" },
-    alert: { icon: AlertTriangle, color: "text-amber-500 bg-amber-50" },
-    user: { icon: CheckCircle2, color: "text-purple-500 bg-purple-50" },
-    repair: { icon: Wrench, color: "text-orange-500 bg-orange-50" },
-  };
-  const { icon: Icon, color } = map[type] ?? map.alert;
-  return (
-    <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", color)}>
-      <Icon className="w-3.5 h-3.5" />
-    </div>
-  );
-}
+import { apiFetch } from "@/lib/api";
 
 function StatusDot({ status }: { status: string }) {
   return (
@@ -62,11 +47,8 @@ export default function MissionControl() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await fetch('/api/dashboard');
-        if (res.ok) {
-          const json = await res.json();
-          setData(json);
-        }
+        const json = await apiFetch<any>('/dashboard');
+        setData(json);
       } catch (err) {
         console.error("Failed to fetch dashboard data", err);
       } finally {
@@ -75,6 +57,29 @@ export default function MissionControl() {
     };
     fetchDashboard();
   }, []);
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+      },
+    },
+  };
 
   if (loading) {
     return (
@@ -90,7 +95,7 @@ export default function MissionControl() {
   const CRITICAL_KPIS = data ? [
     {
       label: "Total Hardware Assets",
-      value: data.kpis.totalHardware.toString(),
+      value: data.kpis.totalHardware.toLocaleString(),
       subtext: "Tracked in inventory",
       icon: Box,
       href: "/assets",
@@ -102,7 +107,7 @@ export default function MissionControl() {
     },
     {
       label: "Assets At Risk",
-      value: data.kpis.atRiskHardware.toString(),
+      value: data.kpis.atRiskHardware.toLocaleString(),
       subtext: "Under repair or maintenance",
       icon: AlertTriangle,
       href: "/repairs",
@@ -114,7 +119,7 @@ export default function MissionControl() {
     },
     {
       label: "Low Stock Items",
-      value: data.kpis.lowStockItems.toString(),
+      value: data.kpis.lowStockItems.toLocaleString(),
       subtext: "Below minimum threshold",
       icon: Package,
       href: "/inventory",
@@ -126,7 +131,7 @@ export default function MissionControl() {
     },
     {
       label: "Active Network Devices",
-      value: data.kpis.activeNetworkDevices.toString(),
+      value: data.kpis.activeNetworkDevices.toLocaleString(),
       subtext: "Connected to platform",
       icon: Wifi,
       href: "/network",
@@ -141,51 +146,59 @@ export default function MissionControl() {
   return (
     <DashboardLayout>
       <GuidedTour />
-      <div className="pb-10 space-y-5 max-w-[1500px] mx-auto">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="pb-10 space-y-6 max-w-[1500px] mx-auto"
+      >
 
         {/* Page Header */}
-        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="flex items-end justify-between pt-1">
+        <motion.div variants={itemVariants} className="flex items-end justify-between pt-1">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Mission Control</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <h1 className="text-3xl font-black tracking-tight text-foreground">Mission Control</h1>
+            <p className="text-[13px] font-medium text-muted-foreground mt-1">
               {time.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-2.5 text-xs text-muted-foreground bg-white border border-border/60 px-4 py-2 rounded-full shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="font-semibold text-emerald-700">Platform Operational</span>
+            <span className="font-bold text-foreground">Platform Status: <span className="text-emerald-600">Operational</span></span>
           </div>
         </motion.div>
 
         {/* Critical KPI Cards */}
         {data && (
-          <motion.div id="tour-dashboard-kpis" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          <motion.div id="tour-dashboard-kpis" variants={itemVariants} className="grid grid-cols-2 xl:grid-cols-4 gap-4">
             {CRITICAL_KPIS.map((kpi) => (
-              <Link key={kpi.label} href={kpi.href}>
+              <Link key={kpi.label} href={kpi.href} className="group">
                 <motion.div
-                  whileHover={{ y: -2 }}
-                  className={cn("bg-white rounded-[14px] border shadow-sm p-5 cursor-pointer hover:shadow-md transition-all", kpi.border)}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  className={cn(
+                    "bg-white rounded-[18px] border border-border/60 shadow-premium p-6 cursor-pointer transition-all duration-300 hover:shadow-premium-hover",
+                    kpi.border
+                  )}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", kpi.bg)}>
-                      <kpi.icon className={cn("w-5 h-5", kpi.color)} />
+                  <div className="flex items-start justify-between mb-5">
+                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs", kpi.bg)}>
+                      <kpi.icon className={cn("w-6 h-6", kpi.color)} />
                     </div>
-                    <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1",
-                      kpi.trend === "up" ? "bg-blue-50 text-blue-600 border-blue-100" :
-                      kpi.trend === "warn" ? "bg-amber-50 text-amber-600 border-amber-100" :
-                      "bg-slate-50 text-slate-600 border-slate-200"
+                    <span className={cn("text-[10px] font-black px-2.5 py-1 rounded-full border shadow-xs flex items-center gap-1",
+                      kpi.trend === "up" ? "bg-blue-50 text-blue-700 border-blue-100" :
+                      kpi.trend === "warn" ? "bg-amber-50 text-amber-700 border-amber-100" :
+                      "bg-slate-50 text-slate-700 border-slate-200"
                     )}>
                       {kpi.trendVal}
                     </span>
                   </div>
-                  <p className="text-3xl font-black text-foreground leading-none">{kpi.value}</p>
-                  <p className="text-xs font-semibold text-foreground mt-1">{kpi.label}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{kpi.subtext}</p>
-                  <div className="flex items-center gap-1 mt-3 text-[11px] font-semibold text-muted-foreground group-hover:text-foreground">
-                    View details <ArrowRight className="w-3 h-3" />
+                  <p className="text-4xl font-black text-foreground tracking-tighter leading-none">{kpi.value}</p>
+                  <p className="text-xs font-bold text-foreground mt-2">{kpi.label}</p>
+                  <p className="text-[11px] font-medium text-muted-foreground mt-0.5">{kpi.subtext}</p>
+                  <div className="flex items-center gap-1 mt-4 text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors">
+                    View intelligence <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </motion.div>
               </Link>
@@ -195,22 +208,22 @@ export default function MissionControl() {
 
         {/* Middle Row: Ticket Chart + System Status */}
         {data && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <motion.div variants={itemVariants} className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* Inventory Trend Chart */}
-            <div id="tour-inventory-trend" className="xl:col-span-2 bg-white border border-border/60 rounded-[14px] shadow-sm p-5">
-              <div className="flex items-center justify-between mb-5">
+            <div id="tour-inventory-trend" className="xl:col-span-2 bg-white border border-border/60 rounded-[18px] shadow-premium p-6">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">Inventory Transactions (7-day)</h3>
-                  <p className="text-xs text-muted-foreground">Received vs Issued this week</p>
+                  <h3 className="text-sm font-bold text-foreground">Inventory Transactions</h3>
+                  <p className="text-[11px] font-medium text-muted-foreground">Flow analysis (7-day historical)</p>
                 </div>
-                <div className="flex items-center gap-4 text-[11px] font-semibold text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 rounded-full bg-slate-800 inline-block" /> Received</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 rounded-full bg-slate-300 inline-block" /> Issued</span>
+                <div className="flex items-center gap-5 text-[11px] font-bold text-muted-foreground">
+                  <span className="flex items-center gap-2"><span className="w-3 h-1 rounded-full bg-slate-900 inline-block" /> Received</span>
+                  <span className="flex items-center gap-2"><span className="w-3 h-1 rounded-full bg-slate-300 inline-block" /> Issued</span>
                 </div>
               </div>
-              <div className="h-52">
+              <div className="h-60">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.transactionTrend.slice().reverse()} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                  <AreaChart data={data.transactionTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="openGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#18181b" stopOpacity={0.12} />
@@ -221,42 +234,46 @@ export default function MissionControl() {
                         <stop offset="95%" stopColor="#a1a1aa" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
-                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#71717a" }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#71717a" }} allowDecimals={false} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
+                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: "#a1a1aa" }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: "#a1a1aa" }} allowDecimals={false} />
                     <Tooltip
-                      contentStyle={{ border: "1px solid #e4e4e7", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "12px" }}
-                      labelStyle={{ fontWeight: 700 }}
+                      contentStyle={{ border: "none", borderRadius: "12px", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)", fontSize: "12px", fontWeight: 700 }}
+                      labelStyle={{ color: "#71717a", marginBottom: "4px" }}
                     />
-                    <Area type="monotone" dataKey="received" stroke="#18181b" strokeWidth={2} fill="url(#openGrad)" name="Received" dot={false} />
-                    <Area type="monotone" dataKey="issued" stroke="#a1a1aa" strokeWidth={2} fill="url(#resGrad)" name="Issued" dot={false} />
+                    <Area type="monotone" dataKey="received" stroke="#18181b" strokeWidth={2.5} fill="url(#openGrad)" name="Received" dot={{ r: 3, fill: "#18181b" }} activeDot={{ r: 5, strokeWidth: 0 }} />
+                    <Area type="monotone" dataKey="issued" stroke="#a1a1aa" strokeWidth={2.5} fill="url(#resGrad)" name="Issued" dot={{ r: 3, fill: "#a1a1aa" }} activeDot={{ r: 5, strokeWidth: 0 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* System Status */}
-            <div id="tour-system-status" className="bg-white border border-border/60 rounded-[14px] shadow-sm p-5">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-bold text-foreground">System Status</h3>
-                <Activity className="w-4 h-4 text-muted-foreground" />
+            <div id="tour-system-status" className="bg-white border border-border/60 rounded-[18px] shadow-premium p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-bold text-foreground">Operational Integrity</h3>
+                <Activity className="w-4 h-4 text-muted-foreground/60" />
               </div>
-              <div className="space-y-2.5">
+              <div className="space-y-1">
                 {data.systemStatus.map((sys: any) => (
-                  <div key={sys.name} className="flex items-center gap-3 py-2 border-b border-border/20 last:border-0">
+                  <motion.div 
+                    whileHover={{ x: 4 }}
+                    key={sys.name} 
+                    className="flex items-center gap-4 py-3 border-b border-border/10 last:border-0 transition-colors"
+                  >
                     <StatusDot status={sys.status} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">{sys.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{sys.uptime} uptime · {sys.latency}</p>
+                      <p className="text-xs font-bold text-foreground truncate">{sys.name}</p>
+                      <p className="text-[10px] font-medium text-muted-foreground">{sys.uptime} uptime · {sys.latency}</p>
                     </div>
-                    <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded capitalize", {
-                      "bg-emerald-50 text-emerald-600": sys.status === "online",
-                      "bg-amber-50 text-amber-600": sys.status === "degraded",
-                      "bg-red-50 text-red-600": sys.status === "offline",
+                    <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full capitalize border shadow-xs", {
+                      "bg-emerald-50 text-emerald-700 border-emerald-100": sys.status === "online",
+                      "bg-amber-50 text-amber-700 border-amber-100": sys.status === "degraded",
+                      "bg-red-50 text-red-700 border-red-100": sys.status === "offline",
                     })}>
                       {sys.status}
                     </span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
@@ -265,71 +282,58 @@ export default function MissionControl() {
 
         {/* Bottom Row: Activity Feed + Active Repairs */}
         {data && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <motion.div variants={itemVariants} className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* Activity Feed */}
-            <div id="tour-recent-activity" className="xl:col-span-2 bg-white border border-border/60 rounded-[14px] shadow-sm p-5">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-bold text-foreground">Recent Activity</h3>
-                <span className="text-[11px] font-semibold text-primary hover:underline cursor-pointer">View all</span>
-              </div>
-              <div className="space-y-3">
-                {data.recentActivity.length > 0 ? data.recentActivity.map((item: any, i: number) => (
-                  <div key={i} className="flex items-start gap-3 py-2 border-b border-border/20 last:border-0 group cursor-pointer hover:bg-slate-50/80 -mx-2 px-2 rounded-lg transition-colors">
-                    <ActivityIcon type={item.type} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground">{item.action}</p>
-                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">{item.meta}</p>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground shrink-0 mt-0.5 font-medium">{item.time}</span>
-                  </div>
-                )) : (
-                  <p className="text-sm text-muted-foreground py-4 text-center">No recent activity found.</p>
-                )}
-              </div>
+            <div id="tour-recent-activity" className="xl:col-span-2">
+              <ActivityFeed data={data.recentActivity} />
             </div>
 
             {/* Active Repairs Widget */}
-            <div id="tour-active-repairs" className="bg-white border border-border/60 rounded-[14px] shadow-sm p-5 flex flex-col">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-bold text-foreground">Active Repairs</h3>
-                <Link href="/repairs" className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5">
-                  All repairs <ChevronRight className="w-3 h-3" />
+            <div id="tour-active-repairs" className="bg-white border border-border/60 rounded-[18px] shadow-premium p-6 flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-bold text-foreground">Maintenance Pipeline</h3>
+                <Link href="/repairs" className="text-[11px] font-bold text-primary hover:underline flex items-center gap-0.5">
+                  View queue <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
-              <div className="space-y-3 flex-1">
+              <div className="space-y-4 flex-1">
                 {data.activeRepairs.length > 0 ? data.activeRepairs.map((r: any) => (
-                  <div key={r.id} className="border border-border/40 rounded-xl p-3.5 hover:border-border/80 transition-colors cursor-pointer">
-                    <div className="flex items-start justify-between gap-2">
+                  <motion.div 
+                    whileHover={{ y: -2 }}
+                    key={r.id} 
+                    className="border border-border/40 rounded-2xl p-4 hover:border-border/80 hover:shadow-sm transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-bold text-foreground">{r.asset}</p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{r.issue}</p>
+                        <p className="text-xs font-black text-foreground group-hover:text-primary transition-colors">{r.asset}</p>
+                        <p className="text-[11px] font-medium text-muted-foreground mt-1 line-clamp-1">{r.issue}</p>
                       </div>
-                      <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded font-bold shrink-0">
+                      <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-100 px-2 py-0.5 rounded-lg font-black shrink-0 shadow-xs">
                         ETA: {r.eta}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 mt-2.5">
-                      <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-600">
+                    <div className="flex items-center gap-2 mt-4">
+                      <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 border border-border/40">
                         {r.tech && r.tech !== "Unassigned" ? r.tech.split(" ").map((n: string) => n[0]).join("") : "?"}
                       </div>
-                      <span className="text-[11px] text-muted-foreground">{r.tech}</span>
-                      <span className="text-[10px] font-mono text-muted-foreground ml-auto">{r.id}</span>
+                      <span className="text-[11px] font-bold text-muted-foreground">{r.tech}</span>
+                      <span className="text-[10px] font-mono font-bold text-muted-foreground/40 ml-auto tracking-tighter">{r.id}</span>
                     </div>
-                  </div>
+                  </motion.div>
                 )) : (
-                  <p className="text-sm text-muted-foreground py-4 text-center">No active repairs.</p>
+                  <p className="text-xs text-muted-foreground py-4 text-center">No active repair tickets.</p>
                 )}
               </div>
               <Link href="/repairs">
-                <button className="w-full mt-4 py-2 border border-border/60 rounded-xl text-xs font-semibold text-muted-foreground hover:bg-slate-50 hover:text-foreground transition-colors flex items-center justify-center gap-2">
-                  <Wrench className="w-3.5 h-3.5" /> Open Repairs Queue
+                <button className="w-full mt-6 py-3 border border-border/60 rounded-2xl text-xs font-bold text-muted-foreground hover:bg-slate-50 hover:text-foreground transition-all flex items-center justify-center gap-2 shadow-sm">
+                  <Wrench className="w-3.5 h-3.5" /> Open Maintenance Console
                 </button>
               </Link>
             </div>
           </motion.div>
         )}
 
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }

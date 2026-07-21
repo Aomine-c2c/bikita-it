@@ -1,22 +1,22 @@
 [
   {
-    "content": "Inspect project and determine expected behavior",
-    "active_form": "Inspecting project and expected behavior",
-    "status": "completed"
+    "content": "Audit the project and launch requirements",
+    "active_form": "Auditing the project and launch requirements",
+    "status": "in_progress"
   },
   {
-    "content": "Reproduce and identify the failure",
-    "active_form": "Reproducing and identifying the failure",
-    "status": "completed"
+    "content": "Fix launch-blocking issues",
+    "active_form": "Fixing launch-blocking issues",
+    "status": "pending"
   },
   {
-    "content": "Implement the fix",
-    "active_form": "Implementing the fix",
-    "status": "completed"
+    "content": "Run tests and production build",
+    "active_form": "Running tests and production build",
+    "status": "pending"
   },
   {
-    "content": "Run tests and verify behavior",
-    "active_form": "Running tests and verifying behavior",
-    "status": "completed"
+    "content": "Document launch steps and remaining risks",
+    "active_form": "Documenting launch steps and remaining risks",
+    "status": "pending"
   }
 ]

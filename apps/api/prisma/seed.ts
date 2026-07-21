@@ -1,4 +1,5 @@
-import { PrismaClient, HardwareCategory, HardwareStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { HardwareCategory, HardwareStatus } from '../src/enums';
 
 const prisma = new PrismaClient();
 
@@ -78,8 +79,7 @@ async function main() {
       { name: "Backup Service", status: "online", uptime: "100%", latency: "—" },
       { name: "VPN Gateway", status: "online", uptime: "100%", latency: "8ms" },
       { name: "Email Server", status: "online", uptime: "99.9%", latency: "12ms" },
-    ],
-    skipDuplicates: true
+    ]
   });
 
   console.log('Creating system settings...');
@@ -89,8 +89,7 @@ async function main() {
       { key: "security", value: JSON.stringify({ mfa: true, auditLog: true, sessionTimeout: true, passwordMinLength: 12, allowedIpRanges: "10.0.0.0/8, 192.168.1.0/24" }) },
       { key: "notifications", value: JSON.stringify({ emailAlerts: true, smsAlerts: false, smtpServer: "smtp.sendgrid.net:587", alertEmailSender: "noreply@xiphos.bikita.co.zw" }) },
       { key: "database", value: JSON.stringify({ autoBackup: true, backupRetention: "30 days" }) }
-    ],
-    skipDuplicates: true
+    ]
   });
 
   console.log('Seed process completed successfully. Database is clean and ready.');

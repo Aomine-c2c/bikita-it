@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Laptop, Smartphone, Printer, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 // --- Real API Data ---
 export interface RepairItem {
@@ -57,10 +58,8 @@ export function RepairQueue({ activeId, onSelect }: RepairQueueProps) {
   const fetchRepairs = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/repairs');
-      if (res.ok) {
-        const data = await res.json();
-        const rawRepairs = data.data ?? data ?? [];
+      const data = await apiFetch<any>('/repairs');
+      const rawRepairs = data.data ?? data ?? [];
         const mapped = rawRepairs.map((r: any) => ({
           id: r.id?.substring(0, 8) ?? r.id,
           ticketId: r.id?.substring(0, 8) ?? r.id,
@@ -71,7 +70,6 @@ export function RepairQueue({ activeId, onSelect }: RepairQueueProps) {
           date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) : '—',
         }));
         setRepairs(mapped);
-      }
     } catch (e) {
       console.error('Failed to fetch repairs:', e);
     } finally {

@@ -5,10 +5,10 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { motion } from "framer-motion";
 import {
   Settings, Server, Database, Globe, Shield, Bell, Users,
-  ChevronRight, Check, Save, ToggleLeft, ToggleRight, Wifi,
-  Mail, Key, Monitor, HardDrive, Clock, Loader2
+  ChevronRight, Check, Save, ToggleLeft, ToggleRight, Wifi, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 const SECTIONS = [
   { id: "general", label: "General", icon: Settings },
@@ -61,8 +61,7 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    fetch('/api/settings')
-      .then(res => res.json())
+    apiFetch<any>('/settings')
       .then(data => {
         if (data.settings) {
           setSettings({
@@ -87,15 +86,13 @@ export default function SettingsPage() {
     setSaving(true);
     setSaveSuccess(false);
     try {
-      const res = await fetch('/api/settings', {
+      await apiFetch<any>('/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       });
-      if (res.ok) {
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
-      }
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error("Failed to save settings", err);
     }

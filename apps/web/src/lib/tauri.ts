@@ -1,34 +1,28 @@
 /**
  * Xiphos Tauri IPC Client
  * 
- * In Tauri desktop mode, calls invoke() to talk to the Rust backend.
- * Falls back to the HTTP API when running in a browser (dev mode).
- * 
- * Usage:
- *   import { invoke } from '@/lib/tauri';
- *   const assets = await invoke('get_assets');
+ * In Tauri desktop mode, calls the bundled NestJS sidecar via HTTP.
+ * Falls back to the NestJS HTTP API when running in a browser (dev mode).
  */
 
-// Detect if we're inside Tauri WebView
 const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+let apiPort: number | null = null;
 
-/**
- * Universal invoke — works in both Tauri and browser dev mode.
- * Tauri: calls IPC command on Rust backend
- * Browser: proxies to the NestJS HTTP API
- */
 export async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
-  if (isTauri) {
-    // In Tauri — directly invoke Rust commands
-    const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
-    return tauriInvoke<T>(command, args);
-  }
+  let baseUrl = '';
 
-  // In browser dev mode — fall back to HTTP API
-  const apiPath = command
-    .replace(/_/g, '-')
-    .replace(/^get-/, '/api/')
-    .replace(/^create-/, '/api/');
+  if (isTauri) {
+    const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+    
+    if (command === 'check_for_update' || command === 'install_update' || command === 'get_api_port') {
+      return tauriInvoke<T>(command, args);
+    }
+    
+    if (!apiPort) {
+      apiPort = await tauriInvoke<number>('get_api_port');
+    }
+    baseUrl = `http://127.0.0.1:${apiPort}`;
+  }
 
   // Map Tauri commands to HTTP endpoints
   const routeMap: Record<string, { method: string; path: string }> = {
@@ -46,9 +40,17 @@ export async function invoke<T>(command: string, args?: Record<string, unknown>)
   };
 
   const route = routeMap[command];
-  if (!route) throw new Error(`No HTTP fallback for Tauri command: ${command}`);
+  if (!route) {
+    if (isTauri) {
+      // Fallback: try rust native command if not mapped
+      const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+      return tauriInvoke<T>(command, args);
+    }
+    throw new Error(`No HTTP fallback for Tauri command: ${command}`);
+  }
 
-  const res = await fetch(route.path, {
+  const url = baseUrl + route.path;
+  const res = await fetch(url, {
     method: route.method,
     headers: { 'Content-Type': 'application/json' },
     body: route.method === 'POST' && args ? JSON.stringify(args) : undefined,

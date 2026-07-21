@@ -1,0 +1,8 @@
+C:\Users\armut\404\BikitaIT\apps\web\src-tauri\target\debug\deps\dyn_clone-b3bf0144fbdba73b.d: C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\dyn-clone-1.0.20\src\lib.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\dyn-clone-1.0.20\src\macros.rs
+
+C:\Users\armut\404\BikitaIT\apps\web\src-tauri\target\debug\deps\libdyn_clone-b3bf0144fbdba73b.rlib: C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\dyn-clone-1.0.20\src\lib.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\dyn-clone-1.0.20\src\macros.rs
+
+C:\Users\armut\404\BikitaIT\apps\web\src-tauri\target\debug\deps\libdyn_clone-b3bf0144fbdba73b.rmeta: C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\dyn-clone-1.0.20\src\lib.rs C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\dyn-clone-1.0.20\src\macros.rs
+
+C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\dyn-clone-1.0.20\src\lib.rs:
+C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\dyn-clone-1.0.20\src\macros.rs:

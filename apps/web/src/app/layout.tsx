@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SetupGuard } from "@/components/auth/SetupGuard";
+import { UpdateNotification } from "@/components/updater/UpdateNotification";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -24,7 +25,9 @@ export default function RootLayout({
         <SetupGuard>
           {children}
         </SetupGuard>
+        <UpdateNotification />
       </body>
     </html>
   );
 }
+

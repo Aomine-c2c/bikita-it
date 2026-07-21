@@ -4,13 +4,18 @@ import React, { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, PackageSearch, Truck, Wrench } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 type Repair = { status: string; createdAt: string };
 
 export function RepairKPIs() {
   const [repairs, setRepairs] = useState<Repair[]>([]);
   const [unavailable, setUnavailable] = useState(false);
-  useEffect(() => { fetch("/api/repairs").then(async (res) => { if (!res.ok) throw new Error(); const body = await res.json(); setRepairs(body.data ?? body); }).catch(() => setUnavailable(true)); }, []);
+  useEffect(() => { 
+    apiFetch<any>("/repairs")
+      .then((body) => setRepairs(body.data ?? body))
+      .catch(() => setUnavailable(true)); 
+  }, []);
   const stats = useMemo(() => {
     const now = new Date();
     return ({

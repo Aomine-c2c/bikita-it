@@ -64,7 +64,7 @@ export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawe
 
             {/* Actions Toolbar */}
             <div className="flex items-center gap-2 px-6 py-3 border-b border-border/40">
-              <Link href={`/assets/${asset?.id || "XIP-4910"}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 transition-colors border border-primary/20 shadow-sm">
+              <Link href={`/assets/detail?id=${asset?.id || "XIP-4910"}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 transition-colors border border-primary/20 shadow-sm">
                 View Full Profile
               </Link>
               <div className="w-px h-4 bg-border/60 mx-1" />
