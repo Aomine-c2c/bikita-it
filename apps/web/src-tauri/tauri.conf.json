@@ -40,5 +40,12 @@
       "icons/icon.ico"
     ]
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/Aomine-c2c/bikita-it/releases/latest/download/latest.json"
+      ],
+      "pubkey": "UPDATE_KEY_GOES_HERE"
+    }
+  }
 }
