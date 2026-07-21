@@ -1,7 +1,7 @@
 {
   "$schema": "https://githubusercontent.com",
   "productName": "Xiphos",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "identifier": "com.xiphos.itops",
   "build": {
     "frontendDist": "../out",
@@ -40,5 +40,12 @@
       "icons/icon.ico"
     ]
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/Aomine-c2c/bikita-it/releases/latest/download/latest.json"
+      ],
+      "pubkey": "UPDATE_KEY_GOES_HERE"
+    }
+  }
 }

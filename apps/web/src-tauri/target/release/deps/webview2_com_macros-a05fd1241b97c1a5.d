@@ -1,5 +1,0 @@
-C:\Users\armut\404\BikitaIT\apps\web\src-tauri\target\release\deps\webview2_com_macros-a05fd1241b97c1a5.d: C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\webview2-com-macros-0.8.1\src\lib.rs
-
-C:\Users\armut\404\BikitaIT\apps\web\src-tauri\target\release\deps\webview2_com_macros-a05fd1241b97c1a5.dll: C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\webview2-com-macros-0.8.1\src\lib.rs
-
-C:\Users\armut\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\webview2-com-macros-0.8.1\src\lib.rs:

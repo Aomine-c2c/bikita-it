@@ -18,6 +18,16 @@ async function getApiBase(): Promise<string> {
         const { invoke } = await import('@tauri-apps/api/core');
         const port: number = await invoke('get_api_port');
         _tauriApiBase = `http://127.0.0.1:${port}/api`;
+        
+        // Wait for sidecar to be ready (up to 10 seconds)
+        for (let i = 0; i < 20; i++) {
+          try {
+            const res = await fetch(`${_tauriApiBase}/setup/check`);
+            if (res.ok) break;
+          } catch {
+            await new Promise(r => setTimeout(r, 500));
+          }
+        }
       } catch {
         // Fallback if invoke fails (e.g., dev mode without Tauri)
         _tauriApiBase = `http://127.0.0.1:3001/api`;
@@ -188,7 +198,8 @@ export const repairsApi = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') || document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1] : null;
     const headers = new Headers();
     if (token) headers.set('Authorization', `Bearer ${token}`);
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/repairs/${id}/photo`, {
+    const base = await getApiBase();
+    const res = await fetch(`${base}/repairs/${id}/photo`, {
       method: 'POST',
       headers,
       body: formData,

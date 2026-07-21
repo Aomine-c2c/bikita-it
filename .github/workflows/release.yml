@@ -40,6 +40,22 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Install API dependencies
+        run: npm ci
+        working-directory: apps/api
+
+      - name: Build API sidecar
+        run: npm run build
+        working-directory: apps/api
+
+      - name: Package API sidecar
+        run: |
+          npm i -g @vercel/ncc
+          ncc build dist/main.js -o sidecar
+          npm i -g pkg
+          pkg sidecar/index.js --target node18-win-x64 --output ../web/src-tauri/api-server-x86_64-pc-windows-msvc.exe
+        working-directory: apps/api
+
       - name: Build and release Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
