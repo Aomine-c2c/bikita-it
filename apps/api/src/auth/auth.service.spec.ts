@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
+import { JwtService } from '@nestjs/jwt';
 describe('AuthService', () => {
   let service: AuthService;
   beforeEach(async () => {
@@ -10,6 +11,10 @@ describe('AuthService', () => {
         {
           provide: PrismaService,
           useValue: { employee: { count: jest.fn(), create: jest.fn() } },
+        },
+        {
+          provide: JwtService,
+          useValue: { signAsync: jest.fn() },
         },
       ],
     }).compile();
