@@ -1,6 +1,6 @@
 [package]
 name = "xiphos"
-version = "0.1.0"
+version = "0.1.5"
 edition = "2021"
 
 [build-dependencies]
@@ -19,7 +19,6 @@ bcrypt = "0.15"
 chrono = { version = "0.4", features = ["serde"] }
 tokio = { version = "1", features = ["full"] }
 log = "0.4"
-tauri-plugin-updater = "2.10.1"
 
 [features]
 default = ["custom-protocol"]
@@ -28,4 +27,3 @@ custom-protocol = ["tauri/custom-protocol"]
 [profile.release]
 codegen-units = 1
 lto = true
-
