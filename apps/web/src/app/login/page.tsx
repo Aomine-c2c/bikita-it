@@ -31,13 +31,21 @@ export default function LoginPage() {
 
       const data = await response.json();
       
-      // Save token to cookie for middleware
+      // Save token to cookie and localStorage for auth guards
       document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Strict`;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', data.access_token);
+        if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+      }
       
       router.push('/');
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      if (err.message === 'Failed to fetch') {
+        setError('Unable to connect to API server. Please ensure the backend is running.');
+      } else {
+        setError(err.message || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,7 @@ let _tauriApiBase: string | null = null;
 
 async function getApiBase(): Promise<string> {
   // SSR / Next.js server context — never Tauri
-  if (typeof window === 'undefined') return '/api';
+  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001/api';
 
   // Running inside Tauri desktop app
   if ((window as any).__TAURI_INTERNALS__ || (window as any).__TAURI__) {
@@ -37,7 +37,7 @@ async function getApiBase(): Promise<string> {
   }
 
   // Plain browser / Next.js dev server
-  return process.env.NEXT_PUBLIC_API_URL || '/api';
+  return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001/api';
 }
 
 function getAuthToken() {
