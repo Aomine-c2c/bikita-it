@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getApiBase } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -17,19 +17,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const base = await getApiBase();
-      const response = await fetch(`${base}/auth/login`, {
+      const data = await apiFetch<{ access_token: string; user?: any }>('/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
-        throw new Error(body?.message || 'Invalid credentials');
-      }
-
-      const data = await response.json();
       
       // Save token to cookie and localStorage for auth guards
       document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Strict`;
@@ -41,7 +32,7 @@ export default function LoginPage() {
       router.push('/');
       router.refresh();
     } catch (err: any) {
-      if (err.message === 'Failed to fetch') {
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('fetch failed')) {
         setError('Unable to connect to API server. Please ensure the backend is running.');
       } else {
         setError(err.message || 'Login failed');
