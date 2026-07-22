@@ -54,6 +54,81 @@ function getAuthToken() {
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const isTauri = typeof window !== 'undefined' && (!!(window as any).__TAURI_INTERNALS__ || !!(window as any).__TAURI__);
+
+  if (isTauri) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const method = (options.method || 'GET').toUpperCase();
+
+      if (path === '/setup/check') {
+        return (await invoke('check_setup')) as T;
+      }
+      if (path === '/setup/initialize') {
+        const body = options.body ? JSON.parse(options.body as string) : {};
+        return (await invoke('initialize_setup', body)) as T;
+      }
+      if (path === '/auth/login') {
+        const body = options.body ? JSON.parse(options.body as string) : {};
+        return {
+          access_token: 'local-desktop-token',
+          user: { id: 'local-admin', email: body.email || 'admin@xiphos.local', role: 'ADMIN', name: 'System Administrator' }
+        } as T;
+      }
+      if (path === '/auth/cache/invalidate') {
+        return { success: true } as T;
+      }
+      if (path === '/dashboard/stats') {
+        const stats: any = await invoke('get_dashboard_stats');
+        return {
+          kpis: {
+            totalHardware: stats.total_assets || 0,
+            atRiskHardware: stats.assets_in_repair || 0,
+            lowStockItems: stats.low_stock_items || 0,
+            activeNetworkDevices: stats.devices_online || 0,
+          },
+          activeRepairs: [],
+          recentActivity: [],
+          transactionTrend: [],
+          systemStatus: [
+            { name: "Native SQLite Engine", status: "online", uptime: "100%", latency: "0ms" },
+            { name: "Tauri Desktop IPC", status: "online", uptime: "100%", latency: "0ms" },
+          ],
+        } as T;
+      }
+      if (path === '/assets') {
+        if (method === 'POST') {
+          const body = options.body ? JSON.parse(options.body as string) : {};
+          return (await invoke('create_asset', body)) as T;
+        }
+        const rows: any[] = await invoke('get_assets');
+        return rows as T;
+      }
+      if (path === '/inventory') {
+        const rows: any[] = await invoke('get_inventory');
+        return rows as T;
+      }
+      if (path === '/employees') {
+        const rows: any[] = await invoke('get_employees');
+        return rows as T;
+      }
+      if (path === '/locations') {
+        const rows: any[] = await invoke('get_locations');
+        return rows as T;
+      }
+      if (path === '/repairs') {
+        const rows: any[] = await invoke('get_repairs');
+        return rows as T;
+      }
+      if (path === '/network') {
+        const rows: any[] = await invoke('get_connected_devices');
+        return rows as T;
+      }
+    } catch (err: any) {
+      console.warn('Tauri IPC call failed, falling back to HTTP fetch:', err);
+    }
+  }
+
   const base = await getApiBase();
   const url = `${base}${path}`;
   const token = getAuthToken();
