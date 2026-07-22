@@ -14,6 +14,7 @@ import { BackupModule } from './backup/backup.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SettingsModule } from './settings/settings.module';
 import { LocationsModule } from './locations/locations.module';
+import { SetupModule } from './setup/setup.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
@@ -32,6 +33,7 @@ import { RolesGuard } from './auth/roles.guard';
     SettingsModule,
     ScheduleModule.forRoot(),
     LocationsModule,
+    SetupModule,
   ],
   controllers: [AppController],
   providers: [

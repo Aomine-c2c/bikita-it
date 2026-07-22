@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { HardwareCategory, HardwareStatus } from '../src/enums';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -25,26 +25,26 @@ async function main() {
     data: {
       name: 'HQ Building',
       type: 'BUILDING',
-    }
+    },
   });
 
-  const serverRoom = await prisma.location.create({
+  await prisma.location.create({
     data: {
       name: 'Main Server Room',
       type: 'ROOM',
-      parentId: hq.id
-    }
+      parentId: hq.id,
+    },
   });
 
-  const warehouse = await prisma.location.create({
+  await prisma.location.create({
     data: {
       name: 'IT Warehouse',
       type: 'ROOM',
-      parentId: hq.id
-    }
+      parentId: hq.id,
+    },
   });
 
-  // 2. Create basic inventory categories (we won't create employees yet - admin setup handles that)
+  // 2. Create basic inventory items
   console.log('Creating base inventory...');
   await prisma.inventoryItem.createMany({
     data: [
@@ -56,7 +56,7 @@ async function main() {
         quantity: 50,
         minStock: 20,
         maxStock: 100,
-        binLocation: 'A1-01'
+        binLocation: 'A1-01',
       },
       {
         sku: 'ACC-MSE-WLESS',
@@ -66,33 +66,79 @@ async function main() {
         quantity: 15,
         minStock: 5,
         maxStock: 30,
-        binLocation: 'A2-05'
-      }
-    ]
+        binLocation: 'A2-05',
+      },
+    ],
   });
 
   console.log('Creating system services...');
   await prisma.systemService.createMany({
     data: [
-      { name: "Core Network", status: "online", uptime: "99.98%", latency: "2ms" },
-      { name: "ERP Integration", status: "online", uptime: "99.5%", latency: "45ms" },
-      { name: "Backup Service", status: "online", uptime: "100%", latency: "—" },
-      { name: "VPN Gateway", status: "online", uptime: "100%", latency: "8ms" },
-      { name: "Email Server", status: "online", uptime: "99.9%", latency: "12ms" },
-    ]
+      { name: 'Core Network', status: 'online', uptime: '99.98%', latency: '2ms' },
+      { name: 'ERP Integration', status: 'online', uptime: '99.5%', latency: '45ms' },
+      { name: 'Backup Service', status: 'online', uptime: '100%', latency: '—' },
+      { name: 'VPN Gateway', status: 'online', uptime: '100%', latency: '8ms' },
+      { name: 'Email Server', status: 'online', uptime: '99.9%', latency: '12ms' },
+    ],
   });
 
   console.log('Creating system settings...');
   await prisma.systemSetting.createMany({
     data: [
-      { key: "general", value: JSON.stringify({ orgName: "Bikita Minerals (Pvt) Ltd", platformName: "Xiphos IT Platform", defaultCurrency: "USD ($)", dateFormat: "DD/MM/YYYY", maintenanceMode: false }) },
-      { key: "security", value: JSON.stringify({ mfa: true, auditLog: true, sessionTimeout: true, passwordMinLength: 12, allowedIpRanges: "10.0.0.0/8, 192.168.1.0/24" }) },
-      { key: "notifications", value: JSON.stringify({ emailAlerts: true, smsAlerts: false, smtpServer: "smtp.sendgrid.net:587", alertEmailSender: "noreply@xiphos.bikita.co.zw" }) },
-      { key: "database", value: JSON.stringify({ autoBackup: true, backupRetention: "30 days" }) }
-    ]
+      {
+        key: 'general',
+        value: JSON.stringify({
+          orgName: 'Bikita Minerals (Pvt) Ltd',
+          platformName: 'Xiphos IT Platform',
+          defaultCurrency: 'USD ($)',
+          dateFormat: 'DD/MM/YYYY',
+          maintenanceMode: false,
+        }),
+      },
+      {
+        key: 'security',
+        value: JSON.stringify({
+          mfa: true,
+          auditLog: true,
+          sessionTimeout: true,
+          passwordMinLength: 12,
+          allowedIpRanges: '10.0.0.0/8, 192.168.1.0/24',
+        }),
+      },
+      {
+        key: 'notifications',
+        value: JSON.stringify({
+          emailAlerts: true,
+          smsAlerts: false,
+          smtpServer: 'smtp.sendgrid.net:587',
+          alertEmailSender: 'noreply@xiphos.bikita.co.zw',
+        }),
+      },
+      {
+        key: 'database',
+        value: JSON.stringify({ autoBackup: true, backupRetention: '30 days' }),
+      },
+      { key: 'AUTH_ENABLED', value: JSON.stringify(false) },
+      { key: 'setup_complete', value: 'true' },
+    ],
   });
 
-  console.log('Seed process completed successfully. Database is clean and ready.');
+  console.log('Creating admin user...');
+  const passwordHash = await bcrypt.hash('admin123', 10);
+  await prisma.employee.create({
+    data: {
+      name: 'System Administrator',
+      email: 'admin@xiphos.local',
+      passwordHash,
+      role: 'ADMIN',
+      department: 'IT',
+      position: 'System Administrator',
+    },
+  });
+
+  console.log(
+    'Seed process completed successfully. Database is clean and ready.',
+  );
 }
 
 main()

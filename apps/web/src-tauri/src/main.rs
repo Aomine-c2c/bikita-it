@@ -35,6 +35,16 @@ fn main() {
             app.manage(ApiPort(Mutex::new(port)));
 
             let db_path = app_dir.join("xiphos.db");
+            
+            // Check if we need to copy the bundled seed database
+            if !db_path.exists() {
+                let resource_dir = app.path().resource_dir().unwrap();
+                let bundled_db_path = resource_dir.join("prisma").join("dev.db");
+                if bundled_db_path.exists() {
+                    std::fs::copy(&bundled_db_path, &db_path).expect("Failed to copy initial database");
+                }
+            }
+            
             let db_url = format!("file:{}", db_path.display());
 
             // JWT secret — generate a fixed per-install secret stored in app data
@@ -54,13 +64,17 @@ fn main() {
                 secret
             };
 
+            let resource_dir = app.path().resource_dir().unwrap();
+            let query_engine_path = resource_dir.join("query_engine-windows.dll.node");
+
             // Spawn the NestJS API sidecar
             let sidecar_command = app.shell().sidecar("api-server").unwrap()
                 .env("PORT", port.to_string())
                 .env("DATABASE_URL", db_url)
                 .env("JWT_SECRET", jwt_secret)
                 .env("NODE_ENV", "production")
-                .env("ALLOWED_ORIGINS", "tauri://localhost,http://127.0.0.1,http://localhost");
+                .env("PRISMA_QUERY_ENGINE_LIBRARY", query_engine_path.to_str().unwrap())
+                .env("ALLOWED_ORIGINS", "tauri://localhost,http://tauri.localhost,https://tauri.localhost,http://127.0.0.1,http://localhost");
 
             let (_rx, _child) = sidecar_command.spawn().expect("Failed to spawn API sidecar");
 

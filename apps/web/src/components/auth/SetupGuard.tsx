@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { getApiBase } from "@/lib/api";
 
 export function SetupGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -12,28 +13,55 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
 
-    fetch("/api/setup/check", { cache: "no-store", signal: controller.signal })
-      .then(async (res) => {
+    const init = async () => {
+      try {
+        const base = await getApiBase();
+        const res = await fetch(`${base}/setup/check`, { cache: "no-store", signal: controller.signal });
         if (!active) return;
         if (!res.ok) throw new Error("status unavailable");
         const data = await res.json();
         if (!active) return;
+        
+        // Local mode (authEnabled: false) — treat as always ready, no login/setup needed
+        if (!data.authEnabled) {
+          if (pathname === "/login" || pathname === "/setup") {
+            window.location.href = "/";
+            return;
+          }
+          setState("ready");
+          return;
+        }
+
+        // Auth-enabled mode — enforce setup and login flows
         if (pathname === "/setup") {
           if (data.isSetupComplete) window.location.href = "/";
           else setState("ready");
-        } else if (!data.isSetupComplete) {
-          window.location.href = "/setup";
-        } else {
-          setState("ready");
+          return;
         }
-      })
-      .catch(() => {
+
+        if (!data.isSetupComplete) {
+          window.location.href = "/setup";
+          return;
+        }
+
+        if (pathname !== "/login") {
+          const hasToken = document.cookie.includes("token=") || !!localStorage.getItem("token");
+          if (!hasToken) {
+            window.location.href = "/login";
+            return;
+          }
+        }
+
+        setState("ready");
+      } catch (_err) {
         if (!active) return;
         // API unreachable — fall through to show the page anyway
-        // so the app isn't stuck on a fresh dev environment
         if (pathname === "/setup") setState("ready");
-        else setState("ready"); // allow access, user may see empty data
-      });
+        else setState("ready");
+      }
+    };
+
+    init();
 
     return () => {
       active = false;

@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { motion } from "framer-motion";
 import {
-  Settings, Server, Database, Globe, Shield, Bell, Users,
-  ChevronRight, Check, Save, ToggleLeft, ToggleRight, Wifi, Loader2
+  Settings, Database, Globe, Shield, Bell, Users,
+  Check, Save, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
@@ -51,7 +51,8 @@ export default function SettingsPage() {
     general: { orgName: "", platformName: "", defaultCurrency: "USD ($)", dateFormat: "DD/MM/YYYY", maintenanceMode: false },
     security: { mfa: true, auditLog: true, sessionTimeout: true, passwordMinLength: 12, allowedIpRanges: "" },
     notifications: { emailAlerts: true, smsAlerts: false, smtpServer: "", alertEmailSender: "" },
-    database: { autoBackup: true, backupRetention: "30 days" }
+    database: { autoBackup: true, backupRetention: "30 days" },
+    AUTH_ENABLED: false
   });
 
   const [dbStatus, setDbStatus] = useState({
@@ -64,12 +65,14 @@ export default function SettingsPage() {
     apiFetch<any>('/settings')
       .then(data => {
         if (data.settings) {
-          setSettings({
-            general: { ...settings.general, ...data.settings.general },
-            security: { ...settings.security, ...data.settings.security },
-            notifications: { ...settings.notifications, ...data.settings.notifications },
-            database: { ...settings.database, ...data.settings.database }
-          });
+          setSettings(prev => ({
+            ...prev,
+            general: { ...prev.general, ...data.settings.general },
+            security: { ...prev.security, ...data.settings.security },
+            notifications: { ...prev.notifications, ...data.settings.notifications },
+            database: { ...prev.database, ...data.settings.database },
+            AUTH_ENABLED: data.settings.AUTH_ENABLED !== false
+          }));
         }
         if (data.dbStatus) {
           setDbStatus(data.dbStatus);
@@ -91,6 +94,8 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       });
+      // Flush the API guard's in-memory cache so AUTH_ENABLED change takes effect immediately
+      await apiFetch<any>('/auth/cache/invalidate', { method: 'POST' }).catch(() => {});
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
@@ -103,9 +108,16 @@ export default function SettingsPage() {
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...prev[section],
+        ...(prev[section] as any),
         [key]: value
       }
+    }));
+  };
+
+  const updateRootSetting = (key: string, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
     }));
   };
 
@@ -212,6 +224,9 @@ export default function SettingsPage() {
               <div>
                 <h2 className="text-base font-bold text-foreground mb-1">Security & Authentication</h2>
                 <p className="text-xs text-muted-foreground mb-6">Manage access controls, MFA, and session policies.</p>
+                <SettingRow label="Require Login (Authentication)" description="If disabled, anyone opening the desktop app can access the system without logging in.">
+                  <Toggle enabled={settings.AUTH_ENABLED} onToggle={() => updateRootSetting("AUTH_ENABLED", !settings.AUTH_ENABLED)} />
+                </SettingRow>
                 <SettingRow label="Multi-Factor Authentication (MFA)" description="Enforce MFA for all IT Admin and Manager roles.">
                   <Toggle enabled={settings.security.mfa} onToggle={() => updateSetting("security", "mfa", !settings.security.mfa)} />
                 </SettingRow>

@@ -1,16 +1,12 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
-
-const execAsync = promisify(exec);
 
 @Injectable()
 export class BackupService implements OnApplicationBootstrap {
   private readonly logger = new Logger(BackupService.name);
-  private readonly backupDir = path.join(process.cwd(), '..', '..', 'backups');
+  private readonly backupDir = path.join(process.cwd(), 'backups');
 
   onApplicationBootstrap() {
     if (!fs.existsSync(this.backupDir)) {
@@ -27,18 +23,26 @@ export class BackupService implements OnApplicationBootstrap {
 
   async performBackup() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const fileName = `backup-${timestamp}.sql`;
-    const filePath = path.join(this.backupDir, fileName);
-
-    // Default postgres user, or read from env
-    const dbUrl =
-      process.env.DATABASE_URL ||
-      'postgresql://postgres:postgres@localhost:5432/xiphos_db';
+    const dbUrl = process.env.DATABASE_URL || 'file:./dev.db';
 
     try {
-      // NOTE: pg_dump must be installed on the system (postgresql-client)
-      await execAsync(`pg_dump "${dbUrl}" > "${filePath}"`);
-      this.logger.log(`Backup successful: ${fileName}`);
+      const rawPath = dbUrl.replace(/^file:/, '').split('?')[0];
+      const sourcePath = path.isAbsolute(rawPath)
+        ? rawPath
+        : path.resolve(process.cwd(), rawPath);
+
+      if (!fs.existsSync(sourcePath)) {
+        this.logger.warn(
+          `SQLite database file not found at ${sourcePath}`,
+        );
+        return;
+      }
+
+      const fileName = `backup-${timestamp}.db`;
+      const filePath = path.join(this.backupDir, fileName);
+
+      fs.copyFileSync(sourcePath, filePath);
+      this.logger.log(`SQLite backup successful: ${fileName}`);
 
       this.cleanOldBackups();
     } catch (error) {

@@ -29,33 +29,17 @@ export class SettingsService {
 
     try {
       const versionResult: any[] = await this.prisma
-        .$queryRaw`SELECT version();`;
+        .$queryRaw`SELECT sqlite_version() as version;`;
       if (
         versionResult &&
         versionResult.length > 0 &&
         versionResult[0].version
       ) {
-        const versionParts = versionResult[0].version.split(' ');
-        dbStatus.version =
-          versionParts.length > 1 ? versionParts[1] : versionResult[0].version;
+        dbStatus.version = String(versionResult[0].version);
       }
 
-      const sizeResult: any[] = await this.prisma
-        .$queryRaw`SELECT pg_size_pretty(pg_database_size(current_database())) as size;`;
-      if (sizeResult && sizeResult.length > 0 && sizeResult[0].size) {
-        dbStatus.size = sizeResult[0].size;
-      }
-
-      const connResult: any[] = await this.prisma
-        .$queryRaw`SELECT count(*) as count FROM pg_stat_activity;`;
-      if (
-        connResult &&
-        connResult.length > 0 &&
-        connResult[0].count !== undefined
-      ) {
-        const currentConnections = Number(connResult[0].count);
-        dbStatus.connections = `${currentConnections} / 100`; // Assuming 100 max connections
-      }
+      dbStatus.size = 'Local SQLite DB';
+      dbStatus.connections = 'N/A';
     } catch (err) {
       console.error('Failed to query database stats', err);
     }
@@ -66,7 +50,7 @@ export class SettingsService {
     };
   }
 
-  async updateSettings(data: any) {
+  async updateSettings(data: Record<string, unknown>) {
     const promises = [];
     for (const key of Object.keys(data)) {
       const value =

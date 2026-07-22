@@ -54,8 +54,10 @@ jobs:
           ncc build dist/main.js -o sidecar
           npm i -g pkg
           pkg sidecar/index.js --target node18-win-x64 --output ../web/src-tauri/api-server-x86_64-pc-windows-msvc.exe
+          Copy-Item -Path "../../node_modules/.prisma/client/query_engine-windows.dll.node" -Destination "../web/src-tauri/"
+          New-Item -ItemType Directory -Force -Path "../web/src-tauri/prisma"
+          Copy-Item -Path "dev.db" -Destination "../web/src-tauri/prisma/"
         working-directory: apps/api
-
       - name: Build and release Tauri app
         uses: tauri-apps/tauri-action@v0
         env:

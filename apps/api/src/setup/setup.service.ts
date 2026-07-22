@@ -8,21 +8,27 @@ export class SetupService {
 
   async checkSetup() {
     try {
-      const setting = await this.prisma.systemSetting.findUnique({
+      const setupSetting = await this.prisma.systemSetting.findUnique({
         where: { key: 'setup_complete' },
       });
-      return { isSetupComplete: setting?.value === 'true' };
+      const authSetting = await this.prisma.systemSetting.findUnique({
+        where: { key: 'AUTH_ENABLED' },
+      });
+      return {
+        isSetupComplete: setupSetting?.value === 'true',
+        authEnabled: authSetting?.value !== 'false',
+      };
     } catch (e) {
       console.error(e);
       // Database might not be initialized yet
-      return { isSetupComplete: false };
+      return { isSetupComplete: false, authEnabled: true };
     }
   }
 
   async initializeSetup(data: any) {
     try {
       // Create admin user
-      const { name, email, password } = data;
+      const { name, email, password } = data as { name: string; email: string; password: string };
       const hashedPassword = await bcrypt.hash(password, 10);
 
       await this.prisma.employee.create({
