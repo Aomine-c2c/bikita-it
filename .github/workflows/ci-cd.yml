@@ -169,7 +169,7 @@ jobs:
         run: npm run tauri build
         
       - name: Upload Windows Installers
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xiphos-windows-installers
           path: |
