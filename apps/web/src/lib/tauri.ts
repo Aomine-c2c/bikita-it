@@ -1,5 +1,5 @@
 /**
- * Xiphos Tauri IPC Client
+ * Pulse Tauri IPC Client
  * 
  * In Tauri desktop mode, calls the bundled NestJS sidecar via HTTP.
  * Falls back to the NestJS HTTP API when running in a browser (dev mode).

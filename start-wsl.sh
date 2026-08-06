@@ -1,6 +1,6 @@
 #!/bin/bash
 # start-wsl.sh
-# Starts BikitaIT platform using PM2 on WSL.
+# Starts Pulse platform using PM2 on WSL.
 #
 # WARNING: Removed the destructive `git reset --hard origin/main`.
 # That command was wiping out local fixes every time you ran this script.
@@ -19,7 +19,7 @@ handle_error() {
 trap 'handle_error' ERR
 
 echo "============================================="
-echo "   BikitaIT  Start Script (WSL) "
+echo "   Pulse  Start Script (WSL) "
 echo "============================================="
 
 # ── Ensure .env files exist ───────────────────────
@@ -28,7 +28,7 @@ echo "[1/4] 📁 Checking environment files..."
 # API .env
 if [ ! -f apps/api/.env ]; then
   cat > apps/api/.env << 'EOF'
-DATABASE_URL="postgresql://xiphos:xiphos_password@localhost:5432/xiphos_db?schema=public"
+DATABASE_URL="postgresql://pulse:pulse_password@localhost:5432/pulse_db?schema=public"
 PORT=3001
 ALLOWED_ORIGINS=http://localhost:3000
 EOF
@@ -67,14 +67,14 @@ npm run build 2>/dev/null || {
 echo "[4/4] 🚀 Starting services via PM2..."
 command -v pm2 &>/dev/null || npm install -g pm2
 
-pm2 delete bikita-api bikita-web 2>/dev/null || true
+pm2 delete pulse-api pulse-web 2>/dev/null || true
 
 cd apps/api
-pm2 start npm --name "bikita-api" -- run start:prod
+pm2 start npm --name "pulse-api" -- run start:prod
 cd ../..
 
 cd apps/web
-pm2 start npm --name "bikita-web" -- run start
+pm2 start npm --name "pulse-web" -- run start
 cd ../..
 
 pm2 save
@@ -83,7 +83,7 @@ WSL_IP=$(ip -4 addr show eth0 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' 
 
 echo ""
 echo "============================================="
-echo "✅ BikitaIT is running!"
+echo "✅ Pulse is running!"
 echo "🌐 Web UI:  http://$WSL_IP:3000"
 echo "📊 API:     http://$WSL_IP:3001/api"
 echo "============================================="

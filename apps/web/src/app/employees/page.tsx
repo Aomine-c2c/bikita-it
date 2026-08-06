@@ -39,7 +39,6 @@ export default function EmployeesPage() {
           transition={{ delay: 0.2 }}
           className="flex flex-col"
         >
-          <EmployeeFilters />
           <EmployeeDirectory />
         </motion.div>
 

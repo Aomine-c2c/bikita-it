@@ -11,6 +11,8 @@ import { useState } from "react";
 
 export default function AssetsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("All Assets");
+
   return (
     <DashboardLayout>
       <div className="space-y-4 h-[calc(100vh-6rem)] flex flex-col">
@@ -50,11 +52,11 @@ export default function AssetsPage() {
           className="flex-1 flex gap-6 overflow-hidden"
         >
           {/* Left Sidebar */}
-          <AssetSidebar />
+          <AssetSidebar activeCategory={activeCategory} onSelectCategory={setActiveCategory} />
           
           {/* Main Table Area */}
           <div className="flex-1 overflow-hidden min-w-0">
-            <AssetTable />
+            <AssetTable activeCategory={activeCategory} />
           </div>
         </motion.div>
 

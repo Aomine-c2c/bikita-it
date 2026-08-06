@@ -1,8 +1,8 @@
 {
-  "name": "xiphos-platform",
-  "version": "0.1.5",
+  "name": "pulse-platform",
+  "version": "0.2.0",
   "private": true,
-  "description": "XIPHOS IT Operations Platform",
+  "description": "Pulse IT Operations Platform",
   "workspaces": [
     "apps/*",
     "packages/*"

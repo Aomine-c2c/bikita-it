@@ -29,7 +29,7 @@ export function SoftwareAIOptimizer() {
               You have <span className="font-semibold text-foreground">45 unassigned Adobe CC</span> licenses. Revoking these will save <span className="text-emerald-500 font-semibold">$3,600/mo</span>.
             </p>
           </div>
-          <button className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mt-4 flex items-center gap-1 hover:gap-2 transition-all">
+          <button  className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mt-4 flex items-center gap-1 hover:gap-2 transition-all">
             Review Unassigned <ArrowRight className="w-3 h-3" />
           </button>
         </div>
@@ -45,7 +45,7 @@ export function SoftwareAIOptimizer() {
               <span className="font-semibold text-foreground">12 users</span> are assigned both <span className="font-semibold text-foreground">Microsoft 365 E3</span> and <span className="font-semibold text-foreground">E5</span>.
             </p>
           </div>
-          <button className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mt-4 flex items-center gap-1 hover:gap-2 transition-all">
+          <button  className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mt-4 flex items-center gap-1 hover:gap-2 transition-all">
             Resolve Duplicates <ArrowRight className="w-3 h-3" />
           </button>
         </div>
@@ -61,7 +61,7 @@ export function SoftwareAIOptimizer() {
               <span className="font-semibold text-foreground">GitHub Enterprise</span> expires in 5 days. Ensure payment method is up to date to prevent outage.
             </p>
           </div>
-          <button className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mt-4 flex items-center gap-1 hover:gap-2 transition-all">
+          <button  className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mt-4 flex items-center gap-1 hover:gap-2 transition-all">
             Manage Renewal <ArrowRight className="w-3 h-3" />
           </button>
         </div>

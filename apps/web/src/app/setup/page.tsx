@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getApiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,8 @@ export default function SetupPage() {
     name: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    orgName: ""
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,27 +37,24 @@ export default function SetupPage() {
     setLoading(true);
 
     try {
-      const base = await getApiBase();
-      const res = await fetch(`${base}/setup/initialize`, {
+      const data = await apiFetch<{ success: boolean; message?: string }>('/setup/initialize', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: formData.password
+          password: formData.password,
+          orgName: formData.orgName
         })
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
+      if (data.success) {
         // First time setup complete, redirect to dashboard
         router.push("/");
       } else {
         setError(data.message || "Failed to initialize system.");
       }
-    } catch (err) {
-      setError("Network error. Could not reach server.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : typeof err === 'string' ? err : "Network error. Could not reach server.");
     } finally {
       setLoading(false);
     }
@@ -64,7 +62,7 @@ export default function SetupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center]" />
+      <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-position-[bottom_1px_center]" />
       
       <Card className="w-full max-w-md relative border-primary/20 shadow-xl">
         <CardHeader className="space-y-4 text-center">
@@ -72,9 +70,9 @@ export default function SetupPage() {
             <ShieldCheck className="h-8 w-8 text-primary" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold tracking-tight">Xiphos Initialization</CardTitle>
+            <CardTitle className="text-2xl font-bold tracking-tight">Pulse Initialization</CardTitle>
             <CardDescription className="text-base mt-2">
-              Welcome. Let's create your master administrator account to secure the system.
+              Welcome. Let&apos;s create your master administrator account to secure the system.
             </CardDescription>
           </div>
         </CardHeader>
@@ -95,6 +93,19 @@ export default function SetupPage() {
                 placeholder="John Doe" 
                 required 
                 value={formData.name}
+                onChange={handleChange}
+                className="h-11"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="orgName">Organization Name</Label>
+              <Input 
+                id="orgName" 
+                name="orgName" 
+                placeholder="Pulse Enterprise" 
+                required 
+                value={formData.orgName}
                 onChange={handleChange}
                 className="h-11"
               />

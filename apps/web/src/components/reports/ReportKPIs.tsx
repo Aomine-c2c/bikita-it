@@ -6,10 +6,10 @@ import { DollarSign, Laptop, Cloud, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const kpis = [
-  { title: "Total IT Spend (YTD)", value: "$1.24M", sub: "+4% vs last year", icon: DollarSign, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-  { title: "Active Asset Value", value: "$892K", sub: "Depreciated value", icon: Laptop, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { title: "SaaS Run Rate", value: "$42K/mo", sub: "Optimized by 12%", icon: Cloud, color: "text-blue-500", bg: "bg-blue-500/10" },
-  { title: "Hardware Repair Costs", value: "$18.5K", sub: "YTD Total", icon: Wrench, color: "text-amber-500", bg: "bg-amber-500/10" },
+  { title: "Total IT Spend (YTD)", value: "—", sub: "Not tracked by the current API", icon: DollarSign, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+  { title: "Active Asset Value", value: "—", sub: "Not tracked by the current API", icon: Laptop, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { title: "SaaS Run Rate", value: "—", sub: "Not tracked by the current API", icon: Cloud, color: "text-blue-500", bg: "bg-blue-500/10" },
+  { title: "Hardware Repair Costs", value: "—", sub: "Not tracked by the current API", icon: Wrench, color: "text-amber-500", bg: "bg-amber-500/10" },
 ];
 
 export function ReportKPIs() {
@@ -23,7 +23,7 @@ export function ReportKPIs() {
           transition={{ delay: idx * 0.1 }}
           className="bg-white border border-border/60 rounded-xl p-5 shadow-sm relative overflow-hidden group"
         >
-          <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-transparent to-black/5 rounded-full blur-2xl -z-10 group-hover:scale-110 transition-transform" />
+          <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-transparent to-black/5 rounded-full blur-2xl -z-10 group-hover:scale-110 transition-transform" />
           
           <div className="flex justify-between items-start mb-4">
             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-border/40", kpi.bg, kpi.color)}>

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { X, Sparkles, Laptop, Clock, Paperclip, Send, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
+import React, { useState } from "react";
+import { X, Clock, Paperclip, Laptop, Sparkles, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +62,7 @@ function SLATimer({ hoursLeft }: { hoursLeft: number }) {
 }
 
 export function TicketDrawer({ isOpen, onClose, ticketId }: TicketDrawerProps) {
-  const [comment, setComment] = useState("");
+  const [_comment, _setComment] = useState("");
   if (!isOpen) return null;
 
   // Simulated — in real app would be fetched by ticketId
@@ -149,7 +149,7 @@ export function TicketDrawer({ isOpen, onClose, ticketId }: TicketDrawerProps) {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Description</p>
               <div className="text-sm text-foreground space-y-4">
                 <p>Hi IT Team,</p>
-                <p>I noticed today that the trackpad on my MacBook is very hard to press, and the chassis underneath looks slightly warped/bulging. I'm worried the battery might be swelling.</p>
+                <p>I noticed today that the trackpad on my MacBook is very hard to press, and the chassis underneath looks slightly warped/bulging. I&apos;m worried the battery might be swelling.</p>
                 <p>Can someone take a look?</p>
               </div>
               <div className="flex items-center gap-2 mt-4">
@@ -179,7 +179,7 @@ export function TicketDrawer({ isOpen, onClose, ticketId }: TicketDrawerProps) {
             {/* Timeline */}
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-4">Activity Timeline</p>
-              <div className="space-y-4 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-border/60 before:to-transparent">
+              <div className="space-y-4 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-linear-to-b before:from-border/60 before:to-transparent">
                 
                 <div className="relative flex gap-4">
                   <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center shrink-0 z-10 text-xs font-bold">JC</div>
@@ -210,8 +210,8 @@ export function TicketDrawer({ isOpen, onClose, ticketId }: TicketDrawerProps) {
                 className="w-full bg-slate-50 border border-border/60 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary resize-none h-24"
               />
               <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                <button className="p-2 text-muted-foreground hover:text-foreground transition-colors"><Paperclip className="w-4 h-4" /></button>
-                <button className="flex items-center gap-2 bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+                <button  className="p-2 text-muted-foreground hover:text-foreground transition-colors"><Paperclip className="w-4 h-4" /></button>
+                <button  className="flex items-center gap-2 bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
                   <Send className="w-3 h-3" /> Send
                 </button>
               </div>

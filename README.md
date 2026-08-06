@@ -1,4 +1,4 @@
-# Xiphos IT Operations Platform
+# Pulse IT Operations Platform
 
 A responsive IT operations platform for hardware assets, inventory, employees, locations, repairs, network discovery, reporting, and initial administrator setup. The monorepo uses Next.js 16/React 19 for the web UI, NestJS 11 for the REST API, Prisma 6 with PostgreSQL, and optional Redis infrastructure.
 

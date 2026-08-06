@@ -2,7 +2,7 @@
 
 ## Stack and intended behavior
 
-Xiphos is an IT operations monorepo: Next.js 16 and React 19 provide the responsive web dashboard; NestJS 11 exposes REST endpoints; Prisma 6 persists assets, inventory, employees, locations, repairs, discovered devices, settings, and audit data in PostgreSQL. Redis is available as supporting infrastructure. The first-run flow creates the initial administrator.
+Pulse is an IT operations monorepo: Next.js 16 and React 19 provide the responsive web dashboard; NestJS 11 exposes REST endpoints; Prisma 6 persists assets, inventory, employees, locations, repairs, discovered devices, settings, and audit data in PostgreSQL. Redis is available as supporting infrastructure. The first-run flow creates the initial administrator.
 
 ## Changes made
 

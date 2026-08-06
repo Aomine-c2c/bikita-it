@@ -1,0 +1,19 @@
+{
+  "sidebar": {
+    "dashboard": "仪表盘",
+    "assets": "资产",
+    "inventory": "库存",
+    "employees": "员工",
+    "locations": "地点",
+    "repairs": "维修",
+    "network": "网络设备",
+    "settings": "设置"
+  },
+  "settings": {
+    "title": "系统设置",
+    "language": "语言",
+    "english": "English (英语)",
+    "chinese": "中文 (Chinese)",
+    "language_desc": "选择您的首选界面语言。"
+  }
+}

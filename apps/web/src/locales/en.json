@@ -1,0 +1,19 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "assets": "Assets",
+    "inventory": "Inventory",
+    "employees": "Employees",
+    "locations": "Locations",
+    "repairs": "Repairs",
+    "network": "Network",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "System Settings",
+    "language": "Language",
+    "english": "English",
+    "chinese": "中文 (Chinese)",
+    "language_desc": "Select your preferred interface language."
+  }
+}

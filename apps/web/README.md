@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pulse IT Operations Platform
 
-## Getting Started
+Pulse is an enterprise-grade IT Operations, Asset Management, Network Discovery, and Help Desk Platform designed for high-density IT environments.
 
-First, run the development server:
+## 🚀 Quick Start
 
+### Prerequisites
+- Node.js 18+
+- Rust 1.75+ (for Tauri desktop app build)
+
+### Running Desktop App (Development)
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run tauri dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Running Web App (Development)
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build
+```bash
+# Production Next.js Bundle
+npm run build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Production Desktop Binary
+npm run tauri build
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📖 Complete Documentation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Complete, in-depth documentation is available in [DOCUMENTATION.md](./DOCUMENTATION.md), covering:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **[Architecture](./DOCUMENTATION.md#1-system-overview--architecture)** — Desktop Tauri v2 + Next.js App Router + Rusqlite Architecture
+2. **[Database Schema & ERD](./DOCUMENTATION.md#2-database-architecture--schema)** — SQLite Pragmas, WAL mode, Triggers, Table Specifications
+3. **[API Reference](./DOCUMENTATION.md#3-api-reference--ipc-layer)** — Frontend SDK (`lib/api.ts`) & IPC Abstraction
+4. **[Authentication](./DOCUMENTATION.md#4-authentication)** — Dual Desktop / Web Auth & Setup Guard
+5. **[Permissions & RBAC](./DOCUMENTATION.md#5-permissions--rbac-matrix)** — ADMIN, MANAGER, TECHNICIAN, VIEWER Access Matrices
+6. **[Modules Guide](./DOCUMENTATION.md#6-modules-guide)** — Assets, Inventory, Network, Locations, Employees, Maintenance, Helpdesk, Reports
+7. **[Component Architecture](./DOCUMENTATION.md#7-component-architecture)** — Directory Layout & Dynamic Imports
+8. **[Deployment & Packaging](./DOCUMENTATION.md#8-deployment--packaging)** — Desktop MSI/NSIS & Docker Deployment
+9. **[Configuration](./DOCUMENTATION.md#9-configuration-files)** — `next.config.ts`, `Cargo.toml`, `eslint.config.mjs`
+10. **[Environment Variables](./DOCUMENTATION.md#10-environment-variables)** — Configuration parameters
+11. **[Installation Guide](./DOCUMENTATION.md#11-installation-guide)** — Full installation walkthrough
+12. **[Maintenance & Administration](./DOCUMENTATION.md#12-maintenance--administration)** — Database VACUUM, REINDEX, and Health Checks
+13. **[Troubleshooting Guide](./DOCUMENTATION.md#13-troubleshooting-guide)** — Diagnostics & Root Cause Solutions
+14. **[Developer Guide](./DOCUMENTATION.md#14-developer-guide)** — Coding standards & Unit/E2E Testing
+15. **[Administrator Guide](./DOCUMENTATION.md#15-administrator-guide)** — System provisioning & user management
+16. **[User Guide](./DOCUMENTATION.md#16-user-guide)** — End-user operational workflows
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛡️ License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Enterprise Proprietary. All rights reserved.

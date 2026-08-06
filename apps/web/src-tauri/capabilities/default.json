@@ -1,6 +1,6 @@
 {
   "identifier": "default",
-  "description": "Default capabilities for Xiphos IT Operations",
+  "description": "Default capabilities for Pulse IT Operations",
   "windows": ["main"],
   "permissions": [
     "core:default",

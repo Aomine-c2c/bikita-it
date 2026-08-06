@@ -25,14 +25,7 @@ export function UpdateNotification() {
   const [installing, setInstalling] = useState(false);
   const [downloaded, setDownloaded] = useState(0);
   const [total, setTotal] = useState<number | null>(null);
-  const [isTauri, setIsTauri] = useState(false);
-
-  // Detect Tauri environment
-  useEffect(() => {
-    setIsTauri(
-      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-    );
-  }, []);
+  const [isTauri, _setIsTauri] = useState(() => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window);
 
   // Listen for update events from the Rust backend
   useEffect(() => {
@@ -130,7 +123,7 @@ export function UpdateNotification() {
                   ? progress !== null
                     ? `Downloading… ${progress}%`
                     : "Preparing download…"
-                  : update.body || "A new version of Xiphos is ready to install."}
+                  : update.body || "A new version of Pulse is ready to install."}
               </p>
             </div>
 

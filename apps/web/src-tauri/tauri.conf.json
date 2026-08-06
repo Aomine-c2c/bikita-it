@@ -1,8 +1,8 @@
 {
   "$schema": "https://githubusercontent.com",
-  "productName": "Xiphos",
-  "version": "0.1.5",
-  "identifier": "com.xiphos.itops",
+  "productName": "Pulse",
+  "version": "0.3.2",
+  "identifier": "com.pulse.itops",
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3000",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Xiphos IT Operations",
+        "title": "Pulse IT Operations v0.3.2",
         "width": 1400,
         "height": 900,
         "minWidth": 1024,
@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' tauri: ipc:; img-src 'self' data:; font-src 'self' data:"
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' tauri: ipc: http://127.0.0.1:3001; img-src 'self' data:; font-src 'self' data:"
     }
   },
   "bundle": {
@@ -40,3 +40,5 @@
   },
   "plugins": {}
 }
+
+

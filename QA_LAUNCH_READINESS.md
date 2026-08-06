@@ -25,7 +25,7 @@ The web shell and all nine primary navigation routes render quickly, metadata an
 - **Responsive: FAIL.** Source and rendered structure show a fixed 260px sidebar with no mobile drawer/breakpoint and fixed 32px main padding; this materially constrains phone layouts. First-run tour close control was outside the automation viewport and repeatedly blocked interaction.
 - **Keyboard/accessibility: FAIL.** Navigation links are semantic, but clickable user-profile containers are `div` elements without keyboard role/tab semantics; several icon buttons rely on `title` or lack stable accessible names; settings inputs have no form/name attributes. No skip link was found. Tour overlay impaired operability.
 - **Performance: PASS for static shell only.** Direct warm HTTP responses were 2–18ms for prerendered primary routes; browser navigation was approximately 0.69–1.37s. API endpoints failed in ~7ms, so real data performance is untested.
-- **Metadata/security headers: PARTIAL PASS.** Title “Xiphos IT Operations Platform,” description “Enterprise IT Asset Management and Operations,” `lang=en`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and restrictive Permissions-Policy are present; framework disclosure is disabled. CSP and HSTS were absent; HSTS is expected only after HTTPS deployment.
+- **Metadata/security headers: PARTIAL PASS.** Title “Pulse IT Operations Platform,” description “Enterprise IT Asset Management and Operations,” `lang=en`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and restrictive Permissions-Policy are present; framework disclosure is disabled. CSP and HSTS were absent; HSTS is expected only after HTTPS deployment.
 
 ## Defects
 

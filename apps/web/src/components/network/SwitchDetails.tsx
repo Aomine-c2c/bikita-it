@@ -114,7 +114,7 @@ export function SwitchDetails() {
           <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-3 mb-1">Firmware</p>
           <p className="text-sm font-semibold text-white">IOS XE 17.3.4</p>
         </div>
-        <button className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-slate-800 hover:border-slate-700 transition-colors group cursor-pointer text-slate-400 hover:text-white">
+        <button  className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-slate-800 hover:border-slate-700 transition-colors group cursor-pointer text-slate-400 hover:text-white">
           <Terminal className="w-6 h-6 group-hover:scale-110 transition-transform" />
           <span className="text-xs font-bold uppercase tracking-wider">Open Console</span>
         </button>

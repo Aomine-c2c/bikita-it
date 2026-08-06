@@ -1,13 +1,16 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { NetworkHealth } from "@/components/network/NetworkHealth";
-import { NetworkTopology } from "@/components/network/NetworkTopology";
-import { SwitchDetails } from "@/components/network/SwitchDetails";
 import { NetworkAlerts } from "@/components/network/NetworkAlerts";
 import { DiscoveryStagingTable } from "@/components/network/DiscoveryStagingTable";
 import { motion } from "framer-motion";
+
+// Heavy canvas/chart components — lazy loaded to reduce initial bundle size
+const NetworkTopology = dynamic(() => import("@/components/network/NetworkTopology").then(m => m.NetworkTopology), { ssr: false, loading: () => <div className="h-[400px] animate-pulse bg-muted rounded-xl" /> });
+const SwitchDetails = dynamic(() => import("@/components/network/SwitchDetails").then(m => m.SwitchDetails), { ssr: false, loading: () => <div className="h-[300px] animate-pulse bg-muted rounded-xl" /> });
 
 export default function NetworkOperationsPage() {
   return (

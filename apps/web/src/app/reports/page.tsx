@@ -4,6 +4,12 @@ import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ReportToolbar } from "@/components/reports/ReportToolbar";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
+
+const ReportCharts = dynamic(() => import("@/components/reports/ReportCharts").then(m => m.ReportCharts), { 
+  ssr: false,
+  loading: () => <div className="h-[300px] flex items-center justify-center border rounded-xl bg-white"><span className="text-muted-foreground animate-pulse">Loading charts...</span></div>
+});
 
 export default function ReportsPage() {
   return (
@@ -38,9 +44,8 @@ export default function ReportsPage() {
           <ReportToolbar />
         </motion.div>
 
-        <section className="mt-6 rounded-xl border bg-white p-8 text-center">
-          <h2 className="font-bold">No reporting data source configured</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Reports will appear when a reporting API is connected. No sample financial figures are shown.</p>
+        <section className="mt-6">
+          <ReportCharts />
         </section>
 
       </div>

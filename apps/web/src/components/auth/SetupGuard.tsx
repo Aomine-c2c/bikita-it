@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getApiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export function SetupGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,11 +15,7 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
 
     const init = async () => {
       try {
-        const base = await getApiBase();
-        const res = await fetch(`${base}/setup/check`, { cache: "no-store", signal: controller.signal });
-        if (!active) return;
-        if (!res.ok) throw new Error("status unavailable");
-        const data = await res.json();
+        const data = await apiFetch<{ authEnabled: boolean; isSetupComplete: boolean }>('/setup/check');
         if (!active) return;
         
         // Local mode (authEnabled: false) — treat as always ready, no login/setup needed
@@ -53,7 +49,7 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
         }
 
         setState("ready");
-      } catch (_err) {
+      } catch (__err) {
         if (!active) return;
         // API unreachable — fall through to show the page anyway
         if (pathname === "/setup") setState("ready");

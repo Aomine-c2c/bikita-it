@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { apiFetch } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -17,6 +19,12 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Book,
+  Activity,
+  FileText,
+  ListChecks,
+  BookOpen,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +36,7 @@ const sidebarSections = [
       { icon: Box,             label: "Asset Lifecycle", href: "/assets" },
       { icon: ClipboardList,   label: "Inventory",       href: "/inventory" },
       { icon: Wrench,          label: "Maintenance",     href: "/repairs" },
+      { icon: Activity,        label: "Operations Center", href: "/operations" },
     ],
   },
   {
@@ -39,6 +48,15 @@ const sidebarSections = [
     ],
   },
   {
+    title: "Knowledge & Docs",
+    items: [
+      { icon: Book,       label: "Knowledge Base",  href: "/knowledge" },
+      { icon: FileText,   label: "Documentation",   href: "/documentation" },
+      { icon: ListChecks, label: "SOPs",            href: "/sops" },
+      { icon: BookOpen,   label: "Manual Library",  href: "/manuals" },
+    ],
+  },
+  {
     title: "Governance",
     items: [
       { icon: BarChart3,   label: "Reports",  href: "/reports" },
@@ -47,16 +65,47 @@ const sidebarSections = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isMobileOpen, onMobileClose }: { isMobileOpen?: boolean; onMobileClose?: () => void }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { user } = useAuth();
+  const [orgName, setOrgName] = useState<string>("PULSE Enterprise");
+
+  React.useEffect(() => {
+    apiFetch<any>('/settings').then((data) => {
+      if (data?.settings?.general?.orgName) {
+        setOrgName(data.settings.general.orgName);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const userInitials = user?.name ? user.name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() : "U";
 
   return (
+    <>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+          onClick={onMobileClose}
+        />
+      )}
+
     <motion.aside
       animate={{ width: collapsed ? 72 : 280 }}
       transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-      className="hidden md:flex h-full bg-[#F8F9FA] flex flex-col z-20 shrink-0 relative overflow-hidden border-r border-border/40"
+      className={cn(
+        "h-full bg-[#F8F9FA] flex flex-col z-50 shrink-0 overflow-hidden border-r border-border/40 transition-transform duration-300 md:translate-x-0 md:static fixed top-0 left-0",
+        isMobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+      )}
     >
+      {/* Mobile Close Button */}
+      <button 
+        onClick={onMobileClose}
+        className="md:hidden absolute right-4 top-6 p-2 rounded-full hover:bg-slate-200 z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+      >
+        <X className="w-4 h-4 text-muted-foreground" />
+      </button>
       {/* Brand Header */}
       <div className={cn("flex items-center shrink-0 overflow-hidden", collapsed ? "p-4 justify-center" : "p-6 pb-2 gap-3.5")}>
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-premium border border-border/20">
@@ -71,8 +120,8 @@ export function Sidebar() {
               transition={{ duration: 0.2 }}
               className="flex flex-col overflow-hidden whitespace-nowrap"
             >
-              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider leading-tight">XIPHOS Enterprise</span>
-              <span className="font-black text-lg text-foreground tracking-tighter leading-tight">Operations</span>
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider leading-tight">{orgName}</span>
+              <span className="font-black text-lg text-foreground tracking-tighter leading-tight">IT Operations <span className="text-[10px] font-black bg-primary text-primary-foreground px-1.5 py-0.5 rounded-md ml-1 align-middle">v2.0</span></span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -99,7 +148,7 @@ export function Sidebar() {
             {section.items.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link key={item.label} href={item.href}>
+                <Link key={item.label} href={item.href} aria-label={item.label} title={collapsed ? item.label : undefined} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded-xl block">
                   <motion.span
                     whileHover={{ x: isActive ? 0 : 4 }}
                     className={cn(
@@ -157,10 +206,10 @@ export function Sidebar() {
 
       {/* Collapse Toggle */}
       <div className={cn("px-4 py-4 border-t border-border/10", collapsed ? "flex justify-center" : "flex justify-between items-center")}>
-         {!collapsed && <span className="text-[10px] font-bold text-muted-foreground/40">v1.0.4-stable</span>}
+         {!collapsed && <span className="text-[10px] font-bold text-muted-foreground/40">v2.0.0</span>}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-8 h-8 rounded-lg bg-white border border-border/40 shadow-sm flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-md transition-all"
+          className="w-8 h-8 rounded-lg bg-white border border-border/40 shadow-sm flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
@@ -174,28 +223,31 @@ export function Sidebar() {
       {/* User Profile */}
       <div className={cn("shrink-0 p-4 bg-white/40", collapsed ? "flex justify-center" : "")}>
         {collapsed ? (
-          <div
+          <button
             onClick={() => window.location.href = '/settings'}
-            title="John Doe — IT Administrator"
-            className="w-11 h-11 rounded-xl bg-white border border-border/40 flex items-center justify-center cursor-pointer hover:bg-slate-50 shadow-sm transition-all"
+            title={`${user?.name || 'User'} — ${user?.role === 'divine_general' ? '⚡ Divine General' : user?.role === 'ADMIN' ? 'System Administrator' : (user?.role || 'User')}`}
+            aria-label="User Profile"
+            className="w-11 h-11 rounded-xl bg-white border border-border/40 flex items-center justify-center cursor-pointer hover:bg-slate-50 shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           >
-            <span className="text-xs font-black text-primary">JD</span>
-          </div>
+            <span className="text-xs font-black text-primary">{userInitials}</span>
+          </button>
         ) : (
-          <div 
+          <button 
             onClick={() => window.location.href = '/settings'}
-            className="flex items-center gap-3 bg-white p-3.5 rounded-2xl shadow-premium border border-border/30 cursor-pointer hover:bg-slate-50 transition-all group"
+            aria-label="User Profile"
+            className="flex items-center gap-3 bg-white p-3.5 rounded-2xl shadow-premium border border-border/30 cursor-pointer hover:bg-slate-50 transition-all group w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           >
             <div className="w-9 h-9 rounded-xl shrink-0 bg-slate-100 flex items-center justify-center border border-border/40 group-hover:border-primary/20">
-              <span className="text-xs font-black text-primary">JD</span>
+              <span className="text-xs font-black text-primary">{userInitials}</span>
             </div>
             <div className="flex flex-col flex-1 min-w-0">
-              <span className="text-[13px] font-black text-foreground truncate leading-tight">John Doe</span>
-              <span className="text-[11px] font-bold text-muted-foreground truncate leading-tight mt-0.5">Systems Architect</span>
+              <span className="text-[13px] font-black text-foreground truncate leading-tight">{user?.name || "Guest"}</span>
+              <span className="text-[11px] font-bold text-muted-foreground truncate leading-tight mt-0.5">{user?.role === 'divine_general' ? '⚡ Divine General' : user?.role === 'ADMIN' ? 'System Administrator' : (user?.role || "Unauthenticated")}</span>
             </div>
-          </div>
+          </button>
         )}
       </div>
     </motion.aside>
+    </>
   );
 }

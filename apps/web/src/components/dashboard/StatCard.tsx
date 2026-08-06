@@ -24,7 +24,7 @@ export function StatCard({ title, value, trend, subtitle, className, index = 0 }
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 300, damping: 30 }}
       className={cn(
-        "bg-white  rounded-[14px] border border-border/60 shadow-sm flex flex-col overflow-hidden min-w-[200px]",
+        "bg-white  rounded-[14px] border border-border/60 shadow-sm flex flex-col overflow-hidden min-w-50",
         className
       )}
     >

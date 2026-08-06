@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Filter, Download, MoreHorizontal, ArrowUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, exportToCSV } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
-// --- Mock Data ---
+// --- Types ---
 interface SoftwareLicense {
   id: string;
   name: string;
@@ -14,7 +15,7 @@ interface SoftwareLicense {
   assignedSeats: number;
   costPerSeat: number;
   expiryDate: string;
-  status: "Active" | "Expiring" | "Expired";
+  status: "Active" | "Expiring" | "Expired" | string;
 }
 
 const getStatusBadge = (status: string) => {
@@ -28,6 +29,19 @@ const getStatusBadge = (status: string) => {
 
 export function SoftwareTable() {
   const [software, setSoftware] = useState<SoftwareLicense[]>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await apiFetch<SoftwareLicense[]>("get_software_licenses");
+        if (Array.isArray(res)) setSoftware(res);
+      } catch (e) {
+        console.error("Failed to load software licenses:", e);
+      }
+    }
+    loadData();
+  }, []);
+
 
   return (
     <div className="bg-white border border-border/60 rounded-xl shadow-sm flex flex-col h-full overflow-hidden">
@@ -43,10 +57,10 @@ export function SoftwareTable() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 border border-border/60 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
+          <button  className="flex items-center gap-2 px-3 py-2 border border-border/60 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
             <Filter className="w-4 h-4" /> Filters
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 border border-border/60 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
+          <button onClick={() => exportToCSV('software_licenses.csv', software)} className="flex items-center gap-2 px-3 py-2 border border-border/60 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
             <Download className="w-4 h-4" /> Export
           </button>
         </div>
@@ -117,7 +131,7 @@ export function SoftwareTable() {
                   </td>
                   
                   <td className="px-6 py-4 text-right">
-                    <button className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-slate-200 transition-colors opacity-0 group-hover:opacity-100">
+                    <button  className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-slate-200 transition-colors opacity-0 group-hover:opacity-100">
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
                   </td>

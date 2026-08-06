@@ -1,9 +1,11 @@
 {
   "name": "web",
-  "version": "0.1.5",
+  "version": "0.3.2",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
+    "dev:api": "cargo run --bin api-server --manifest-path src-tauri/Cargo.toml",
+    "dev:full": "concurrently -n API,WEB -c cyan,magenta \"npm run dev:api\" \"npm run dev\"",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
@@ -13,7 +15,7 @@
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "tauri:signer": "tauri signer generate -w ~/.tauri/xiphos.key"
+    "tauri:signer": "tauri signer generate -w ~/.tauri/pulse.key"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -27,21 +29,29 @@
     "@xyflow/react": "^12.11.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
     "driver.js": "^1.7.0",
     "framer-motion": "^12.42.2",
+    "i18next": "^26.3.6",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.24.0",
     "next": "16.2.10",
+    "next-themes": "^0.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.81.0",
+    "react-i18next": "^17.0.11",
     "recharts": "^3.9.2",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.3.3",
     "@tauri-apps/cli": "^2",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
@@ -49,10 +59,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.3",
+    "concurrently": "^10.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "jsdom": "^29.1.1",
-    "tailwindcss": "^4",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }
