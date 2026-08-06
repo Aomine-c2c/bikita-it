@@ -130,7 +130,7 @@ jobs:
           images: ghcr.io/${{ github.repository }}/xiphos-web
           
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: apps/web
           push: true
