@@ -67,7 +67,11 @@ export function ActivityFeed({ data }: { data: ActivityItem[] }) {
                       {item.time}
                     </span>
                   </div>
-                  <p className="text-[11px] font-medium text-muted-foreground mt-1 truncate max-w-[280px]">{item.meta}</p>
+                  <p className="text-[11px] font-medium text-muted-foreground mt-1 truncate max-w-[280px]">
+                    {typeof item.meta === 'object' && item.meta !== null
+                      ? JSON.stringify(item.meta)
+                      : String(item.meta || '')}
+                  </p>
                 </div>
               </motion.div>
             );

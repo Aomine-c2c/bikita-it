@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Bell, Settings, ChevronRight, Sparkles, Menu, Globe, LayoutDashboard, Box, ClipboardList, Wrench, Activity, Network, Video, Waypoints, Server, Users, Book, BarChart3, FileText, FileBadge, Library } from "lucide-react";
+import { Search, Bell, Settings, ChevronRight, Sparkles, Menu, Globe, LayoutDashboard, Box, ClipboardList, Wrench, Activity, Network, Video, Waypoints, Server, Users, Book, BarChart3, FileText, FileBadge, Library, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -32,9 +32,10 @@ interface HeaderProps {
   onToggleAI?: () => void;
   isAIOpen?: boolean;
   onMenuToggle?: () => void;
+  onStartTour?: () => void;
 }
 
-export function Header({ onToggleAI, isAIOpen, onMenuToggle }: HeaderProps = {}) {
+export function Header({ onToggleAI, isAIOpen, onMenuToggle, onStartTour }: HeaderProps = {}) {
   const pathname = usePathname();
   const routeMatch = ROUTE_CONFIG[pathname];
   const pageLabel = routeMatch?.label ?? "Pulse";
@@ -76,7 +77,7 @@ export function Header({ onToggleAI, isAIOpen, onMenuToggle }: HeaderProps = {})
         <motion.div 
           initial={false}
           animate={{ width: "auto" }}
-          className="relative group hidden md:block w-72" 
+          className="relative group w-32 sm:w-60 md:w-72" 
           id="tour-search"
         >
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 group-hover:text-primary transition-colors" />
@@ -111,6 +112,24 @@ export function Header({ onToggleAI, isAIOpen, onMenuToggle }: HeaderProps = {})
           >
             <Sparkles className={cn("w-4 h-4 shrink-0", isAIOpen ? "animate-pulse" : "")} />
             <span className="hidden sm:inline">{!isAIOpen ? t('header.askAi', 'Ask AI') : t('header.assistantActive', 'Assistant Active')}</span>
+          </button>
+
+          {/* Take Tour Button */}
+          <button
+            onClick={() => {
+              if (onStartTour) {
+                onStartTour();
+              } else {
+                localStorage.removeItem("pulse_tour_completed");
+                window.location.reload();
+              }
+            }}
+            className="h-10 px-3 rounded-xl transition-all border border-indigo-500/30 bg-indigo-50/50 hover:bg-indigo-100/80 text-indigo-600 shadow-xs flex items-center gap-1.5 font-bold text-xs cursor-pointer"
+            title="Start Guided Tour"
+            aria-label="Start Guided Tour"
+          >
+            <HelpCircle className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span className="hidden md:inline">Take Tour</span>
           </button>
 
           <div className="h-8 w-px bg-border/20 mx-0.5 md:mx-1" />

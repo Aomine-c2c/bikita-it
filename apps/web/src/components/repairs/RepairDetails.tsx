@@ -135,7 +135,7 @@ export function RepairDetails({ repair }: RepairDetailsProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="aspect-video bg-slate-200 rounded-xl border border-border/60 flex items-center justify-center relative overflow-hidden group">
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button  className="bg-white/20 hover:bg-white/40 backdrop-blur-md text-white p-2 rounded-full transition-colors"><ExternalLink className="w-5 h-5" /></button>
+                    <button onClick={() => alert("Photo inspection overlay opened.")} className="bg-white/20 hover:bg-white/40 backdrop-blur-md text-white p-2 rounded-full transition-colors cursor-pointer" title="View Full Size"><ExternalLink className="w-5 h-5" /></button>
                   </div>
                   <span className="text-sm font-bold text-slate-400">Before Repair (Damage)</span>
                 </div>

@@ -94,7 +94,7 @@ function SortableTicket({ ticket, onClick }: { ticket: Ticket; onClick?: () => v
           <span className="text-[10px] text-muted-foreground/60">·</span>
           <span className="text-[10px] text-muted-foreground">{ticket.category}</span>
         </div>
-        <button  className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-slate-100 transition-colors">
+        <button onClick={(e) => { e.stopPropagation(); onClick(); }} className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-slate-100 transition-colors cursor-pointer" title="Ticket Actions">
           <MoreHorizontal className="w-3 h-3" />
         </button>
       </div>

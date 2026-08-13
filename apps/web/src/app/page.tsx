@@ -232,7 +232,7 @@ export default function MissionControl() {
         className="pb-10 space-y-6 max-w-[1500px] mx-auto"
       >
         {/* Top Mission Control Bar */}
-        <motion.div variants={itemVariants} className="flex items-end justify-between pt-1">
+        <motion.div data-tour="mission-control" variants={itemVariants} className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 pt-1">
           <div>
             <h1 className="text-3xl font-black tracking-tight text-foreground">Mission Control</h1>
             <p className="text-xs font-medium text-muted-foreground mt-0.5">
@@ -263,7 +263,7 @@ export default function MissionControl() {
 
         {/* Asymmetric 6-Card Cyber Bento Grid */}
         {data && (
-          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 relative z-10">
+          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
             {/* Background ambient radial glow */}
             <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent blur-3xl rounded-full pointer-events-none" />
 

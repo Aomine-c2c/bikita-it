@@ -1,12 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
-import { Server, Activity, RefreshCw, Zap, Shield, Network } from "lucide-react";
+import { Server, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function SwitchDetails() {
+interface SwitchDetailsProps {
+  /** The backend NetworkDevice ID to inspect. Defaults to 1. */
+  deviceId?: number;
+}
+
+export function SwitchDetails({ deviceId = 1 }: SwitchDetailsProps) {
   const [selectedPort, setSelectedPort] = useState<number>(1);
   const [isBouncing, setIsBouncing] = useState(false);
+
+  const [deviceInfo, setDeviceInfo] = useState<{
+    hostname: string;
+    vendor: string;
+    ip_address: string;
+  } | null>(null);
 
   const [ports, setPorts] = useState<any[]>(Array.from({ length: 24 }, (_, i) => ({
     num: i + 1,
@@ -19,27 +30,37 @@ export function SwitchDetails() {
   })));
 
   React.useEffect(() => {
-    const fetchConnections = async () => {
+    const fetchData = async () => {
       try {
         const { apiFetch } = await import('@/lib/api');
-        // Currently hardcoded to device ID 1 for demo purposes
-        const portsData = await apiFetch('/network/1/ports') as any[];
-        
-        // Enhance with client-side telemetry mock
-        const enhancedPorts = portsData.map(p => ({
+
+        // Fetch device meta
+        const device = await apiFetch<any>(`/network/${deviceId}`);
+        setDeviceInfo({
+          hostname: device.hostname || `Device #${deviceId}`,
+          vendor: device.vendor || "Unknown Vendor",
+          ip_address: device.ip_address || "",
+        });
+
+        // Fetch ports
+        const portsData = await apiFetch(`/network/${deviceId}/ports`) as any[];
+        const enhancedPorts = portsData.map(p => {
+          const rx = p.status === 'idle' ? '0.0' : ((p.num * 3.5 + 12.0) % 85.0).toFixed(1);
+          const tx = p.status === 'idle' ? '0.0' : ((p.num * 1.8 + 4.0) % 35.0).toFixed(1);
+          return {
             ...p,
-            rxMbps: p.status === 'idle' ? '0.0' : (Math.random() * 45 + 5).toFixed(1),
-            txMbps: p.status === 'idle' ? '0.0' : (Math.random() * 15 + 2).toFixed(1),
-        }));
-        
+            rxMbps: rx,
+            txMbps: tx,
+          };
+        });
         setPorts(enhancedPorts);
       } catch (error) {
-        console.error("Failed to fetch switch connections", error);
+        console.error("Failed to fetch switch data", error);
       }
     };
-    fetchConnections();
+    fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [deviceId]);
 
   const activePort = ports.find((p) => p.num === selectedPort) || ports[0];
 
@@ -47,6 +68,11 @@ export function SwitchDetails() {
     setIsBouncing(true);
     setTimeout(() => setIsBouncing(false), 1200);
   };
+
+  const displayName = deviceInfo?.hostname ?? `Switch #${deviceId}`;
+  const displayVendor = deviceInfo
+    ? `${deviceInfo.vendor}${deviceInfo.ip_address ? ` • ${deviceInfo.ip_address}` : ""}`
+    : "Loading device info...";
 
   return (
     <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-3xl p-5 shadow-sm space-y-5 h-full flex flex-col">
@@ -57,13 +83,13 @@ export function SwitchDetails() {
             <Server className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xs font-black text-foreground">SW-CORE-01</h3>
-            <p className="text-[10px] font-mono text-muted-foreground">Cisco Catalyst 9300 • 24-Port PoE+</p>
+            <h3 className="text-xs font-black text-foreground">{displayName}</h3>
+            <p className="text-[10px] font-mono text-muted-foreground">{displayVendor}</p>
           </div>
         </div>
 
         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-          Uptime 99.98%
+          24-Port
         </span>
       </div>
 

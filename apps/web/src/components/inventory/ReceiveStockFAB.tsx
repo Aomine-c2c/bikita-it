@@ -1,6 +1,3 @@
- 
- 
-
 "use client";
 
 import React, { useState } from "react";
@@ -17,17 +14,29 @@ export function ReceiveStockFAB() {
   
   const [formData, setFormData] = useState({
     type: "bulk",
-    name: "Cat6 Ethernet Cable (50ft)",
+    name: "",
     category: "Networking",
-    quantity: 50,
+    quantity: 1,
     destination: "Main HQ (Warehouse)",
-    binLocation: "C-02",
-    sku: "SKU-123",
+    binLocation: "",
+    sku: "",
   });
 
   const handleClose = () => {
     setIsOpen(false);
-    setTimeout(() => setStep(1), 300); // reset after animation
+    setTimeout(() => {
+      setStep(1);
+      setFormData({
+        type: "bulk",
+        name: "",
+        category: "Networking",
+        quantity: 1,
+        destination: "Main HQ (Warehouse)",
+        binLocation: "",
+        sku: "",
+      });
+      setError(null);
+    }, 300);
   };
 
   return (
@@ -104,8 +113,15 @@ export function ReceiveStockFAB() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-foreground mb-1.5">Item Name</label>
-                        <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">Item Name *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Cat6 Ethernet Cable"
+                          value={formData.name}
+                          onChange={e => setFormData({...formData, name: e.target.value})}
+                          className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-foreground mb-1.5">Category</label>
@@ -120,8 +136,8 @@ export function ReceiveStockFAB() {
 
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-foreground mb-1.5">Quantity Received</label>
-                        <input type="number" value={formData.quantity} onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 0})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">Quantity Received *</label>
+                        <input type="number" min="1" value={formData.quantity} onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 1})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-foreground mb-1.5">SKU (Optional)</label>
@@ -129,7 +145,7 @@ export function ReceiveStockFAB() {
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-foreground mb-1.5">Shelf / Bin</label>
-                        <input type="text" value={formData.binLocation} onChange={e => setFormData({...formData, binLocation: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" />
+                        <input type="text" value={formData.binLocation} onChange={e => setFormData({...formData, binLocation: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" placeholder="e.g. C-02" />
                       </div>
                     </div>
                   </div>
@@ -142,7 +158,7 @@ export function ReceiveStockFAB() {
                     </div>
                     <h3 className="text-xl font-bold text-foreground mb-2">Stock Received Successfully</h3>
                     <p className="text-sm text-muted-foreground max-w-sm">
-                      50 units of <strong>Cat6 Ethernet Cable (50ft)</strong> have been added to Main HQ (Shelf C-02). An INTAKE transaction has been logged.
+                      {formData.quantity} unit(s) of <strong>{formData.name || "Item"}</strong> have been added to {formData.destination} {formData.binLocation ? `(Shelf ${formData.binLocation})` : ""}. An INTAKE transaction has been logged.
                     </p>
                   </div>
                 )}
@@ -154,18 +170,22 @@ export function ReceiveStockFAB() {
                   <>
                     <button onClick={handleClose} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
                     <button 
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !formData.name.trim()}
                       onClick={async () => {
+                        if (!formData.name.trim()) {
+                          setError("Item name is required.");
+                          return;
+                        }
                         setIsSubmitting(true);
                         setError(null);
                         try {
                           await inventoryApi.create({
-                            name: formData.name,
+                            name: formData.name.trim(),
                             category: formData.category,
                             quantity: formData.quantity,
-                            sku: formData.sku || `${formData.category.substring(0,3).toUpperCase()}-${Math.floor(Math.random()*1000)}`,
-                            binLocation: formData.binLocation,
-                            minStock: 10, // Default defaults
+                            sku: formData.sku.trim() || `${formData.category.substring(0,3).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+                            binLocation: formData.binLocation.trim() || undefined,
+                            minStock: 5,
                             maxStock: 500,
                           });
                           setStep(2);
@@ -175,7 +195,7 @@ export function ReceiveStockFAB() {
                           setIsSubmitting(false);
                         }
                       }} 
-                      className="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-2"
+                      className="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                       {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                       Confirm Intake

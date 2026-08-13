@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, ticketsApi } from '@/lib/api';
 import { Ticket } from '@/modules/helpdesk/HelpDeskModule';
 import Link from 'next/link';
 import { ArrowLeft, User, Laptop, MapPin, MessageSquare, Clock, AlertCircle, CheckCircle2, Calendar, EyeOff } from 'lucide-react';
@@ -93,8 +93,15 @@ export default function TicketDetailsClient({ overrideId, onBack }: Props = {}) 
               <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">{ticket.title}</h1>
             </div>
             <div className="flex gap-2">
-              <button  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm">
-                Update Status
+              <button
+                onClick={async () => {
+                  const nextStatus = ticket.status === 'Open' ? 'In Progress' : ticket.status === 'In Progress' ? 'Resolved' : 'Closed';
+                  await apiFetch(`/tickets/${ticket.id}`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
+                  window.location.reload();
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm cursor-pointer"
+              >
+                Update Status ({ticket.status})
               </button>
             </div>
           </div>

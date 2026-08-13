@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, AlertCircle } from "lucide-react";
-import { InventoryItem, employeesApi, locationsApi, assetApi, inventoryApi } from "@/lib/api";
+import { InventoryItem, employeesApi, locationsApi, assetApi, inventoryApi, apiFetch } from "@/lib/api";
 
 interface LifecycleTransitionModalProps {
   isOpen: boolean;
@@ -62,15 +62,11 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
           ...formData,
           newMeterMark: formData.useCableMarking && formData.newMeterMark ? parseInt(formData.newMeterMark) : undefined
         };
-        const res = await fetch(`http://localhost:3001/api/inventory/${item.id}/issue-consumable`, {
+        await apiFetch(`/inventory/${item.id}/issue-consumable`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || "Failed to issue inventory item");
-        }
       }
       onSuccess();
     } catch (err: any) {

@@ -8,9 +8,10 @@ interface RackVisualizerProps {
   rackName?: string;
   totalU?: number;
   locationId?: number;
+  onMountDevice?: (slotU: number) => void;
 }
 
-export function RackVisualizer({ rackName = "RACK-DC1-04", totalU = 42, locationId = 1 }: RackVisualizerProps) {
+export function RackVisualizer({ rackName = "RACK-DC1-04", totalU = 42, locationId = 1, onMountDevice }: RackVisualizerProps) {
   const [selectedU, setSelectedU] = useState<number>(38);
 
   const [mountedEquipment, setMountedEquipment] = useState<Record<number, any>>({});
@@ -74,7 +75,7 @@ export function RackVisualizer({ rackName = "RACK-DC1-04", totalU = 42, location
       </div>
 
       {/* 42U Vertical Chassis Display */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div data-tour="rack-map" className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left: 42U Slot Column */}
         <div className="md:col-span-2 space-y-1 bg-background/80 border border-border/60 p-3 rounded-2xl shadow-inner max-h-[520px] overflow-y-auto">
           {uSlots.map((u) => {
@@ -159,7 +160,10 @@ export function RackVisualizer({ rackName = "RACK-DC1-04", totalU = 42, location
             )}
           </div>
 
-          <button className="w-full py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm cursor-pointer">
+          <button
+            onClick={() => onMountDevice ? onMountDevice(selectedU) : alert(`Mount hardware dialog triggered for Slot U${selectedU}`)}
+            className="w-full py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
+          >
             + Mount Hardware to Slot U{selectedU}
           </button>
         </div>

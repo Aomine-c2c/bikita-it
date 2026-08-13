@@ -3,12 +3,13 @@ from ninja import Router
 from typing import List, Optional
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
-from core.models import Ticket, TicketComment, Repair
-from .schemas import TicketSchema, TicketCommentSchema, RepairSchema
+from core.models import Ticket, TicketComment, Repair, Employee, OperationLog
+from .schemas import TicketSchema, TicketInSchema, TicketCommentSchema, RepairSchema, RepairInSchema
 
 router = Router()
 
-# Tickets
+# ─── Tickets ───────────────────────────────────────────────────────────────────
+
 @router.get("/tickets", response=List[TicketSchema])
 def get_tickets(request):
     return list(Ticket.objects.select_related('assigned_to').prefetch_related('repairs').all())
@@ -18,14 +19,24 @@ def get_ticket(request, ticket_id: int):
     return get_object_or_404(Ticket, id=ticket_id)
 
 @router.post("/tickets", response=TicketSchema)
-def create_ticket(request, payload: TicketSchema):
-    ticket = Ticket.objects.create(**payload.dict(exclude_unset=True))
+def create_ticket(request, payload: TicketInSchema):
+    data = payload.dict(exclude_unset=True)
+    data.pop('id', None)
+    data.pop('created_at', None)
+    data.pop('updated_at', None)
+    data.pop('repairIds', None)
+    ticket = Ticket.objects.create(**data)
     return ticket
 
 @router.patch("/tickets/{ticket_id}", response=TicketSchema)
-def update_ticket(request, ticket_id: int, payload: TicketSchema):
+def update_ticket(request, ticket_id: int, payload: TicketInSchema):
     ticket = get_object_or_404(Ticket, id=ticket_id)
-    for attr, value in payload.dict(exclude_unset=True).items():
+    data = payload.dict(exclude_unset=True)
+    data.pop('id', None)
+    data.pop('created_at', None)
+    data.pop('updated_at', None)
+    data.pop('repairIds', None)
+    for attr, value in data.items():
         setattr(ticket, attr, value)
     ticket.save()
     return ticket
@@ -37,22 +48,50 @@ def delete_ticket(request, ticket_id: int):
     ticket.delete()
     return {"success": True}
 
-# Comments
+# ─── Ticket assign ─────────────────────────────────────────────────────────────
+
+class AssignTicketPayload(Schema):
+    assigneeId: Optional[int] = None
+
+@router.post("/tickets/{ticket_id}/assign", response=TicketSchema)
+def assign_ticket(request, ticket_id: int, payload: AssignTicketPayload):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    if payload.assigneeId:
+        employee = get_object_or_404(Employee, id=payload.assigneeId)
+        ticket.assigned_to = employee
+    else:
+        ticket.assigned_to = None
+    ticket.save()
+    OperationLog.objects.create(
+        action="ASSIGN",
+        resource_type="Ticket",
+        resource_id=str(ticket.id),
+        details={"assignee": payload.assigneeId},
+    )
+    return ticket
+
+# ─── Comments ──────────────────────────────────────────────────────────────────
+
 @router.get("/tickets/{ticket_id}/comments", response=List[TicketCommentSchema])
 def get_ticket_comments(request, ticket_id: int):
     return list(TicketComment.objects.select_related('ticket', 'author').filter(ticket_id=ticket_id))
 
 @router.post("/tickets/{ticket_id}/comments", response=TicketCommentSchema)
-def create_ticket_comment(request, ticket_id: int, payload: TicketCommentSchema):
+def add_comment(request, ticket_id: int, payload: TicketCommentSchema):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
     data = payload.dict(exclude_unset=True)
-    data["ticket_id"] = ticket_id
-    comment = TicketComment.objects.create(**data)
+    data.pop('id', None)
+    data.pop('created_at', None)
+    data.pop('updated_at', None)
+    comment = TicketComment.objects.create(ticket=ticket, **data)
     return comment
 
+# ─── Create repair from ticket ─────────────────────────────────────────────────
+
 class CreateRepairPayload(Schema):
-    repair_type: str
-    status: str = "Scheduled"
-    cost: Optional[float] = None
+    repair_type: str = ""
+    cost: float = 0.0
+    status: str = "SCHEDULED"
     notes: Optional[str] = None
 
 @router.post("/tickets/{ticket_id}/create-repair", response=RepairSchema)
@@ -65,7 +104,8 @@ def create_repair_from_ticket(request, ticket_id: int, payload: CreateRepairPayl
     )
     return repair
 
-# Repairs
+# ─── Repairs ───────────────────────────────────────────────────────────────────
+
 @router.get("/repairs", response=List[RepairSchema])
 def get_repairs(request):
     return list(Repair.objects.select_related('asset', 'ticket').all())
@@ -75,14 +115,24 @@ def get_repair(request, repair_id: int):
     return get_object_or_404(Repair, id=repair_id)
 
 @router.post("/repairs", response=RepairSchema)
-def create_repair(request, payload: RepairSchema):
-    repair = Repair.objects.create(**payload.dict(exclude_unset=True))
+def create_repair(request, payload: RepairInSchema):
+    data = payload.dict(exclude_unset=True)
+    data.pop('id', None)
+    data.pop('created_at', None)
+    data.pop('updated_at', None)
+    data.pop('asset_name', None)
+    repair = Repair.objects.create(**data)
     return repair
 
 @router.patch("/repairs/{repair_id}", response=RepairSchema)
-def update_repair(request, repair_id: int, payload: RepairSchema):
+def update_repair(request, repair_id: int, payload: RepairInSchema):
     repair = get_object_or_404(Repair, id=repair_id)
-    for attr, value in payload.dict(exclude_unset=True).items():
+    data = payload.dict(exclude_unset=True)
+    data.pop('id', None)
+    data.pop('created_at', None)
+    data.pop('updated_at', None)
+    data.pop('asset_name', None)
+    for attr, value in data.items():
         setattr(repair, attr, value)
     repair.save()
     return repair

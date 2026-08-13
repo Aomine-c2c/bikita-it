@@ -196,9 +196,9 @@ export function TicketDetailsDrawer({
                     </h4>
 
                     <div className="space-y-3">
-                      {ticket?.comments?.map((c: any) => (
+                      {ticket?.comments?.map((c: any, idx: number) => (
                         <div
-                          key={c.id || Math.random()}
+                          key={c.id ?? idx}
                           className={cn(
                             "p-3.5 rounded-2xl border text-xs space-y-1.5 shadow-sm",
                             c.is_internal || c.isInternal

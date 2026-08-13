@@ -77,7 +77,7 @@ export function Sidebar({ isMobileOpen, onMobileClose }: { isMobileOpen?: boolea
     <motion.aside
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      animate={{ width: isHovered ? 280 : 72 }}
+      animate={{ width: (isMobileOpen || isHovered) ? 280 : 72 }}
       transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
       className={cn(
         "h-full bg-background flex flex-col z-50 shrink-0 overflow-hidden border-r border-border md:fixed absolute top-0 left-0",
@@ -87,17 +87,17 @@ export function Sidebar({ isMobileOpen, onMobileClose }: { isMobileOpen?: boolea
       {/* Mobile Close Button */}
       <button 
         onClick={onMobileClose}
-        className="md:hidden absolute right-4 top-6 p-2 rounded-full hover:bg-slate-200 z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+        className="md:hidden absolute right-4 top-6 p-2 rounded-full hover:bg-slate-200 z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 cursor-pointer"
       >
         <X className="w-4 h-4 text-muted-foreground" />
       </button>
       {/* Brand Header */}
-      <div className={cn("flex items-center shrink-0 overflow-hidden transition-all duration-300", !isHovered ? "p-4 justify-center" : "p-6 pb-2 gap-3.5")}>
+      <div className={cn("flex items-center shrink-0 overflow-hidden transition-all duration-300", !(isMobileOpen || isHovered) ? "p-4 justify-center" : "p-6 pb-2 gap-3.5")}>
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-premium border border-border/20">
           <ShieldAlert className="w-5.5 h-5.5 text-white" />
         </div>
         <AnimatePresence>
-          {isHovered && (
+          {(isMobileOpen || isHovered) && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -112,67 +112,60 @@ export function Sidebar({ isMobileOpen, onMobileClose }: { isMobileOpen?: boolea
         </AnimatePresence>
       </div>
 
-      {/* Navigation - Note the scrollbar-hide class (or use standard css scrollbar hiding) */}
-      <nav id="tour-sidebar-nav" className={cn("flex-1 overflow-y-auto overflow-x-hidden py-6 transition-all duration-300 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden", !isHovered ? "px-3" : "px-4")}>
-        <motion.ul 
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="space-y-1.5"
-        >
-        {ALL_SIDEBAR_ITEMS.map((item) => {
-          // Determine if active. If active, DO NOT render to save space as requested.
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
+      {/* Navigation List */}
+      <div className="flex-1 overflow-y-auto py-4 px-3 custom-scrollbar">
+        <motion.ul variants={staggerContainer} initial="hidden" animate="show" className="space-y-1">
+          {ALL_SIDEBAR_ITEMS.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
+            const translatedLabel = t(`sidebar.items.${item.labelKey}`, item.label);
+            const badge = badges[item.labelKey];
 
-          const translatedLabel = t(`sidebar.items.${item.labelKey}`, item.label);
-          const badge = badges[item.labelKey];
-          
-          return (
-            <motion.li key={item.label} variants={staggerItem}>
-              <Link href={item.href} aria-label={translatedLabel} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded-xl block">
-              <motion.span
-                whileHover={isActive ? {} : { x: 4 }}
-                className={cn(
-                  "flex items-center rounded-xl transition-all duration-200 group relative",
-                  !isHovered ? "justify-center w-12 h-12 mx-auto" : "gap-3 px-4 py-2.5",
-                  isActive
-                    ? "bg-primary text-primary-foreground font-bold shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground font-semibold"
-                )}
-              >
-                <div className="relative">
-                  <item.icon
-                    className={cn(
-                      "shrink-0 transition-colors duration-200",
-                      !isHovered ? "w-5 h-5" : "w-4.5 h-4.5",
-                      isActive ? "text-primary-foreground" : "text-muted-foreground/60 group-hover:text-foreground"
+            return (
+              <motion.li key={item.label} variants={staggerItem}>
+                <Link onClick={onMobileClose} href={item.href} aria-label={translatedLabel} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded-xl block">
+                <motion.span
+                  whileHover={isActive ? {} : { x: 4 }}
+                  className={cn(
+                    "flex items-center rounded-xl transition-all duration-200 group relative",
+                    !(isMobileOpen || isHovered) ? "justify-center w-12 h-12 mx-auto" : "gap-3 px-4 py-2.5",
+                    isActive
+                      ? "bg-primary text-primary-foreground font-bold shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground font-semibold"
+                  )}
+                >
+                  <div className="relative">
+                    <item.icon
+                      className={cn(
+                        "shrink-0 transition-colors duration-200",
+                        !(isMobileOpen || isHovered) ? "w-5 h-5" : "w-4.5 h-4.5",
+                        isActive ? "text-primary-foreground" : "text-muted-foreground/60 group-hover:text-foreground"
+                      )}
+                    />
+                    {/* Subdued dot if badge has no text but has variant */}
+                    {badge && !badge.text && (
+                       <span className={cn(
+                         "absolute -top-1 -right-1 w-2 h-2 rounded-full ring-2 ring-background animate-pulse",
+                         badge.variant === "destructive" ? "bg-red-500" : badge.variant === "warning" ? "bg-yellow-500" : "bg-primary"
+                       )} />
                     )}
-                  />
-                  {/* Subdued dot if badge has no text but has variant */}
-                  {badge && !badge.text && (
-                     <span className={cn(
-                       "absolute -top-1 -right-1 w-2 h-2 rounded-full ring-2 ring-background animate-pulse",
-                       badge.variant === "destructive" ? "bg-red-500" : badge.variant === "warning" ? "bg-yellow-500" : "bg-primary"
-                     )} />
-                  )}
-                </div>
+                  </div>
 
-                {/* Label (expanded) */}
-                <AnimatePresence>
-                  {isHovered && (
-                    <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      className="text-xs whitespace-nowrap overflow-hidden flex-1"
-                    >
-                      {translatedLabel}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                  {/* Label (expanded) */}
+                  <AnimatePresence>
+                    {(isMobileOpen || isHovered) && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        className="text-xs whitespace-nowrap overflow-hidden flex-1"
+                      >
+                        {translatedLabel}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
 
-                {/* Badge Text (expanded) */}
-                {isHovered && badge && badge.text && (
+                  {/* Badge Text (expanded) */}
+                  {(isMobileOpen || isHovered) && badge && badge.text && (
                    <span className={cn(
                      "ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full",
                      badge.variant === "destructive" ? "bg-red-500/10 text-red-500" : "bg-primary/10 text-primary"
@@ -209,7 +202,7 @@ export function Sidebar({ isMobileOpen, onMobileClose }: { isMobileOpen?: boolea
           );
         })}
         </motion.ul>
-      </nav>
+      </div>
 
     </motion.aside>
     </>

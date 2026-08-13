@@ -79,7 +79,7 @@ export default function ActivityPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+      <div data-tour="audit-log" className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
         <AuditEventDrawer isOpen={!!activeEvent} onClose={() => setActiveEvent(null)} event={activeEvent} />
 
         {/* Header */}

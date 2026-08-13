@@ -37,7 +37,7 @@ export default function HelpDeskPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+      <div data-tour="helpdesk-tickets" className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
         {/* Modals & Slide-over Drawer */}
         <TicketDetailsDrawer
           isOpen={!!selectedTicketId}

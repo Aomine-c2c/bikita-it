@@ -8,7 +8,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { apiFetch, getApiBase } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 
-const PUBLIC_PATHS = ["/login", "/setup", "/portal"];
+const PUBLIC_PATHS = ["/welcome", "/login", "/setup", "/portal"];
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -34,6 +34,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       const token = getToken();
 
       if (!token) {
+        const hasSeenIntro = typeof window !== "undefined" && sessionStorage.getItem("hasSeenIntro") === "true";
+        if (!hasSeenIntro) {
+          router.replace("/welcome");
+          return;
+        }
+
         try {
           const data = await apiFetch<{ isSetupComplete: boolean }>('/setup/check');
           if (!data?.isSetupComplete) {

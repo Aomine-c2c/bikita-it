@@ -42,6 +42,7 @@ import { useQuery } from "@tanstack/react-query";
 export function AssetTable({ activeCategory }: { activeCategory: string }) {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [search, setSearch] = useState("");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<number | string | null>(null);
 
   // Modal states
@@ -85,19 +86,22 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
 
   return (
     <>
-      <div className="bg-card/40 backdrop-blur-xl rounded-2xl border border-border/50 shadow-sm overflow-hidden flex flex-col h-full relative z-10">
+      <div data-tour="assets-table" className="bg-card/40 backdrop-blur-xl rounded-2xl border border-border/50 shadow-sm overflow-hidden flex flex-col h-full relative z-10">
         {/* Top Action Bar */}
-        <div className="p-4 border-b border-border/50 bg-background/60 backdrop-blur-md flex items-center justify-between gap-4 sticky top-0 left-0 z-20">
-          <div className="flex items-center gap-3">
+        <div className="p-4 border-b border-border/50 bg-background/60 backdrop-blur-md flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sticky top-0 left-0 z-20">
+          <div className="flex flex-wrap items-center gap-3">
             <input
               type="text"
               placeholder="Search assets..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-72 px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 shadow-sm transition-all"
+              className="w-full sm:w-72 px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 shadow-sm transition-all"
             />
-            <button className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs font-semibold text-foreground hover:bg-accent/50 shadow-sm transition-all">
-              Advanced Filters
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs font-semibold text-foreground hover:bg-accent/50 shadow-sm transition-all cursor-pointer"
+            >
+              {showAdvancedFilters ? "Hide Filters" : "Advanced Filters"}
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -114,7 +118,21 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
               <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
             </button>
             <div className="w-px h-5 bg-border/50 mx-1" />
-            <button className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs font-semibold text-foreground hover:bg-accent/50 shadow-sm transition-all">Import</button>
+            <button
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.csv';
+                input.onchange = (e: any) => {
+                  const file = e.target.files?.[0];
+                  if (file) alert(`Importing ${file.name}...`);
+                };
+                input.click();
+              }}
+              className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs font-semibold text-foreground hover:bg-accent/50 shadow-sm transition-all cursor-pointer"
+            >
+              Import
+            </button>
             <button onClick={() => exportToCSV('assets.csv', assets)} className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs font-semibold text-foreground hover:bg-accent/50 shadow-sm transition-all">Export</button>
           </div>
         </div>
@@ -246,8 +264,8 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
             </span>
             {assets.length > 0 && (
               <div className="flex items-center gap-1.5">
-                {["1","2","3","...","12"].map((p) => (
-                  <button key={p} className={cn("w-7 h-7 rounded-md text-[11px] font-bold transition-all", p === "1" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-accent border border-transparent hover:border-border/50")}>{p}</button>
+                {["1"].map((p) => (
+                  <button key={p} onClick={() => {}} className={cn("w-7 h-7 rounded-md text-[11px] font-bold transition-all bg-primary text-primary-foreground shadow-sm cursor-pointer")}>{p}</button>
                 ))}
               </div>
             )}

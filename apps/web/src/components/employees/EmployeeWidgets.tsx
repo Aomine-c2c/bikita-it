@@ -29,10 +29,10 @@ export function EmployeeEquipment() {
               <p className="text-xs text-muted-foreground mt-0.5">{asset.id} • Assigned {asset.date}</p>
             </div>
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-slate-200 transition-colors border border-transparent hover:border-border/60 shadow-sm">
+              <button onClick={() => alert(`Quick Return triggered for ${asset.name}`)} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-slate-200 transition-colors border border-transparent hover:border-border/60 shadow-sm cursor-pointer">
                 <Undo2 className="w-3 h-3" /> Quick Return
               </button>
-              <button  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-slate-200 transition-colors border border-transparent hover:border-border/60 shadow-sm">
+              <button onClick={() => alert(`Transfer dialog triggered for ${asset.name}`)} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-slate-200 transition-colors border border-transparent hover:border-border/60 shadow-sm cursor-pointer">
                 <ArrowRightLeft className="w-3 h-3" /> Transfer
               </button>
             </div>
@@ -74,7 +74,7 @@ export function EmployeeSoftware() {
         ))}
       </div>
       <div className="p-3 border-t border-border/40 bg-[#FAFAFA] text-center">
-         <button  className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline flex items-center justify-center gap-1 w-full">
+         <button onClick={() => window.location.href = '/software'} className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline flex items-center justify-center gap-1 w-full cursor-pointer">
            View All Provisioning <ArrowUpRight className="w-3 h-3" />
          </button>
       </div>

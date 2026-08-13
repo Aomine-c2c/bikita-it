@@ -15,9 +15,6 @@ interface EmployeeProfileDrawerProps {
 export function EmployeeProfileDrawer({ isOpen, onClose, employee }: EmployeeProfileDrawerProps) {
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
-
-  if (!isOpen) return null;
-
   const [assignedHardware, setAssignedHardware] = useState<any[]>([]);
 
   React.useEffect(() => {
@@ -25,7 +22,9 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee }: EmployeePro
       const fetchHardware = async () => {
         try {
           const assets = await apiFetch('/assets') as any[];
-          const employeeAssets = assets.filter((a: any) => String(a.assigned_to?.id) === String(employee.id));
+          const employeeAssets = assets.filter((a: any) => 
+            String(a.assigned_to?.id || a.assignedUser?.id || a.assigneeId) === String(employee.id)
+          );
           setAssignedHardware(employeeAssets.map((a: any) => ({
             id: a.id,
             name: a.name,
@@ -41,6 +40,8 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee }: EmployeePro
       fetchHardware();
     }
   }, [isOpen, employee]);
+
+  if (!isOpen) return null;
 
   return (
     <>

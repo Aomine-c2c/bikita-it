@@ -44,7 +44,7 @@ export function AssetFilters() {
           </select>
         </div>
         
-        <button  aria-label="More filters" title="More filters" className="flex items-center gap-2 p-2 rounded-lg border border-border/60 bg-white shadow-sm hover:bg-slate-50 text-muted-foreground hover:text-foreground transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20">
+        <button onClick={() => alert("More filters panel toggled.")} aria-label="More filters" title="More filters" className="flex items-center gap-2 p-2 rounded-lg border border-border/60 bg-white shadow-sm hover:bg-slate-50 text-muted-foreground hover:text-foreground transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 cursor-pointer">
           <SlidersHorizontal className="w-4 h-4" />
         </button>
       </div>

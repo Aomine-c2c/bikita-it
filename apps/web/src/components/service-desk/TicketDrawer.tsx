@@ -62,11 +62,13 @@ function SLATimer({ hoursLeft }: { hoursLeft: number }) {
 }
 
 export function TicketDrawer({ isOpen, onClose, ticketId }: TicketDrawerProps) {
-  const [_comment, _setComment] = useState("");
-  if (!isOpen) return null;
+  const [commentText, setCommentText] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   // Simulated — in real app would be fetched by ticketId
   const SLA_HOURS = ticketId === "TKT-1003" ? 0 : ticketId === "TKT-1001" ? 2 : 8;
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -206,13 +208,40 @@ export function TicketDrawer({ isOpen, onClose, ticketId }: TicketDrawerProps) {
           <div className="p-4 border-t border-border/40 bg-white">
             <div className="relative">
               <textarea 
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Type a reply or internal note..." 
                 className="w-full bg-slate-50 border border-border/60 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary resize-none h-24"
               />
               <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                <button  className="p-2 text-muted-foreground hover:text-foreground transition-colors"><Paperclip className="w-4 h-4" /></button>
-                <button  className="flex items-center gap-2 bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
-                  <Send className="w-3 h-3" /> Send
+                <button
+                  type="button"
+                  onClick={() => alert("Attachments can be dropped directly into comment box.")}
+                  className="p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  title="Attach file"
+                >
+                  <Paperclip className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingComment || !commentText.trim()}
+                  onClick={async () => {
+                    if (!commentText.trim() || !ticketId) return;
+                    setIsSubmittingComment(true);
+                    try {
+                      const { ticketsApi } = await import("@/lib/api");
+                      await ticketsApi.addComment(ticketId, commentText.trim(), false);
+                      setCommentText("");
+                      alert("Comment added successfully!");
+                    } catch (err: any) {
+                      alert(err.message || "Failed to post comment");
+                    } finally {
+                      setIsSubmittingComment(false);
+                    }
+                  }}
+                  className="flex items-center gap-2 bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-3 h-3" /> {isSubmittingComment ? "Sending..." : "Send"}
                 </button>
               </div>
             </div>

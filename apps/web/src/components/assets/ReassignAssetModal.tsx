@@ -85,7 +85,7 @@ export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, curren
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]"
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] mx-2 sm:mx-auto"
           >
             <div className="p-6 border-b border-border/40 bg-[#FAFAFA] flex items-center justify-between">
               <div>
@@ -143,29 +143,32 @@ export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, curren
                       </div>
                     </label>
 
-                    {filteredEmployees.map(emp => (
-                      <label
-                        key={emp.id}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                          selectedId === emp.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border/40 hover:bg-slate-50"
-                        }`}
-                      >
-                        <input 
-                          type="radio" 
-                          name="assignee" 
-                          className="sr-only" 
-                          checked={selectedId === emp.id}
-                          onChange={() => setSelectedId(emp.id)}
-                        />
-                        <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
-                          {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-bold text-foreground">{emp.name}</p>
-                          <p className="text-xs text-muted-foreground">{emp.department || "No department"} • {emp.role || "No role"}</p>
-                        </div>
-                      </label>
-                    ))}
+                    {filteredEmployees.map(emp => {
+                      const isSelected = selectedId !== null && String(selectedId) === String(emp.id);
+                      return (
+                        <label
+                          key={emp.id}
+                          className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                            isSelected ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border/40 hover:bg-slate-50"
+                          }`}
+                        >
+                          <input 
+                            type="radio" 
+                            name="assignee" 
+                            className="sr-only" 
+                            checked={isSelected}
+                            onChange={() => setSelectedId(String(emp.id))}
+                          />
+                          <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
+                            {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-foreground">{emp.name}</p>
+                            <p className="text-xs text-muted-foreground">{emp.department || "No department"} • {emp.role || "No role"}</p>
+                          </div>
+                        </label>
+                      );
+                    })}
                   </div>
                 )}
               </div>

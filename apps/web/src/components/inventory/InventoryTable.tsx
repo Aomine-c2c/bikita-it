@@ -9,6 +9,7 @@ import { cn, exportToCSV } from "@/lib/utils";
 import { TableSkeleton } from "@/components/skeletons/TableSkeleton";
 import { InventoryFormModal } from "./InventoryFormModal";
 import { LifecycleTransitionModal } from "./LifecycleTransitionModal";
+import { BarcodeQRModal } from "./BarcodeQRModal";
 
 const getQuantityColor = (quantity: number, reorderLevel: number) => {
   if (quantity === 0) return "bg-destructive/10 text-destructive border-destructive/20";
@@ -23,6 +24,7 @@ export function InventoryTable() {
   const [search, setSearch] = useState("");
   const [editItem, setEditItem] = useState<any>(null);
   const [actionItem, setActionItem] = useState<any>(null);
+  const [qrModalItem, setQrModalItem] = useState<any>(null);
 
   const { data: inventory = [], isLoading: loading } = useQuery({
     queryKey: ['inventory'],
@@ -64,15 +66,15 @@ export function InventoryTable() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden flex flex-col mt-6">
-      <div className="p-4 border-b border-border/40 bg-[#FAFAFA] flex items-center justify-between gap-4 sticky left-0">
-        <div className="flex items-center gap-3">
+    <div data-tour="inventory-stock" className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden flex flex-col mt-6">
+      <div className="p-4 border-b border-border/40 bg-[#FAFAFA] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sticky left-0">
+        <div className="flex flex-wrap items-center gap-3">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search inventory"
-              className="w-72 px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm"
+              className="w-full sm:w-72 px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm"
             />
             <select aria-label="Filter by warehouse" className="text-xs bg-white border border-border/60 rounded-md px-2 py-1.5 outline-none focus-visible:ring-2 focus-visible:ring-primary/20 shadow-sm">
               <option>All Warehouses</option>
@@ -147,10 +149,10 @@ export function InventoryTable() {
                 <td className="px-5 py-3 text-right text-xs font-semibold text-foreground">{item.cost}</td>
                 <td className="px-5 py-3">
                   <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <button  aria-label="Print QR Code" title="Print QR Code" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded">
+                    <button onClick={() => setQrModalItem(item)} aria-label="Print QR Code" title="Print QR Code" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded cursor-pointer">
                       <QrCode className="w-4 h-4 hover:text-foreground transition-colors" />
                     </button>
-                    <button  aria-label="Print Barcode" title="Print Barcode" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded">
+                    <button onClick={() => setQrModalItem(item)} aria-label="Print Barcode" title="Print Barcode" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded cursor-pointer">
                       <Barcode className="w-4 h-4 hover:text-foreground transition-colors" />
                     </button>
                   </div>
@@ -200,6 +202,19 @@ export function InventoryTable() {
             setActionItem(null);
           }}
           item={actionItem}
+        />
+      )}
+
+      {qrModalItem && (
+        <BarcodeQRModal
+          isOpen={!!qrModalItem}
+          onClose={() => setQrModalItem(null)}
+          item={{
+            sku: qrModalItem.sku || qrModalItem.item || `SKU-${qrModalItem.id}`,
+            name: qrModalItem.name || qrModalItem.item || "Inventory Item",
+            category: qrModalItem.category || "Inventory",
+            warehouse: qrModalItem.warehouse || "Main HQ",
+          }}
         />
       )}
     </div>

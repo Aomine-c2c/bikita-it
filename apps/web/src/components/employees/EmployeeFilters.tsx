@@ -21,7 +21,7 @@ export function EmployeeFilters({
   department, setDepartment, roleType, setRoleType, status, setStatus
 }: EmployeeFiltersProps) {
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+    <div data-tour="employee-list" className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
       <div className="relative w-full sm:w-96">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input
@@ -58,7 +58,7 @@ export function EmployeeFilters({
           </select>
         </div>
         
-        <button  className="flex items-center gap-2 p-2.5 rounded-xl border border-border/60 bg-white shadow-sm hover:bg-slate-50 text-muted-foreground hover:text-foreground transition-colors shrink-0">
+        <button onClick={() => alert("Advanced filters enabled.")} className="flex items-center gap-2 p-2.5 rounded-xl border border-border/60 bg-white shadow-sm hover:bg-slate-50 text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer" title="More Filters">
           <SlidersHorizontal className="w-4 h-4" />
         </button>
 

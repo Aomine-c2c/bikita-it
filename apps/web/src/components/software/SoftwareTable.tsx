@@ -14,7 +14,11 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-export function SoftwareTable() {
+interface SoftwareTableProps {
+  onEdit?: (item: SoftwareLicense) => void;
+}
+
+export function SoftwareTable({ onEdit }: SoftwareTableProps) {
   const [software, setSoftware] = useState<SoftwareLicense[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState("");
@@ -144,7 +148,7 @@ export function SoftwareTable() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-slate-200 transition-colors opacity-0 group-hover:opacity-100">
+                    <button onClick={() => onEdit?.(item)} className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-slate-200 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer">
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
                   </td>

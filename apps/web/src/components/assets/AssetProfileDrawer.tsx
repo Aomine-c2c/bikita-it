@@ -28,8 +28,6 @@ export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawe
   const [isRetireModalOpen, setIsRetireModalOpen] = useState(false);
   const [isRepairModalOpen, setIsRepairModalOpen] = useState(false);
 
-  if (!isOpen) return null;
-
   const tabs = [
     { id: "overview", label: "Overview", icon: Tag },
     { id: "history", label: "History", icon: Clock },
@@ -37,6 +35,8 @@ export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawe
     { id: "documents", label: "Documents", icon: FileText },
     { id: "relations", label: "Relations", icon: Network },
   ];
+
+  if (!isOpen) return null;
 
   return (
     <>

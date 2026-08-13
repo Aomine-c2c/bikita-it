@@ -157,6 +157,8 @@ export interface Asset {
 }
 
 function normalizeAsset(raw: any): Asset {
+  const assignee = raw.assigned_to ?? raw.assignedUser ?? raw.assignee ?? null;
+  const loc = raw.location ?? null;
   return {
     ...raw,
     manufacturer: raw.manufacturer ?? raw.make ?? null,
@@ -164,9 +166,11 @@ function normalizeAsset(raw: any): Asset {
     serialNumber: raw.serialNumber ?? raw.serial_number ?? null,
     ipAddress: raw.ipAddress ?? raw.ip_address ?? null,
     macAddress: raw.macAddress ?? raw.mac_address ?? null,
-    assignedUser: raw.assignedUser ?? raw.assignee ?? null,
-    purchaseDate: raw.purchaseDate ?? raw.installationDate ?? null,
-    warrantyExpiry: raw.warrantyExpiry ?? null,
+    assigneeId: typeof assignee === 'object' && assignee !== null ? String(assignee.id) : assignee ? String(assignee) : null,
+    assignedUser: typeof assignee === 'object' && assignee !== null ? assignee : assignee ? { id: String(assignee), name: `Employee #${assignee}` } : null,
+    location: typeof loc === 'object' && loc !== null ? loc : loc ? { id: String(loc), name: `Location #${loc}`, type: "Location" } : null,
+    purchaseDate: raw.purchaseDate ?? raw.purchase_date ?? raw.installationDate ?? null,
+    warrantyExpiry: raw.warrantyExpiry ?? raw.warranty_expiry ?? null,
   };
 }
 
@@ -301,19 +305,19 @@ export interface NetworkDevice {
 
 export const networkApi = {
   getAll: async () => {
-    const result = await apiFetch<Paginated<NetworkDevice> | NetworkDevice[]>('/devices');
+    const result = await apiFetch<Paginated<NetworkDevice> | NetworkDevice[]>('/network');
     return Array.isArray(result) ? result : result.data;
   },
   getStaged: async () => apiFetch<NetworkDevice[]>('/devices/discovery/staged').catch(() => []),
   triggerScan: (devices: Partial<NetworkDevice>[]) => apiFetch<{ message: string }>('/devices/discovery/scan', { method: 'POST', body: JSON.stringify({ devices }) }),
   promoteDevice: (id: string) => apiFetch<NetworkDevice>(`/devices/discovery/promote/${id}`, { method: 'POST' }).catch(() => ({ id, connectionStatus: 'ACTIVE' } as unknown as NetworkDevice)),
-  getOne: (id: string) => apiFetch<NetworkDevice>(`/devices/${id}`),
+  getOne: (id: string) => apiFetch<NetworkDevice>(`/network/${id}`),
   create: (data: Partial<NetworkDevice>) =>
-    apiFetch<NetworkDevice>('/devices', { method: 'POST', body: JSON.stringify(data) }),
+    apiFetch<NetworkDevice>('/network', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<NetworkDevice>) =>
-    apiFetch<NetworkDevice>(`/devices/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    apiFetch<NetworkDevice>(`/network/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   remove: (id: string) =>
-    apiFetch<void>(`/devices/${id}`, { method: 'DELETE' }),
+    apiFetch<void>(`/network/${id}`, { method: 'DELETE' }),
 };
 
 // ---------- Dashboard API ----------
@@ -539,6 +543,7 @@ export interface AccessoryItem {
   category: string;
   stock: number;
   reorderLevel: number;
+  unitCost?: number;
   location: string;
   notes?: string;
   createdAt: string;
@@ -570,6 +575,7 @@ export interface SoftwareLicense {
   vendor: string;
   totalSeats: number;
   assignedSeats: number;
+  costPerSeat?: number;
   expiryDate: string;
   status: string;
   notes?: string;

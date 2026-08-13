@@ -132,9 +132,9 @@ export function AssetFormModal({ isOpen, onClose, onSuccess, defaultLocationId, 
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col"
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col mx-2 sm:mx-auto"
           >
-            <div className="p-6 border-b border-border/40 bg-[#FAFAFA] flex items-center justify-between">
+            <div className="p-5 sm:p-6 border-b border-border/40 bg-[#FAFAFA] flex items-center justify-between shrink-0">
               <div>
                 <h2 className="text-xl font-bold text-foreground">{assetToEdit ? "Edit Asset" : "Add New Asset"}</h2>
                 <p className="text-sm text-muted-foreground mt-1">{assetToEdit ? "Update asset details." : "Register hardware into the system."}</p>
@@ -144,14 +144,14 @@ export function AssetFormModal({ isOpen, onClose, onSuccess, defaultLocationId, 
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 text-red-700 rounded-md flex items-center gap-2 text-sm" role="alert" aria-live="assertive">
                   <AlertCircle className="w-4 h-4" /> {error}
                 </div>
               )}
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="asset-tag" className="block text-sm font-semibold text-foreground mb-1.5">Asset Tag *</label>
                   <input id="asset-tag" required type="text" value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" placeholder="e.g. LPT-1024" autoFocus />
@@ -173,7 +173,7 @@ export function AssetFormModal({ isOpen, onClose, onSuccess, defaultLocationId, 
                 <input id="asset-name" type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" placeholder="e.g. MacBook Pro M3" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="asset-make" className="block text-sm font-semibold text-foreground mb-1.5">Make *</label>
                   <input id="asset-make" required list="brands-list" type="text" value={formData.make} onChange={e => setFormData({...formData, make: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" placeholder="e.g. Apple" />
@@ -190,7 +190,7 @@ export function AssetFormModal({ isOpen, onClose, onSuccess, defaultLocationId, 
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="asset-sn" className="block text-sm font-semibold text-foreground mb-1.5">Serial Number</label>
                   <input id="asset-sn" type="text" value={formData.serialNumber} onChange={e => setFormData({...formData, serialNumber: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" />
@@ -206,12 +206,12 @@ export function AssetFormModal({ isOpen, onClose, onSuccess, defaultLocationId, 
                 <input id="asset-ip" type="text" value={formData.ipAddress} onChange={e => setFormData({...formData, ipAddress: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" placeholder="e.g. 192.168.1.100" />
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-border/40 mt-6">
-                <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded-md">Cancel</button>
+              <div className="sticky bottom-0 bg-white pt-4 pb-1 flex justify-end gap-3 border-t border-border/40 shrink-0">
+                <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 rounded-md cursor-pointer">Cancel</button>
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                  className="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 cursor-pointer"
                 >
                   {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                   {assetToEdit ? 'Save Changes' : 'Create Asset'}

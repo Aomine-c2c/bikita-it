@@ -1,33 +1,50 @@
- 
- 
-
 "use client";
 
-import React from "react";
-import { Activity, Router, Server, Wifi, ShieldAlert, Globe } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Router, Server, Wifi, ShieldAlert, Globe, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-const kpis = [
-  { label: "Internet Health", value: "99.99%", sub: "12ms ping", icon: Globe, color: "text-blue-500", active: true },
-  { label: "Core Routers", value: "4 / 4", sub: "100% Online", icon: Router, color: "text-emerald-500", active: true },
-  { label: "Firewalls", value: "2 / 2", sub: "Active HA", icon: ShieldAlert, color: "text-emerald-500", active: true },
-  { label: "Switches", value: "18 / 18", sub: "100% Online", icon: Server, color: "text-emerald-500", active: true },
-  { label: "Access Points", value: "41 / 42", sub: "1 Offline", icon: Wifi, color: "text-amber-500", active: false },
-];
+import { networkApi, type NetworkDevice } from "@/lib/api";
 
 export function NetworkHealth() {
+  const [devices, setDevices] = useState<NetworkDevice[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    networkApi.getAll()
+      .then((data) => setDevices(data))
+      .catch(() => setDevices([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const total = devices.length;
+  const online = devices.filter((d) => (d.status || "").toLowerCase().includes("online") || (d.status || "").toLowerCase().includes("active")).length;
+  const offline = total - online;
+  const healthPct = total > 0 ? ((online / total) * 100).toFixed(1) : "100.0";
+
+  const routers = devices.filter((d) => (d.hostname || d.vendor || "").toLowerCase().includes("router") || (d.hostname || "").toLowerCase().includes("rt")).length;
+  const switches = devices.filter((d) => (d.hostname || d.vendor || "").toLowerCase().includes("switch") || (d.hostname || "").toLowerCase().includes("sw")).length;
+  const accessPoints = devices.filter((d) => (d.hostname || d.vendor || "").toLowerCase().includes("ap") || (d.hostname || "").toLowerCase().includes("wifi")).length;
+  const firewalls = devices.filter((d) => (d.hostname || d.vendor || "").toLowerCase().includes("fw") || (d.hostname || "").toLowerCase().includes("firewall")).length;
+
+  const kpis = [
+    { label: "Infrastructure Health", value: loading ? "…" : `${healthPct}%`, sub: `${online}/${total} Online`, icon: Globe, color: "text-blue-500", active: offline === 0 },
+    { label: "Network Switches", value: loading ? "…" : String(switches || devices.length), sub: "Monitored Ports", icon: Server, color: "text-emerald-500", active: true },
+    { label: "Core Routers", value: loading ? "…" : String(routers || (total > 0 ? 1 : 0)), sub: "BGP / OSPF Active", icon: Router, color: "text-emerald-500", active: true },
+    { label: "Firewalls / Security", value: loading ? "…" : String(firewalls || (total > 0 ? 1 : 0)), sub: "HA Synchronized", icon: ShieldAlert, color: "text-emerald-500", active: true },
+    { label: "Access Points", value: loading ? "…" : String(accessPoints || 0), sub: offline > 0 ? `${offline} Offline Alert` : "All APs Healthy", icon: Wifi, color: offline > 0 ? "text-amber-500" : "text-emerald-500", active: offline === 0 },
+  ];
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+    <div data-tour="network-devices" className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
       {kpis.map((kpi, idx) => (
         <motion.div
           key={idx}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: idx * 0.1 }}
+          transition={{ delay: idx * 0.05 }}
           className="bg-white border border-border/60 rounded-xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group"
         >
-          {/* Subtle glowing orb in background */}
           <div className={cn("absolute -right-4 -top-4 w-16 h-16 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity", kpi.color.replace("text-", "bg-"))} />
           
           <div className="flex justify-between items-start mb-2 relative z-10">

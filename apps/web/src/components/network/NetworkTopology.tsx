@@ -208,7 +208,7 @@ export function NetworkTopology() {
             </div>
             {/* Pass real device data into SwitchDetails */}
             <div className="flex-1 overflow-y-auto">
-              <SwitchDetails />
+              <SwitchDetails deviceId={selectedDevice.raw?.id} />
             </div>
           </motion.div>
         )}

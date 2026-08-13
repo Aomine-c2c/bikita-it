@@ -7,7 +7,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ChevronRight, Mail, Phone, Building, UserCircle, DownloadCloud } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, exportToCSV } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 
 interface EmployeeHeroProps {
@@ -73,7 +73,7 @@ export function EmployeeHero({ employeeId }: EmployeeHeroProps) {
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="text-foreground">{emp.name}</span>
         </div>
-        <button  className="flex items-center justify-center p-2 bg-slate-50 border border-border/60 rounded-lg text-foreground hover:bg-slate-100 transition-colors shadow-sm">
+        <button onClick={() => exportToCSV(`${emp.name.replace(/\s+/g, '_')}_profile.csv`, [emp])} className="flex items-center justify-center p-2 bg-slate-50 border border-border/60 rounded-lg text-foreground hover:bg-slate-100 transition-colors shadow-sm cursor-pointer" title="Export Profile">
           <DownloadCloud className="w-4 h-4" />
         </button>
       </div>

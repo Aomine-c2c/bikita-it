@@ -28,7 +28,7 @@ export function RecentActivityTable() {
             />
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">🔍</span>
           </div>
-          <button  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs font-semibold text-foreground hover:bg-slate-50 transition-colors shadow-sm">
+          <button onClick={() => window.location.href = '/assets'} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs font-semibold text-foreground hover:bg-slate-50 transition-colors shadow-sm cursor-pointer">
             <Plus className="w-3.5 h-3.5" />
             Add Asset
           </button>
@@ -82,7 +82,7 @@ export function RecentActivityTable() {
                 <td className="px-5 py-4 text-sm text-foreground">{t.department}</td>
                 <td className="px-5 py-4 text-sm font-semibold text-foreground text-right">{t.value}</td>
                 <td className="px-5 py-4 text-center">
-                  <button  className="p-1 rounded-md text-muted-foreground hover:bg-slate-100 transition-colors border border-transparent hover:border-border/50">
+                  <button onClick={() => window.location.href = '/assets'} className="p-1 rounded-md text-muted-foreground hover:bg-slate-100 transition-colors border border-transparent hover:border-border/50 cursor-pointer">
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
                 </td>

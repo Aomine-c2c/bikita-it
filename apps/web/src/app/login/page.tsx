@@ -98,11 +98,16 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 mt-2 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+            className="w-full py-3 px-4 mt-2 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
           >
             {loading ? 'Authenticating...' : 'Sign In'}
           </button>
         </form>
+        <div className="mt-4 text-center">
+          <a href="/welcome" className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+            ← View System Introduction
+          </a>
+        </div>
       </div>
     </main>
   );

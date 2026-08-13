@@ -1,0 +1,38 @@
+{
+  "general": {
+    "orgName": "Bikita Minerals",
+    "platformName": "Pulse IT Ops",
+    "defaultCurrency": "USD ($)",
+    "dateFormat": "YYYY-MM-DD",
+    "maintenanceMode": false
+  },
+  "security": {
+    "mfa": false,
+    "auditLog": true,
+    "sessionTimeout": true,
+    "passwordMinLength": 12,
+    "allowedIpRanges": "0.0.0.0/0"
+  },
+  "notifications": {
+    "emailAlerts": false,
+    "smsAlerts": false,
+    "smtpServer": "",
+    "alertEmailSender": ""
+  },
+  "database": {
+    "autoBackup": false,
+    "backupRetention": "30 days"
+  },
+  "taxonomies": {
+    "categories": [
+      "Laptops",
+      "Desktops",
+      "Servers",
+      "Monitors",
+      "Printers",
+      "Network Switches"
+    ],
+    "locations": []
+  },
+  "AUTH_ENABLED": true
+}
