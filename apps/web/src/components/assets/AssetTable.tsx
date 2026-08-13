@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -62,7 +61,7 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
     queryKey: ['assets'],
     queryFn: async () => {
       const data = await assetApi.getAll();
-      return Array.isArray(data) ? data : (data as unknown as { data: Asset[] })?.data ?? [];
+      return Array.isArray(data) ? data : (data as any as { data: Asset[] })?.data ?? [];
     }
   });
 
@@ -71,14 +70,14 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
     
     // 1. Filter by active category
     if (activeCategory !== "All Assets") {
-      filteredAssets = filteredAssets.filter((a: unknown) => (a.category || 'Uncategorized') === activeCategory);
+      filteredAssets = filteredAssets.filter((a: any) => (a.category || 'Uncategorized') === activeCategory);
     }
 
     // 2. Filter by search text
     const q = search.toLowerCase();
     if (!q) return filteredAssets;
     
-    return filteredAssets.filter((a: unknown) =>
+    return filteredAssets.filter((a: any) =>
       [a.id, a.name, a.manufacturer, a.model, a.serialNumber, a.assignedUser?.name, a.location?.name]
         .some((v) => v && typeof v === 'string' && v.toLowerCase().includes(q))
     );
@@ -86,18 +85,18 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
 
   return (
     <>
-      <div className="bg-white rounded-[14px] border border-border/60 shadow-sm overflow-hidden flex flex-col h-full">
+      <div className="bg-card/40 backdrop-blur-xl rounded-2xl border border-border/50 shadow-sm overflow-hidden flex flex-col h-full relative z-10">
         {/* Top Action Bar */}
-        <div className="p-4 border-b border-border/40 bg-[#FAFAFA] flex items-center justify-between gap-4 sticky left-0">
+        <div className="p-4 border-b border-border/50 bg-background/60 backdrop-blur-md flex items-center justify-between gap-4 sticky top-0 left-0 z-20">
           <div className="flex items-center gap-3">
             <input
               type="text"
               placeholder="Search assets..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-72 px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs outline-none focus:border-primary shadow-sm"
+              className="w-72 px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 shadow-sm transition-all"
             />
-            <button  className="px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs font-semibold text-foreground hover:bg-slate-50 shadow-sm">
+            <button className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs font-semibold text-foreground hover:bg-accent/50 shadow-sm transition-all">
               Advanced Filters
             </button>
           </div>
@@ -114,9 +113,9 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
             >
               <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
             </button>
-            <div className="w-px h-5 bg-border mx-1" />
-            <button  className="px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs font-semibold text-foreground hover:bg-slate-50 shadow-sm">Import</button>
-            <button onClick={() => exportToCSV('assets.csv', assets)} className="px-3 py-1.5 bg-white border border-border/60 rounded-md text-xs font-semibold text-foreground hover:bg-slate-50 shadow-sm">Export</button>
+            <div className="w-px h-5 bg-border/50 mx-1" />
+            <button className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs font-semibold text-foreground hover:bg-accent/50 shadow-sm transition-all">Import</button>
+            <button onClick={() => exportToCSV('assets.csv', assets)} className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-md text-xs font-semibold text-foreground hover:bg-accent/50 shadow-sm transition-all">Export</button>
           </div>
         </div>
 
@@ -138,26 +137,26 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
 
         {/* Table */}
         {!loading && (
-          <div className="overflow-x-auto flex-1">
+          <div className="overflow-x-auto flex-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-[1600px]">
               <thead>
-                <tr className="border-b border-border/40 bg-[#FAFAFA]">
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky left-0 bg-[#FAFAFA] z-10 w-10 border-r border-border/20">
-                    <input type="checkbox" className="rounded border-muted-foreground/30" />
+                <tr className="border-b border-border/50 bg-background/80 backdrop-blur-md">
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky left-0 bg-background/90 backdrop-blur-md z-30 w-10 border-r border-border/30 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]">
+                    <input type="checkbox" className="rounded border-border/50 bg-background/50 accent-primary" />
                   </th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky left-10 bg-[#FAFAFA] z-10 border-r border-border/20">Asset ID</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Asset Name</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Category</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Manufacturer</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Model</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Serial Number</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Asset Tag</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Assigned User</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Location</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Condition</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Purchase Date</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center sticky right-0 bg-[#FAFAFA] z-10 border-l border-border/20">Actions</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky left-10 bg-background/90 backdrop-blur-md z-30 border-r border-border/30 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]">Asset ID</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Asset Name</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Category</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Manufacturer</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Model</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Serial Number</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Asset Tag</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Assigned User</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Location</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Status</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Condition</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest sticky top-0 z-20">Purchase Date</th>
+                  <th className="px-5 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center sticky right-0 bg-background/90 backdrop-blur-md z-30 border-l border-border/30 shadow-[-1px_0_0_0_rgba(0,0,0,0.05)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -170,40 +169,40 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((asset: unknown) => (
+                  filtered.map((asset: any) => (
                     <tr
-                      key={asset.id}
+                      key={(asset as any).id}
                       onClick={() => setSelectedAsset(asset)}
-                      className="border-b border-border/20 hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                      className="border-b border-border/30 hover:bg-accent/40 transition-colors cursor-pointer group"
                     >
-                      <td className="px-5 py-3 sticky left-0 bg-white group-hover:bg-slate-50/80 z-10 border-r border-border/20 transition-colors" onClick={(e) => e.stopPropagation()}>
-                        <input type="checkbox" className="rounded border-muted-foreground/30" />
+                      <td className="px-5 py-3 sticky left-0 bg-background/80 backdrop-blur-md group-hover:bg-accent/80 z-10 border-r border-border/30 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] transition-colors" onClick={(e) => e.stopPropagation()}>
+                        <input type="checkbox" className="rounded border-border/50 bg-background/50 accent-primary" />
                       </td>
-                      <td className="px-5 py-3 text-xs font-semibold text-primary sticky left-10 bg-white group-hover:bg-slate-50/80 z-10 border-r border-border/20 transition-colors font-mono">{asset.id}</td>
-                      <td className="px-5 py-3 text-sm font-semibold text-foreground">{asset.name}</td>
-                      <td className="px-5 py-3 text-xs text-muted-foreground capitalize">{asset.category.toLowerCase().replace("_", " ")}</td>
-                      <td className="px-5 py-3 text-xs text-muted-foreground">{asset.manufacturer ?? "—"}</td>
-                      <td className="px-5 py-3 text-sm text-foreground">{asset.model ?? "—"}</td>
-                      <td className="px-5 py-3 text-xs font-mono text-muted-foreground">{asset.serialNumber ?? "—"}</td>
-                      <td className="px-5 py-3 text-xs font-mono text-muted-foreground">{asset.assetTag ?? "—"}</td>
+                      <td className="px-5 py-3 text-[11px] font-bold text-primary sticky left-10 bg-background/80 backdrop-blur-md group-hover:bg-accent/80 z-10 border-r border-border/30 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] transition-colors font-mono">{asset.id}</td>
+                      <td className="px-5 py-3 text-[13px] font-bold text-foreground group-hover:text-primary transition-colors">{asset.name}</td>
+                      <td className="px-5 py-3 text-[11px] font-medium text-muted-foreground capitalize tracking-wide">{asset.category.toLowerCase().replace("_", " ")}</td>
+                      <td className="px-5 py-3 text-[11px] font-medium text-muted-foreground">{asset.manufacturer ?? "—"}</td>
+                      <td className="px-5 py-3 text-xs font-semibold text-foreground">{asset.model ?? "—"}</td>
+                      <td className="px-5 py-3 text-[11px] font-mono font-medium text-muted-foreground bg-accent/30 rounded-md px-2 py-1 mx-5 my-2 inline-block border border-border/50">{asset.serialNumber ?? "—"}</td>
+                      <td className="px-5 py-3 text-[11px] font-mono font-medium text-muted-foreground">{asset.assetTag ?? "—"}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
-                          <div className={cn("w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm", asset.assignedUser ? "bg-primary" : "bg-slate-300")}>
+                          <div className={cn("w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm ring-1 ring-border/50", asset.assignedUser ? "bg-primary" : "bg-muted-foreground/30")}>
                             {initials(asset.assignedUser?.name)}
                           </div>
-                          <span className="text-sm font-medium text-foreground">{asset.assignedUser?.name ?? "Unassigned"}</span>
+                          <span className="text-xs font-semibold text-foreground">{asset.assignedUser?.name ?? "Unassigned"}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-xs text-muted-foreground">{asset.location?.name ?? "—"}</td>
+                      <td className="px-5 py-3 text-[11px] font-medium text-muted-foreground">{asset.location?.name ?? "—"}</td>
                       <td className="px-5 py-3"><StatusBadge status={asset.status} /></td>
-                      <td className="px-5 py-3 text-xs text-muted-foreground">{asset.condition ?? "—"}</td>
-                      <td className="px-5 py-3 text-xs text-muted-foreground">
-                        {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }) : "—"}
+                      <td className="px-5 py-3 text-[11px] font-medium text-muted-foreground">{asset.condition ?? "—"}</td>
+                      <td className="px-5 py-3 text-[11px] font-medium text-muted-foreground font-mono">
+                        {asset.purchaseDate ? new Date(asset.purchaseDate).toISOString().split('T')[0] : "—"}
                       </td>
-                      <td className="px-5 py-3 text-center sticky right-0 bg-white group-hover:bg-slate-50/80 z-10 border-l border-border/20 transition-colors" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-5 py-3 text-center sticky right-0 bg-background/80 backdrop-blur-md group-hover:bg-accent/80 z-10 border-l border-border/30 shadow-[-1px_0_0_0_rgba(0,0,0,0.05)] transition-colors" onClick={(e) => e.stopPropagation()}>
                         <div className="relative inline-block text-left">
                           <button 
-                            className="p-1 rounded-md text-muted-foreground hover:bg-slate-200 transition-colors"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border border-transparent hover:border-border/50"
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveDropdownId(activeDropdownId === asset.id ? null : asset.id);
@@ -213,15 +212,16 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
                           </button>
                           
                           {activeDropdownId === asset.id && (
-                            <div className="absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                            <div className="absolute right-0 mt-2 w-40 rounded-xl shadow-2xl bg-card/90 backdrop-blur-2xl ring-1 ring-border/50 z-50 overflow-hidden transform origin-top-right transition-all animate-in fade-in zoom-in-95 duration-100">
                               <div className="py-1" role="menu" aria-orientation="vertical">
-                                <button onClick={(e) => { e.stopPropagation(); setActiveDropdownId(null); setModalActionAsset(asset); setIsEditModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2" role="menuitem">
+                                <button onClick={(e) => { e.stopPropagation(); setActiveDropdownId(null); setModalActionAsset(asset); setIsEditModalOpen(true); }} className="w-full text-left px-4 py-2 text-xs font-semibold text-foreground hover:bg-accent/80 flex items-center gap-2 transition-colors" role="menuitem">
                                   Edit
                                 </button>
-                                <button onClick={(e) => { e.stopPropagation(); setActiveDropdownId(null); setModalActionAsset(asset); setIsReassignModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2" role="menuitem">
+                                <button onClick={(e) => { e.stopPropagation(); setActiveDropdownId(null); setModalActionAsset(asset); setIsReassignModalOpen(true); }} className="w-full text-left px-4 py-2 text-xs font-semibold text-foreground hover:bg-accent/80 flex items-center gap-2 transition-colors" role="menuitem">
                                   Reassign
                                 </button>
-                                <button onClick={(e) => { e.stopPropagation(); setActiveDropdownId(null); setModalActionAsset(asset); setIsRetireModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" role="menuitem">
+                                <div className="h-px w-full bg-border/50 my-1" />
+                                <button onClick={(e) => { e.stopPropagation(); setActiveDropdownId(null); setModalActionAsset(asset); setIsRetireModalOpen(true); }} className="w-full text-left px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-500/10 hover:text-red-600 flex items-center gap-2 transition-colors" role="menuitem">
                                   Retire
                                 </button>
                               </div>
@@ -239,15 +239,15 @@ export function AssetTable({ activeCategory }: { activeCategory: string }) {
 
         {/* Footer */}
         {!loading && (
-          <div className="px-5 py-3 border-t border-border/40 bg-[#FAFAFA] flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              Showing <span className="font-semibold text-foreground">{filtered.length}</span> of{" "}
-              <span className="font-semibold text-foreground">{assets.length}</span> assets
+          <div className="px-5 py-3 border-t border-border/50 bg-background/60 backdrop-blur-md flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">
+              Showing <span className="font-bold text-foreground">{filtered.length}</span> of{" "}
+              <span className="font-bold text-foreground">{assets.length}</span> assets
             </span>
             {assets.length > 0 && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 {["1","2","3","...","12"].map((p) => (
-                  <button  key={p} className={cn("w-7 h-7 rounded text-xs font-medium", p === "1" ? "bg-primary text-white" : "text-muted-foreground hover:bg-slate-100")}>{p}</button>
+                  <button key={p} className={cn("w-7 h-7 rounded-md text-[11px] font-bold transition-all", p === "1" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-accent border border-transparent hover:border-border/50")}>{p}</button>
                 ))}
               </div>
             )}

@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { _X, Loader2, Trash2 } from "lucide-react";
+import { X, Loader2, Trash2 } from "lucide-react";
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
@@ -25,7 +24,7 @@ export function DeleteConfirmDialog({ isOpen, onClose, onConfirm, title, message
     try {
       await onConfirm();
       onClose();
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err.message || "Failed to delete item");
     } finally {
       setIsDeleting(false);

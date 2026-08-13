@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
@@ -9,9 +8,14 @@ import { motion } from "framer-motion";
 import { ChevronRight, ShieldCheck, MapPin, Calendar, Edit2, Repeat, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import type { _Asset } from "@/lib/api";
+import type { Asset } from "@/lib/api";
 
-interface AssetHeroProps { asset: unknown }
+interface AssetHeroProps { 
+  asset: any;
+  onEdit?: () => void;
+  onReassign?: () => void;
+  onRetire?: () => void;
+}
 
 const STATUS_STYLES: Record<string, string> = {
   ACTIVE: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
@@ -31,11 +35,11 @@ function initials(name?: string | null): string {
   return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export function AssetHero({ asset }: AssetHeroProps) {
+export function AssetHero({ asset, onEdit, onReassign, onRetire }: AssetHeroProps) {
   const assignedUserName = asset.assignedUser?.name ?? "Unassigned";
   const locationName = asset.location?.name ?? "—";
   const warrantyDate = asset.warrantyExpiry
-    ? new Date(asset.warrantyExpiry).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })
+    ? new Date(asset.warrantyExpiry).toISOString().split('T')[0]
     : "N/A";
 
   return (
@@ -49,13 +53,13 @@ export function AssetHero({ asset }: AssetHeroProps) {
         </div>
         
         <div className="flex items-center gap-2">
-          <button  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-slate-100 transition-colors border border-transparent hover:border-border/60 shadow-sm">
+          <button onClick={onEdit} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-slate-100 transition-colors border border-transparent hover:border-border/60 shadow-sm">
             <Edit2 className="w-3.5 h-3.5" /> Edit Asset
           </button>
-          <button  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-slate-100 transition-colors border border-transparent hover:border-border/60 shadow-sm">
+          <button onClick={onReassign} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-slate-100 transition-colors border border-transparent hover:border-border/60 shadow-sm">
             <Repeat className="w-3.5 h-3.5" /> Reassign
           </button>
-          <button  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-destructive hover:bg-destructive/10 transition-colors border border-transparent hover:border-destructive/20 shadow-sm">
+          <button onClick={onRetire} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-destructive hover:bg-destructive/10 transition-colors border border-transparent hover:border-destructive/20 shadow-sm">
             <Archive className="w-3.5 h-3.5" /> Retire
           </button>
         </div>
@@ -120,7 +124,7 @@ export function AssetHero({ asset }: AssetHeroProps) {
           <div>
             <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5 flex items-center gap-1"><Calendar className="w-3 h-3"/> Purchase</p>
             <p className="text-sm font-semibold text-foreground">
-              {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }) : "N/A"}
+              {asset.purchaseDate ? new Date(asset.purchaseDate).toISOString().split('T')[0] : "N/A"}
             </p>
           </div>
         </motion.div>

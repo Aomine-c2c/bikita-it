@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -16,7 +15,7 @@ export function RepairKPIs() {
   const [repairs, setRepairs] = useState<Repair[]>([]);
   const [unavailable, setUnavailable] = useState(false);
   useEffect(() => { 
-    apiFetch<unknown>("/repairs")
+    apiFetch<any>("/repairs")
       .then((body) => setRepairs(body.data ?? body))
       .catch(() => setUnavailable(true)); 
   }, []);

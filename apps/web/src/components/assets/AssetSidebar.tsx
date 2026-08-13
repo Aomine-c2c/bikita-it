@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useMemo } from "react";
@@ -49,13 +48,13 @@ export function AssetSidebar({ activeCategory, onSelectCategory }: { activeCateg
     queryKey: ['assets'],
     queryFn: async () => {
       const data = await assetApi.getAll();
-      return Array.isArray(data) ? data : (data as unknown as { data: Asset[] })?.data ?? [];
+      return Array.isArray(data) ? data : (data as any as { data: Asset[] })?.data ?? [];
     }
   });
 
   const categories = useMemo(() => {
     const counts: Record<string, number> = {};
-    assets.forEach((asset: unknown) => {
+    assets.forEach((asset: any) => {
       const cat = asset.category || 'Uncategorized';
       counts[cat] = (counts[cat] || 0) + 1;
     });

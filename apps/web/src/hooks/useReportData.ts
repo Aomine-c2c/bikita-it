@@ -1,24 +1,8 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import {
-  assetApi,
-  inventoryApi,
-  repairsApi,
-  networkApi,
-  employeesApi,
-  locationsApi,
-  operationsApi,
-  type Asset,
-  type InventoryItem,
-  type Repair,
-  type NetworkDevice,
-  type Employee,
-  type Location,
-  type OperationHistoryRecord,
-} from "@/lib/api";
+import { assetApi, inventoryApi, repairsApi, networkApi, employeesApi, locationsApi, operationsApi, type Asset, type InventoryItem, type Repair, type NetworkDevice, type Employee, type Location, type OperationHistoryRecord,  } from "@/lib/api";
 
 export interface ReportFilters {
   department: string;
@@ -82,7 +66,7 @@ export function useReportData(filters: ReportFilters): ReportData {
       repairsApi.getAll().catch(() => [] as Repair[]),
       networkApi.getAll().catch(() => [] as NetworkDevice[]),
       employeesApi.getAll().catch(() => [] as Employee[]),
-      locationsApi.getAll().catch(() => [] as Location[]),
+      locationsApi.getAll().then(res => (Array.isArray(res) ? res : []) as Location[]).catch(() => [] as Location[]),
       operationsApi.getHistory().catch(() => [] as OperationHistoryRecord[]),
     ])
       .then(([assets, inventory, repairs, network, employees, locations, operations]) => {

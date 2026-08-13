@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { Ticket } from '@/modules/helpdesk/HelpDeskModule';
 import Link from 'next/link';
-import { ArrowLeft, User, Laptop, MapPin, MessageSquare, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, User, Laptop, MapPin, MessageSquare, Clock, AlertCircle, CheckCircle2, Calendar, EyeOff } from 'lucide-react';
 
 interface Props {
   overrideId?: string;
@@ -110,9 +110,26 @@ export default function TicketDetailsClient({ overrideId, onBack }: Props = {}) 
               <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" /> Activity &amp; Comments
               </h3>
-              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-700">
-                No comments yet.
-              </div>
+              {(!ticket.comments || ticket.comments.length === 0) ? (
+                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-700">
+                  No comments yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {ticket.comments.map(c => (
+                    <div key={c.id} className={`p-4 rounded-lg border ${c.isInternal ? 'bg-amber-50/50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-900/50' : 'bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700'}`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-900 dark:text-white">{c.authorName}</span>
+                          {c.isInternal && <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded"><EyeOff className="w-3 h-3" /> Internal Note</span>}
+                        </div>
+                        <span className="text-xs text-slate-500">{new Date(c.createdAt).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm text-slate-700 dark:text-slate-300">{c.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -131,9 +148,18 @@ export default function TicketDetailsClient({ overrideId, onBack }: Props = {}) 
                   <User className="w-5 h-5 text-indigo-400 mt-0.5" />
                   <div>
                     <div className="text-sm font-medium text-slate-900 dark:text-white">Assignee</div>
-                    <div className="text-sm text-slate-500">{ticket.assignedToId || 'Unassigned'}</div>
+                    <div className="text-sm text-slate-500">{ticket.assigneeName || ticket.assigneeId || 'Unassigned'}</div>
                   </div>
                 </div>
+                {ticket.dueDate && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="w-5 h-5 text-red-400 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-900 dark:text-white">SLA Deadline</div>
+                      <div className="text-sm font-semibold text-red-600">{new Date(ticket.dueDate).toLocaleString()}</div>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-start gap-3">
                   <Laptop className="w-5 h-5 text-slate-400 mt-0.5" />
                   <div>

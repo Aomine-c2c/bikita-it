@@ -2,9 +2,10 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import "../lib/i18n";
 
 /** Only retry on network-level failures (backend not yet started). */
-function isNetworkError(err: unknown): boolean {
+function isNetworkError(err: any): boolean {
   return err instanceof TypeError && (err as TypeError).message === "Failed to fetch";
 }
 

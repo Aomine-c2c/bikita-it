@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { apiFetch, _getApiBase } from "@/lib/api";
+import { apiFetch, getApiBase } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 
-const PUBLIC_PATHS = ["/login", "/setup"];
+const PUBLIC_PATHS = ["/login", "/setup", "/portal"];
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;

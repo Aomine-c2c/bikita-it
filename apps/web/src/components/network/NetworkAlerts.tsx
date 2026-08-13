@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
-import { AlertTriangle, _Info, BellRing, Download, WifiOff } from "lucide-react";
+import { AlertTriangle, Info, BellRing, Download, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const alerts = [

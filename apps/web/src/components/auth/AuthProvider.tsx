@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useRouter, _usePathname } from "next/navigation";
-import { _apiFetch } from "@/lib/api";
+import { useRouter, usePathname } from "next/navigation";
+import { apiFetch } from "@/lib/api";
 
 export type Role = "ADMIN" | "TECH" | "VIEWER" | "EMPLOYEE" | "divine_general";
 

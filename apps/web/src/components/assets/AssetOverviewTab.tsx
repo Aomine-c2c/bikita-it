@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
 import { AlertCircle, Barcode, Cpu, HardDrive, Laptop, MemoryStick, QrCode, Tag, Wifi } from "lucide-react";
-import type { _Asset } from "@/lib/api";
+import type { Asset } from "@/lib/api";
 
-function spec(asset: unknown, ...keys: string[]): string | null {
+function spec(asset: any, ...keys: string[]): string | null {
   for (const key of keys) {
     const value = asset.specs?.[key];
     if (value) return String(value);
@@ -16,7 +15,7 @@ function spec(asset: unknown, ...keys: string[]): string | null {
   return null;
 }
 
-export function AssetOverviewTab({ asset }: { asset: unknown }) {
+export function AssetOverviewTab({ asset }: { asset: any }) {
   if (!asset || !(asset as any).id) return null;
 
   const details = [
@@ -55,7 +54,7 @@ export function AssetOverviewTab({ asset }: { asset: unknown }) {
 
         <section className="bg-white border border-border/60 rounded-2xl shadow-sm overflow-hidden">
           <div className="p-4 border-b bg-[#FAFAFA]"><h3 className="text-xs font-bold flex items-center gap-2"><Tag className="w-4 h-4" /> Related repairs</h3></div>
-          {!asset.repairs?.length ? <p className="p-6 text-sm text-muted-foreground">No repairs are linked to this asset.</p> : <div className="divide-y">{asset.repairs.map((repair: unknown) => <div key={repair.id} className="p-4 flex gap-3"><AlertCircle className="w-4 h-4 mt-0.5 text-muted-foreground" /><div><p className="text-sm font-semibold">{repair.description}</p><p className="text-xs text-muted-foreground mt-1">{repair.status.replaceAll("_", " ")} · {new Date(repair.createdAt).toLocaleDateString()}</p></div></div>)}</div>}
+          {!asset.repairs?.length ? <p className="p-6 text-sm text-muted-foreground">No repairs are linked to this asset.</p> : <div className="divide-y">{asset.repairs.map((repair: any) => <div key={repair.id} className="p-4 flex gap-3"><AlertCircle className="w-4 h-4 mt-0.5 text-muted-foreground" /><div><p className="text-sm font-semibold">{repair.description}</p><p className="text-xs text-muted-foreground mt-1">{repair.status.replaceAll("_", " ")} · {new Date(repair.createdAt).toISOString().split('T')[0]}</p></div></div>)}</div>}
         </section>
       </div>
     </div>

@@ -1,112 +1,186 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
- 
- 
-// @ts-nocheck
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { RepairKPIs } from "@/components/repairs/RepairKPIs";
-import { RepairQueue } from "@/components/repairs/RepairQueue";
-import { RepairDetails } from "@/components/repairs/RepairDetails";
-import { motion, AnimatePresence } from "framer-motion";
+import { RepairKanbanBoard } from "@/components/repairs/RepairKanbanBoard";
+import { RepairDetailsDrawer } from "@/components/repairs/RepairDetailsDrawer";
+import { RepairTable } from "@/components/repairs/RepairTable";
+import { UpdateRepairStatusModal } from "@/components/repairs/UpdateRepairStatusModal";
+import { motion } from "framer-motion";
+import { Wrench, Plus, RefreshCw, LayoutGrid, Table, Clock, CheckCircle2, DollarSign, AlertCircle, FileText } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { exportToCSV } from "@/lib/utils";
 
 export default function RepairsPage() {
   const [activeRepairId, setActiveRepairId] = useState<string | null>(null);
-  const [repairItems, setRepairItems] = useState<unknown[]>([]);
-
-
+  const [repairItems, setRepairItems] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
 
   const fetchRepairs = async () => {
     try {
-      const data = await apiFetch<unknown>('/repairs');
-      const items = data.data ?? data ?? [];
+      const data = await apiFetch<any>("/repairs");
+      const items = Array.isArray(data) ? data : [];
       setRepairItems(items);
-      if (items.length > 0 && !activeRepairId) {
-        setActiveRepairId(items[0].id?.substring(0, 8) ?? items[0].id);
-      }
     } catch (e) {
-      console.error('Failed to fetch repairs:', e);
+      console.error("Failed to fetch repairs:", e);
     }
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRepairs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const activeRepair = repairItems.length > 0 
-    ? repairItems.find((r: unknown) => (r.id?.substring(0, 8) ?? r.id) === activeRepairId) || repairItems[0]
-    : null;
+  const handleStatusChange = async (repairId: string, newStatus: string) => {
+    try {
+      await apiFetch(`/repairs/${repairId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: newStatus }),
+      });
+      fetchRepairs();
+    } catch (e) {
+      console.error("Failed to update status", e);
+      fetchRepairs();
+    }
+  };
+
+  const activeRepair = activeRepairId ? repairItems.find((r: any) => String(r.id) === activeRepairId) : null;
+
+  const queuedCount = repairItems.filter((r) => r.status === "QUEUED").length;
+  const waitingParts = repairItems.filter((r) => r.status === "WAITING_PARTS").length;
+  const inProgress = repairItems.filter((r) => r.status === "IN_PROGRESS").length;
+  const completed = repairItems.filter((r) => r.status === "COMPLETED").length;
+
+  const kpis = [
+    { label: "Active Diagnostics", value: queuedCount, icon: Clock, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Waiting Parts", value: waitingParts, icon: AlertCircle, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "In Repairing", value: inProgress, icon: Wrench, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+    { label: "Completed & Ready", value: completed, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  ];
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-4rem)] pb-4">
-        
+      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+        {/* Modals & Slide-over Drawer */}
+        <RepairDetailsDrawer
+          isOpen={!!activeRepairId}
+          onClose={() => setActiveRepairId(null)}
+          repair={activeRepair}
+          onStatusChange={handleStatusChange}
+        />
+
+        <UpdateRepairStatusModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          repairId="1"
+          currentStatus="QUEUED"
+          onSuccess={() => {
+            setIsModalOpen(false);
+            fetchRepairs();
+          }}
+        />
+
         {/* Title Area */}
-        <div className="mb-6 shrink-0">
-          <motion.h1 
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-2xl font-bold tracking-tight text-foreground"
-          >
-            Hardware Repairs
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-sm text-muted-foreground mt-1"
-          >
-            Manage active fixes, RMAs, and warranty claims.
-          </motion.p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-foreground">Hardware Repairs & RMAs</h1>
+            <p className="text-xs font-medium text-muted-foreground mt-1">
+              Manage Hardware Fixes, Vendor Warranty Claims & Maintenance Expense Ledgers
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => fetchRepairs()}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card/60 border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-sm"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh</span>
+            </button>
+
+            <button
+              onClick={() => exportToCSV("repair_expenses.csv", repairItems)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-foreground hover:bg-muted/60 transition-all cursor-pointer shadow-sm"
+            >
+              <FileText className="w-3.5 h-3.5 text-primary" />
+              <span>Export Expense Report</span>
+            </button>
+
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary/90 transition-all shadow-md cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Schedule New Repair</span>
+            </button>
+          </div>
         </div>
 
-        {/* Dashboard Elements */}
-        <div className="shrink-0 mb-6">
-          <RepairKPIs />
+        {/* Repair KPI Summary Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {kpis.map((kpi) => {
+            const Icon = kpi.icon;
+            return (
+              <div
+                key={kpi.label}
+                className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-4 flex items-center justify-between shadow-sm"
+              >
+                <div>
+                  <p className="text-2xl font-black tracking-tight text-foreground">{kpi.value}</p>
+                  <p className="text-xs font-bold text-muted-foreground mt-0.5">{kpi.label}</p>
+                </div>
+                <div className={`w-10 h-10 rounded-xl ${kpi.bg} border border-border/40 flex items-center justify-center ${kpi.color}`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Dual-Pane Layout */}
-        <div className="flex-1 min-h-0 flex gap-6">
-          
-          {/* Left Pane: Queue */}
-          <motion.div 
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="w-1/3 min-w-[320px] max-w-100 h-full"
-          >
-            <RepairQueue activeId={activeRepairId} onSelect={setActiveRepairId} />
-          </motion.div>
+        {/* View Switcher Header */}
+        <div className="flex items-center justify-between bg-card/40 backdrop-blur-xl border border-border/50 p-2 rounded-2xl">
+          <span className="text-xs font-bold text-muted-foreground px-3">Service Desk Layout</span>
 
-          {/* Right Pane: Workspace */}
-          <motion.div 
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex-1 h-full min-w-0"
-          >
-            <AnimatePresence mode="wait">
-              {activeRepair && (
-                <motion.div
-                  key={activeRepairId}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full"
-                >
-                  <RepairDetails repair={activeRepair} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+          <div className="flex items-center gap-1 bg-background/80 border border-border/50 p-1 rounded-xl shadow-sm">
+            <button
+              onClick={() => setViewMode("kanban")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "kanban"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Kanban Board</span>
+            </button>
 
+            <button
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "table"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Table className="w-3.5 h-3.5" />
+              <span>Service Cost Table</span>
+            </button>
+          </div>
         </div>
 
+        {/* Main Content View */}
+        {viewMode === "kanban" ? (
+          <div className="flex-1 overflow-hidden min-h-[500px]">
+            <RepairKanbanBoard
+              repairs={repairItems}
+              activeId={activeRepairId}
+              onSelect={setActiveRepairId}
+              onStatusChange={handleStatusChange}
+            />
+          </div>
+        ) : (
+          <RepairTable repairs={repairItems} onSelectRepair={(id) => setActiveRepairId(id)} />
+        )}
       </div>
     </DashboardLayout>
   );

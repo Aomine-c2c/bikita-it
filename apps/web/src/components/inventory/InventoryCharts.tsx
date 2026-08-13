@@ -1,14 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, AreaChart, Area
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from "recharts";
 import { TrendingUp, PieChart, DollarSign, AlertCircle } from "lucide-react";
 
 export function InventoryCharts() {
@@ -104,7 +100,7 @@ export function InventoryCharts() {
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(val) => `$${val/1000}k`} dx={-10} />
               <Tooltip 
                 contentStyle={{ borderRadius: '10px', border: '1px solid #e4e4e7', backgroundColor: '#ffffff', color: '#09090b', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                formatter={(val: unknown) => [`$${Number(val).toLocaleString()}`, "Value"]}
+                formatter={(val: any) => [`$${Number(val).toLocaleString()}`, "Value"]}
               />
               <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
             </AreaChart>

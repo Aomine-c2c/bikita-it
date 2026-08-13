@@ -1,0 +1,33 @@
+{
+  "sidebar": {
+    "sections": {
+      "coreOperations": "核心操作",
+      "infrastructure": "基础设施",
+      "knowledgeDocs": "知识与文档",
+      "governance": "治理"
+    },
+    "items": {
+      "dashboard": "仪表板",
+      "assetLifecycle": "资产全生命周期",
+      "inventory": "库存",
+      "repairQueue": "维修队列",
+      "helpdesk": "服务台",
+      "networkDevices": "网络设备",
+      "cameras": "摄像头",
+      "connections": "连接",
+      "locations": "位置",
+      "employees": "员工",
+      "knowledgeBase": "知识库",
+      "reports": "报告",
+      "settings": "设置"
+    }
+  },
+  "header": {
+    "searchPlaceholder": "搜索资产、工单、员工...",
+    "askAi": "询问 AI",
+    "assistantActive": "助手激活",
+    "notifications": "通知",
+    "settings": "设置",
+    "userProfile": "用户配置"
+  }
+}

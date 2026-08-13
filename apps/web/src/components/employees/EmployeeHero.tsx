@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
 import { motion } from "framer-motion";
 import { ChevronRight, Mail, Phone, Building, UserCircle, DownloadCloud } from "lucide-react";
 import Link from "next/link";
-import { _cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 
 interface EmployeeHeroProps {
@@ -16,11 +15,11 @@ interface EmployeeHeroProps {
 }
 
 export function EmployeeHero({ employeeId }: EmployeeHeroProps) {
-  const [emp, setEmp] = React.useState<unknown>(null);
+  const [emp, setEmp] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    apiFetch<unknown>(`/users/${employeeId}`)
+    apiFetch<any>(`/users/${employeeId}`)
       .then(data => {
         setEmp({
           id: data.id,

@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, AlertCircle } from "lucide-react";
-import { InventoryItem, employeesApi, locationsApi, assetApi } from "@/lib/api";
+import { InventoryItem, employeesApi, locationsApi, assetApi, inventoryApi } from "@/lib/api";
 
 interface LifecycleTransitionModalProps {
   isOpen: boolean;
@@ -37,15 +36,15 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
 
   useEffect(() => {
     // Fetch employees, locations, and hardware assets for assignment options
-    employeesApi.getAll().then((res: unknown) => {
+    employeesApi.getAll().then((res: any) => {
       setEmployees(Array.isArray(res) ? res : (res.data || []));
     }).catch(console.error);
     
-    locationsApi.getAll().then((res: unknown) => {
+    locationsApi.getAll().then((res: any) => {
       setLocations(Array.isArray(res) ? res : (res.data || []));
     }).catch(console.error);
     
-    assetApi.getAll().then((res: unknown) => {
+    assetApi.getAll().then((res: any) => {
       setHardwareAssets(Array.isArray(res) ? res : (res.data || []));
     }).catch(console.error);
   }, []);
@@ -56,28 +55,25 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
     setError(null);
 
     try {
-      const endpoint = isFixedAsset ? `/api/inventory/${item.id}/issue-asset` : `/api/inventory/${item.id}/issue-consumable`;
-      
-      const payload = isFixedAsset ? {
-        assigneeId: formData.targetId,
-        assignmentType: formData.assignmentType,
-        notes: formData.notes
-      } : {
-        ...formData,
-        newMeterMark: formData.useCableMarking && formData.newMeterMark ? parseInt(formData.newMeterMark) : undefined
-      };
-
-      const res = await fetch(`http://localhost:3001${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "Failed to issue inventory item");
+      if (isFixedAsset) {
+        await inventoryApi.issueAsset(item.id, formData.targetId, formData.notes);
+      } else {
+        const payload = {
+          ...formData,
+          newMeterMark: formData.useCableMarking && formData.newMeterMark ? parseInt(formData.newMeterMark) : undefined
+        };
+        const res = await fetch(`http://localhost:3001/api/inventory/${item.id}/issue-consumable`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || "Failed to issue inventory item");
+        }
       }
       onSuccess();
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err.message || "Failed to issue item");
     } finally {
       setIsSubmitting(false);

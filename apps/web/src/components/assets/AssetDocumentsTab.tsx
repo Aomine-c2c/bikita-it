@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { type _Asset } from "@/lib/api";
-import { _FileText, Image as ImageIcon, Book } from "lucide-react";
+import { type Asset } from "@/lib/api";
+import { FileText, Image as ImageIcon, Book } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
-import { _format } from "date-fns";
+import { format } from "date-fns";
 
 type Document = {
   id: string;
@@ -18,9 +17,9 @@ type Document = {
   updated_at: string;
 };
 
-export function AssetDocumentsTab({ asset }: { asset: unknown }) {
+export function AssetDocumentsTab({ asset }: { asset: any }) {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const photos: string[] = (asset as unknown).photos || [];
+  const photos: string[] = (asset as any).photos || [];
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -62,7 +61,7 @@ export function AssetDocumentsTab({ asset }: { asset: unknown }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground truncate">{doc.title}</p>
-                  <p className="text-xs text-muted-foreground truncate">{doc.category.replace('_', ' ')} • {new Date(doc.updated_at).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted-foreground truncate">{doc.category.replace('_', ' ')} • {new Date(doc.updated_at).toISOString().split('T')[0]}</p>
                 </div>
               </div>
             ))}

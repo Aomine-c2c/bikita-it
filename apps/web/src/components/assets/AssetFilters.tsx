@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
-import { Search, _Filter, SlidersHorizontal } from "lucide-react";
+import { Search, Filter, SlidersHorizontal } from "lucide-react";
 
 export function AssetFilters() {
   return (

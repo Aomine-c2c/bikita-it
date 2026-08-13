@@ -122,7 +122,7 @@ export function DocViewerModal({ doc, onClose, onEdit }: Props) {
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1.5">Created</p>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Calendar className="w-3.5 h-3.5" />
-                  {new Date(doc.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  {new Date(doc.createdAt).toISOString().split('T')[0]}
                 </div>
               </div>
 
@@ -130,7 +130,7 @@ export function DocViewerModal({ doc, onClose, onEdit }: Props) {
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1.5">Last Updated</p>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="w-3.5 h-3.5" />
-                  {new Date(doc.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  {new Date(doc.updatedAt).toISOString().split('T')[0]}
                 </div>
               </div>
 

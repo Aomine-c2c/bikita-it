@@ -53,7 +53,7 @@ export default function SetupPage() {
       } else {
         setError(data.message || "Failed to initialize system.");
       }
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : typeof err === 'string' ? err : "Network error. Could not reach server.");
     } finally {
       setLoading(false);

@@ -1,14 +1,11 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
- 
-// @ts-nocheck
 "use client";
 
 import React from "react";
 import { Network, Monitor, User, MapPin, Link2, MonitorSmartphone } from "lucide-react";
-import type { _Asset } from "@/lib/api";
+import { type Asset } from "@/lib/api";
 
-export function AssetRelationsTab({ asset }: { asset: unknown }) {
+export function AssetRelationsTab({ asset }: { asset: any }) {
   return (
     <div className="p-4 sm:p-8 space-y-8">
       <div className="text-center mb-8">
@@ -26,7 +23,7 @@ export function AssetRelationsTab({ asset }: { asset: unknown }) {
               </div>
               <div>
                 <h3 className="text-xs uppercase font-bold text-muted-foreground">Current Owner</h3>
-                {(asset as unknown).assigneeId ? (
+                {(asset as any).assigneeId ? (
                   <div className="mt-2">
                     <p className="font-semibold text-sm">Assigned Employee</p>
                   </div>
@@ -45,7 +42,7 @@ export function AssetRelationsTab({ asset }: { asset: unknown }) {
               </div>
               <div>
                 <h3 className="text-xs uppercase font-bold text-muted-foreground">Location</h3>
-                {(asset as unknown).locationId ? (
+                {(asset as any).locationId ? (
                   <div className="mt-2">
                     <p className="font-semibold text-sm">Physical Location</p>
                   </div>
@@ -82,7 +79,7 @@ export function AssetRelationsTab({ asset }: { asset: unknown }) {
           </div>
 
           {/* Parent Asset */}
-          {(asset as unknown).parentId && (
+          {(asset as any).parentId && (
             <div className="bg-white border border-border/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative md:col-span-2 max-w-md mx-auto w-full">
               <div className="flex items-start gap-4">
                 <div className="bg-amber-50 text-amber-600 p-3 rounded-xl">
@@ -109,7 +106,8 @@ export function AssetRelationsTab({ asset }: { asset: unknown }) {
                 <div className="flex-1">
                   <h3 className="text-xs uppercase font-bold text-muted-foreground mb-3">Connected Peripherals ({asset.children.length})</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {asset.children.map((child: unknown) => (
+                    {asset.children.map((child: any) => (
+                      
                       <div key={child.id} className="border border-border/40 rounded-lg p-3 flex items-center gap-3 bg-[#FAFAFA]">
                         <Monitor className="w-4 h-4 text-muted-foreground" />
                         <div>

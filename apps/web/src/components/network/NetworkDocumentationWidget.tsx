@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -10,7 +9,7 @@ import { Book, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export function NetworkDocumentationWidget() {
-  const [docs, setDocs] = useState<unknown[]>([]);
+  const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,10 +47,11 @@ export function NetworkDocumentationWidget() {
           </div>
         ) : (
           docs.slice(0, 5).map(doc => (
+            
             <div key={doc.id} className="group flex items-center justify-between p-3 rounded-lg border border-border/40 hover:border-emerald-500/30 hover:bg-emerald-50/30 transition-all cursor-pointer">
               <div className="min-w-0">
                 <p className="text-sm font-bold text-foreground truncate">{doc.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5 truncate">Last updated: {new Date(doc.updated_at).toLocaleDateString()}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">Last updated: {new Date(doc.updated_at).toISOString().split('T')[0]}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-emerald-600 transition-colors shrink-0 ml-2" />
             </div>

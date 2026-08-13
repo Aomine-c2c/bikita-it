@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, AlertCircle } from "lucide-react";
@@ -37,7 +36,7 @@ export function InventoryFormModal({ isOpen, onClose, onSuccess, itemToEdit }: I
         name: itemToEdit.name || "",
         sku: itemToEdit.sku || "",
         category: itemToEdit.category || "Cables",
-        stock: (itemToEdit as unknown).stock || (itemToEdit as unknown).quantity || 0,
+        stock: (itemToEdit as any).stock || (itemToEdit as any).quantity || 0,
         minStock: itemToEdit.minStock || 0,
         maxStock: itemToEdit.maxStock || 0,
         unitCost: itemToEdit.unitCost || 0,
@@ -94,7 +93,7 @@ export function InventoryFormModal({ isOpen, onClose, onSuccess, itemToEdit }: I
       }
       onSuccess();
       onClose();
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err.message || `Failed to ${itemToEdit ? 'update' : 'create'} inventory item`);
     } finally {
       setIsSubmitting(false);

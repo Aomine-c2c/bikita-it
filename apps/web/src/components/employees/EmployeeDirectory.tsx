@@ -1,18 +1,17 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Laptop, Ticket, Building, Mail, Phone, _MoreHorizontal, X, _Monitor, _Key, _Loader2 } from "lucide-react";
+import { Laptop, Ticket, Building, Mail, Phone, MoreHorizontal, X, Monitor, Key, Loader2, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { cn, exportToCSV } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { EmployeeFilters } from "./EmployeeFilters";
 import { EmployeeFormModal } from "./EmployeeFormModal";
 import { EmployeeDetailsPanel } from "@/components/employees/EmployeeDetailsPanel";
 
-import { _apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -25,7 +24,7 @@ const getStatusColor = (status: string) => {
 };
 
 // Mapping from Prisma Employee role/status to display-friendly labels
-function deriveStatus(emp: unknown): string {
+function deriveStatus(emp: any): string {
   if (!emp) return "Active";
   // Use the role field as a proxy since status doesn't exist in DB
   const statusMap: Record<string, string> = {
@@ -40,15 +39,20 @@ function deriveStatus(emp: unknown): string {
 
 import { employeesApi } from "@/lib/api";
 
-export function EmployeeDirectory() {
-  const [employees, setEmployees] = useState<unknown[]>([]);
-  const [selectedEmp, setSelectedEmp] = useState<unknown>(null);
+interface EmployeeDirectoryProps {
+  onSelectEmployee?: (emp: any) => void;
+}
+
+export function EmployeeDirectory({ onSelectEmployee }: EmployeeDirectoryProps) {
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [selectedEmp, setSelectedEmp] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [department, setDepartment] = useState("All Departments");
   const [roleType, setRoleType] = useState("All Roles");
   const [status, setStatus] = useState("All Statuses");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   // Filtering logic
   const filteredEmployees = React.useMemo(() => {
@@ -58,7 +62,6 @@ export function EmployeeDirectory() {
       filtered = filtered.filter((emp: any) => emp.department === department);
     }
     if (roleType !== "All Roles") {
-      // Basic mock since roleType isn't fully defined on all objects, we just check if it contains the word
       filtered = filtered.filter((emp: any) => emp.role?.includes(roleType) || emp.type === roleType);
     }
     if (status !== "All Statuses") {
@@ -78,9 +81,9 @@ export function EmployeeDirectory() {
   const fetchEmployees = async () => {
     try {
       const data = await employeesApi.getAll();
-      const items = Array.isArray(data) ? data : (data as unknown).data ?? data ?? [];
-      const mapped = items.map((emp: unknown) => ({
-        id: emp.id?.substring(0, 8) ?? emp.id,
+      const items = Array.isArray(data) ? data : (data as any).data ?? data ?? [];
+      const mapped = items.map((emp: any) => ({
+        id: String(emp.id),
         name: emp.name,
         role: emp.position ?? emp.role ?? 'Employee',
         department: emp.department ?? '—',
@@ -142,11 +145,70 @@ export function EmployeeDirectory() {
         onExport={() => exportToCSV('employees.csv', filteredEmployees)}
         onAddPerson={() => setIsAddModalOpen(true)}
       />
+      <div className="flex items-center justify-end gap-1 -mt-2">
+        <button
+          onClick={() => setViewMode("cards")}
+          className={cn("p-2 rounded-lg border text-xs transition-all", viewMode === "cards" ? "bg-primary text-primary-foreground border-primary" : "border-border/50 text-muted-foreground hover:text-foreground")}
+          title="Card view"
+        >
+          <LayoutGrid className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={() => setViewMode("table")}
+          className={cn("p-2 rounded-lg border text-xs transition-all", viewMode === "table" ? "bg-primary text-primary-foreground border-primary" : "border-border/50 text-muted-foreground hover:text-foreground")}
+          title="Table view"
+        >
+          <TableIcon className="w-3.5 h-3.5" />
+        </button>
+      </div>
       <EmployeeFormModal 
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
         onSuccess={() => { setIsAddModalOpen(false); fetchEmployees(); }} 
       />
+      {viewMode === "table" ? (
+        <div className="rounded-2xl border border-border/60 overflow-hidden bg-white shadow-sm">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 border-b border-border/40">
+              <tr>
+                <th className="px-4 py-3 text-left text-[11px] font-black text-muted-foreground uppercase tracking-wider">Employee</th>
+                <th className="px-4 py-3 text-left text-[11px] font-black text-muted-foreground uppercase tracking-wider">Department</th>
+                <th className="px-4 py-3 text-left text-[11px] font-black text-muted-foreground uppercase tracking-wider">Role</th>
+                <th className="px-4 py-3 text-left text-[11px] font-black text-muted-foreground uppercase tracking-wider">Email</th>
+                <th className="px-4 py-3 text-left text-[11px] font-black text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-[11px] font-black text-muted-foreground uppercase tracking-wider">Assets</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {filteredEmployees.map((emp: any) => (
+                <tr
+                  key={emp.id}
+                  onClick={() => { if (onSelectEmployee) onSelectEmployee(emp); else setSelectedEmp(emp); }}
+                  className="hover:bg-slate-50 cursor-pointer transition-colors group"
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
+                        {emp.avatar}
+                      </div>
+                      <span className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors">{emp.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{emp.department}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{emp.role}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{emp.email}</td>
+                  <td className="px-4 py-3">
+                    <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border", getStatusColor(emp.status))}>
+                      {emp.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs font-bold text-foreground">{emp.assets}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredEmployees.length === 0 && !loading && (
           <div className="col-span-full text-center py-16 text-sm text-muted-foreground">
@@ -154,7 +216,14 @@ export function EmployeeDirectory() {
           </div>
         )}
         {filteredEmployees.map((emp: any) => (
-          <div key={emp.id} onClick={() => setSelectedEmp(emp)} className="block group cursor-pointer">
+          <div
+            key={emp.id}
+            onClick={() => {
+              if (onSelectEmployee) onSelectEmployee(emp);
+              else setSelectedEmp(emp);
+            }}
+            className="block group cursor-pointer"
+          >
             <div className="bg-white border border-border/60 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group-hover:border-primary/30">
               <div className="h-16 bg-gradient-to-r from-slate-100 to-slate-50" />
               <div className="px-5 -mt-8 flex justify-between items-end mb-3">
@@ -200,6 +269,7 @@ export function EmployeeDirectory() {
           </div>
         ))}
       </div>
+      )}
 
       <EmployeeDetailsPanel 
         employee={selectedEmp}

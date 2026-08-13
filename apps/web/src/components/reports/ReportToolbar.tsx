@@ -1,24 +1,30 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState } from "react";
-import { Download, FileText, Calendar, Mail, _Settings2, LayoutDashboard } from "lucide-react";
+import { Download, FileText, Calendar, Mail, Settings2, LayoutDashboard } from "lucide-react";
 import { exportToCSV } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 export function ReportToolbar() {
   const [activeRange, setActiveRange] = useState("30D");
 
-  const handleExportCSV = () => {
-    // Generate a mock report summary for the active range
-    const mockData = [
-      { metric: "Total Spend", value: "$45,200", period: activeRange },
-      { metric: "New Assets", value: "142", period: activeRange },
-      { metric: "Tickets Resolved", value: "320", period: activeRange }
-    ];
-    exportToCSV(`report_${activeRange.toLowerCase()}.csv`, mockData);
+  const handleExportCSV = async () => {
+    try {
+      const summary = await apiFetch('/reports/summary') as any;
+      
+      const reportData = [
+        { metric: "Total Spend", value: `$${(summary.assets.total_spend || 0).toLocaleString()}`, period: activeRange },
+        { metric: "Total Assets", value: summary.assets.total_count.toString(), period: activeRange },
+        { metric: "Tickets Resolved", value: summary.tickets.resolved_count.toString(), period: activeRange },
+        { metric: "Active Devices", value: summary.network.active_count.toString(), period: activeRange }
+      ];
+      exportToCSV(`report_${activeRange.toLowerCase()}.csv`, reportData);
+    } catch (error) {
+      console.error("Failed to generate report data", error);
+    }
   };
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-border/60 rounded-xl p-3 shadow-sm mb-6">

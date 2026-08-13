@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
  
-// @ts-nocheck
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -10,7 +9,7 @@ export interface PDFColumn {
   dataKey: string;
 }
 
-export function generateTablePdf(title: string, columns: PDFColumn[], data: unknown[], filename: string) {
+export function generateTablePdf(title: string, columns: PDFColumn[], data: any[], filename: string) {
   const doc = new jsPDF();
   
   // Add Header

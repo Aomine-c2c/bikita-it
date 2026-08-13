@@ -7,3 +7,30 @@ coverage/
 .DS_Store
 
 apps/web/src-tauri/target/
+
+# Python
+*.pyc
+__pycache__/
+venv/
+*.sqlite3
+
+# Temp/scratch scripts
+auto_fix_eslint.py
+auto_nocheck.py
+final_lint_fix.py
+fix_any.py
+fix_any_all.py
+fix_final.py
+fix_hoisting.py
+fix_specific.py
+fix_typecheck.py
+nocheck.py
+nocheck2.py
+test_stats.py
+type_fixer.py
+
+# Server log dumps
+server-err.txt
+server-err2.txt
+server-out.txt
+server-out2.txt

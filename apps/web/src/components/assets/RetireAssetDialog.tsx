@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { _X, Loader2, AlertTriangle } from "lucide-react";
+import { X, Loader2, AlertTriangle } from "lucide-react";
 import { assetApi } from "@/lib/api";
 
 interface RetireAssetDialogProps {
@@ -18,18 +17,16 @@ interface RetireAssetDialogProps {
 export function RetireAssetDialog({ isOpen, onClose, onSuccess, assetId, assetName }: RetireAssetDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
 
   const handleRetire = async () => {
     setIsSubmitting(true);
     setError(null);
     try {
-      await assetApi.update(assetId, {
-        status: "RETIRED",
-        assigneeId: null, // Clear assignment when retired
-      } as unknown);
+      await assetApi.retire(assetId, reason || "No reason provided", "");
       onSuccess();
       onClose();
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err.message || "Failed to retire asset");
     } finally {
       setIsSubmitting(false);
@@ -62,6 +59,17 @@ export function RetireAssetDialog({ isOpen, onClose, onSuccess, assetId, assetNa
                 Are you sure you want to retire <strong className="text-foreground">{assetName}</strong> ({assetId})? 
                 This will mark its status as retired and remove any active employee assignments.
               </p>
+
+              <div className="mt-4">
+                <label className="block text-xs font-semibold text-foreground mb-1">Reason for Retirement</label>
+                <input
+                  type="text"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="e.g. Broken screen, Obsolete, End of lease..."
+                  className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm"
+                />
+              </div>
               
               {error && (
                 <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">

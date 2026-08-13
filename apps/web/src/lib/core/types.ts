@@ -8,7 +8,7 @@ export interface SidebarExtension {
 
 export interface ApiExtension {
   matchPrefix: string;
-  handler: (path: string, options?: RequestInit) => Promise<unknown>;
+  handler: (path: string, options?: RequestInit) => Promise<any>;
 }
 
 export interface IModule {

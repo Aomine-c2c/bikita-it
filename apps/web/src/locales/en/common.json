@@ -1,0 +1,33 @@
+{
+  "sidebar": {
+    "sections": {
+      "coreOperations": "Core Operations",
+      "infrastructure": "Infrastructure",
+      "knowledgeDocs": "Knowledge & Docs",
+      "governance": "Governance"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "assetLifecycle": "Asset Lifecycle",
+      "inventory": "Inventory",
+      "repairQueue": "Repair Queue",
+      "helpdesk": "Helpdesk",
+      "networkDevices": "Network Devices",
+      "cameras": "Cameras",
+      "connections": "Connections",
+      "locations": "Locations",
+      "employees": "Employees",
+      "knowledgeBase": "Knowledge Base",
+      "reports": "Reports",
+      "settings": "Settings"
+    }
+  },
+  "header": {
+    "searchPlaceholder": "Search assets, tickets, employees...",
+    "askAi": "Ask AI",
+    "assistantActive": "Assistant Active",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "userProfile": "User Profile"
+  }
+}

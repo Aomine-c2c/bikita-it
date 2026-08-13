@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 /**
@@ -9,11 +8,8 @@
  * Accepts category pre-selection so each module can lock its own category.
  */
 import React, { useState } from "react";
-import { motion, _AnimatePresence } from "framer-motion";
-import {
-  X, _Plus, _Edit3, Trash2, Tag, BookOpen, FileText, Network, Settings, _HelpCircle,
-  AlertCircle, CheckCircle2, Save, Eye, Code2,
-} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Plus, Edit3, Trash2, Tag, BookOpen, FileText, Network, Settings, HelpCircle, AlertCircle, CheckCircle2, Save, Eye, Code2,  } from "lucide-react";
 import { knowledgeApi, type KnowledgeDocument, type DocumentCategory } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -64,7 +60,7 @@ export function DocEditorModal({ doc, defaultCategory = "GENERAL", lockCategory 
     setSaving(true); setError(null);
     try {
       if (doc) {
-        await knowledgeApi.update(doc.id, { title, content, category, status: status as unknown, version });
+        await knowledgeApi.update(doc.id, { title, content, category, status: status as any, version });
       } else {
         await knowledgeApi.create({ title, content, category, tags, status, version });
       }

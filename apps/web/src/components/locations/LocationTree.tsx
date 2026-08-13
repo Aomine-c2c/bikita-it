@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -20,7 +19,7 @@ const LocationIcon = ({ type, className }: { type: string, className?: string })
   }
 };
 
-const TreeNode = ({ node, level = 0, selectedId, onSelect }: unknown) => {
+const TreeNode = ({ node, level = 0, selectedId, onSelect }: any) => {
   const [isExpanded, setIsExpanded] = useState(level < 2);
   const hasChildren = node.children && node.children.length > 0;
   const isSelected = selectedId === node.id;
@@ -64,7 +63,7 @@ const TreeNode = ({ node, level = 0, selectedId, onSelect }: unknown) => {
       
       {hasChildren && isExpanded && (
         <div className="flex flex-col">
-          {node.children.map((child: unknown) => (
+          {node.children.map((child: any) => (
             <TreeNode 
               key={child.id} 
               node={child} 
@@ -79,13 +78,13 @@ const TreeNode = ({ node, level = 0, selectedId, onSelect }: unknown) => {
   );
 };
 
-export function LocationTree({ onSelectLocation }: { onSelectLocation: (loc: unknown) => void }) {
+export function LocationTree({ onSelectLocation }: { onSelectLocation: (loc: any) => void }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [locations, setLocations] = useState<unknown[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiFetch<unknown>('/locations/tree')
+    apiFetch<any>('/locations/tree')
       .then(data => {
         setLocations(Array.isArray(data) ? data : []);
         setLoading(false);
@@ -96,7 +95,7 @@ export function LocationTree({ onSelectLocation }: { onSelectLocation: (loc: unk
       });
   }, []);
 
-  const handleSelect = (node: unknown) => {
+  const handleSelect = (node: any) => {
     setSelectedId(node.id);
     onSelectLocation(node);
   };

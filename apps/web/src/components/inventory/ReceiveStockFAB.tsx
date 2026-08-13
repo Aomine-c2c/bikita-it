@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState } from "react";
@@ -170,7 +169,7 @@ export function ReceiveStockFAB() {
                             maxStock: 500,
                           });
                           setStep(2);
-                        } catch (err: unknown) {
+                        } catch (err: any) {
                           setError(err.message || "Failed to intake stock");
                         } finally {
                           setIsSubmitting(false);

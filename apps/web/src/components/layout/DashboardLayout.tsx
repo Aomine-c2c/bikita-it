@@ -12,7 +12,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthGuard>
-      <div className="flex h-screen w-full bg-white overflow-hidden font-sans">
+      <div className="flex h-screen w-full bg-mesh overflow-hidden font-sans relative">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3">Skip to main content</a>
         <Sidebar isMobileOpen={isSidebarOpen} onMobileClose={() => setIsSidebarOpen(false)} />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">

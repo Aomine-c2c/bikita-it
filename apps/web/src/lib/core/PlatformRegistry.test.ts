@@ -20,7 +20,7 @@ describe('PlatformRegistry', () => {
       version: '1.0.0',
       init: () => {},
       sidebarExtensions: [
-        { label: 'Test Route', href: '/test', icon: 'Box' as unknown, section: 'General', iconName: 'Box', roles: [] }
+        { label: 'Test Route', href: '/test', icon: 'Box' as any, section: 'General', iconName: 'Box', roles: [] }
       ]
     };
 

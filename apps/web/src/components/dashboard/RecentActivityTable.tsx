@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const transactions: unknown[] = [];
+const transactions: any[] = [];
 
 export function RecentActivityTable() {
   return (

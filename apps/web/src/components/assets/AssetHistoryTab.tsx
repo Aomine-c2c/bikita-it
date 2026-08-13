@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
-import { type _Asset } from "@/lib/api";
-import { _History, ArrowRightLeft } from "lucide-react";
+import { type Asset } from "@/lib/api";
+import { History, ArrowRightLeft } from "lucide-react";
 
-export function AssetHistoryTab({ asset }: { asset: unknown }) {
-  const history: unknown[] = (asset as unknown).movementHistory || [];
+export function AssetHistoryTab({ asset }: { asset: any }) {
+  const history: any[] = (asset as any).movementHistory || [];
 
   return (
     <div className="p-8">
@@ -34,8 +33,9 @@ export function AssetHistoryTab({ asset }: { asset: unknown }) {
             </thead>
             <tbody className="divide-y divide-border/60">
               {history.map((tx) => (
+                
                 <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4 font-medium">{new Date(tx.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 font-medium">{new Date(tx.createdAt).toISOString().split('T')[0]}</td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
                       <ArrowRightLeft className="w-3.5 h-3.5" />

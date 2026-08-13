@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
-import { type _Asset } from "@/lib/api";
+import { type Asset } from "@/lib/api";
 import { Cpu, HardDrive, MemoryStick, Monitor, Network } from "lucide-react";
 
-export function AssetSpecificationsTab({ asset }: { asset: unknown }) {
-  let specs: unknown = {};
+export function AssetSpecificationsTab({ asset }: { asset: any }) {
+  let specs: any = {};
   try {
     if (asset.specs) {
       specs = typeof asset.specs === 'string' ? JSON.parse(asset.specs) : asset.specs;

@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, _AlertCircle, Search, User } from "lucide-react";
+import { X, Loader2, AlertCircle, Search, User } from "lucide-react";
 import { assetApi, apiFetch } from "@/lib/api";
 
 interface ReassignAssetModalProps {
@@ -18,7 +17,7 @@ interface ReassignAssetModalProps {
 export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, currentAssigneeId }: ReassignAssetModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [_error, setError] = useState<string | null>(null);
-  const [employees, setEmployees] = useState<unknown[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -33,9 +32,9 @@ export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, curren
   const fetchEmployees = async () => {
     try {
       setLoadingEmployees(true);
-      const data = await apiFetch<unknown>('/employees');
+      const data = await apiFetch<any>('/employees');
       setEmployees(Array.isArray(data) ? data : data.data || []);
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error("Failed to load employees:", err);
     } finally {
       setLoadingEmployees(false);
@@ -55,10 +54,10 @@ export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, curren
     setError(null);
 
     try {
-      await assetApi.update(assetId, { assigneeId: selectedId } as unknown);
+      await assetApi.reassign(assetId, selectedId);
       onSuccess();
       onClose();
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err.message || "Failed to reassign asset");
     } finally {
       setIsSubmitting(false);

@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -29,7 +28,7 @@ export function InventoryTable() {
     queryKey: ['inventory'],
     queryFn: async () => {
       const rawItems = await inventoryApi.getAll();
-      return rawItems.map((item: unknown) => ({
+      return rawItems.map((item: any) => ({
         id: item.sku ?? item.id,
         sku: item.sku ?? item.id,
         item: item.name,
@@ -50,7 +49,7 @@ export function InventoryTable() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     if (!q) return inventory;
-    return inventory.filter((item: unknown) =>
+    return inventory.filter((item: any) =>
       [item.id, item.item, item.name, item.category, item.supplier, item.warehouse, item.shelf]
         .some((v) => v && typeof v === 'string' && v.toLowerCase().includes(q))
     );
@@ -121,7 +120,7 @@ export function InventoryTable() {
                   )}
                 </td>
               </tr>
-            ) : filtered.map((item: unknown, idx: number) => (
+            ) : filtered.map((item: any, idx: number) => (
               <tr key={idx} className="border-b border-border/20 last:border-0 hover:bg-slate-50/80 transition-colors group">
                 <td className="px-5 py-3 sticky left-0 bg-white group-hover:bg-slate-50/80 z-10 border-r border-border/20 transition-colors">
                   <input type="checkbox" aria-label={`Select row ${item.id}`} className="rounded border-muted-foreground/30 text-primary focus-visible:ring-2 focus-visible:ring-primary/20" />

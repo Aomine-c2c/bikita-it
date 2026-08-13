@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Database, Download, _Upload, AlertTriangle, RefreshCw, HardDrive } from "lucide-react";
-import { _cn } from "@/lib/utils";
+import { Database, Download, Upload, AlertTriangle, RefreshCw, HardDrive } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Backup {
   filename: string;

@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, AlertCircle } from "lucide-react";
@@ -25,6 +24,8 @@ export function AddAssetModal({ isOpen, onClose, onSuccess, defaultLocationId }:
     make: "",
     model: "",
     serialNumber: "",
+    ipAddress: "",
+    macAddress: "",
     locationId: defaultLocationId || "",
   });
 
@@ -78,9 +79,11 @@ export function AddAssetModal({ isOpen, onClose, onSuccess, defaultLocationId }:
         make: "",
         model: "",
         serialNumber: "",
+        ipAddress: "",
+        macAddress: "",
         locationId: defaultLocationId || "",
       });
-    } catch (err: unknown) {
+    } catch (err: any) {
       if (err instanceof Error && err.message.includes("UNIQUE constraint failed")) {
         setError("An asset with this serial number or tag already exists.");
       } else {
@@ -164,9 +167,20 @@ export function AddAssetModal({ isOpen, onClose, onSuccess, defaultLocationId }:
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="asset-sn" className="block text-sm font-semibold text-foreground mb-1.5">Serial Number</label>
+                  <input id="asset-sn" type="text" value={formData.serialNumber} onChange={e => setFormData({...formData, serialNumber: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" />
+                </div>
+                <div>
+                  <label htmlFor="asset-mac" className="block text-sm font-semibold text-foreground mb-1.5">MAC Address</label>
+                  <input id="asset-mac" type="text" value={formData.macAddress} onChange={e => setFormData({...formData, macAddress: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" placeholder="e.g. 00:1A:2B:3C:4D:5E" />
+                </div>
+              </div>
+
               <div>
-                <label htmlFor="asset-sn" className="block text-sm font-semibold text-foreground mb-1.5">Serial Number</label>
-                <input id="asset-sn" type="text" value={formData.serialNumber} onChange={e => setFormData({...formData, serialNumber: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" />
+                <label htmlFor="asset-ip" className="block text-sm font-semibold text-foreground mb-1.5">IP Address</label>
+                <input id="asset-ip" type="text" value={formData.ipAddress} onChange={e => setFormData({...formData, ipAddress: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-primary shadow-sm" placeholder="e.g. 192.168.1.100" />
               </div>
 
               <div className="pt-4 flex justify-end gap-3 border-t border-border/40 mt-6">

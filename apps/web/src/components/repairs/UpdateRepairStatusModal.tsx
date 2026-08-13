@@ -44,7 +44,7 @@ export function UpdateRepairStatusModal({ isOpen, onClose, repairId, currentStat
       await repairsApi.update(repairId, { status });
       onSuccess();
       onClose();
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError((err as Error).message || 'Failed to update status');
     } finally {
       setIsSubmitting(false);

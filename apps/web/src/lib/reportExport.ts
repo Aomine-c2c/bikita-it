@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 /**
  * Report export utilities — PDF (via jsPDF) and CSV download.
  * Re-uses the existing generateTablePdf from lib/pdf.ts for PDF output.
@@ -12,7 +11,7 @@ import type {
   InventoryItem,
   Repair,
   NetworkDevice,
-  _Employee,
+  Employee,
   Location,
   OperationHistoryRecord,
 } from "./api";
@@ -43,7 +42,7 @@ function downloadCSV(content: string, filename: string) {
 function fmtDate(s: string | null | undefined) {
   if (!s) return "";
   try {
-    return new Date(s).toLocaleDateString("en-GB");
+    return new Date(s).toISOString().split('T')[0];
   } catch {
     return s;
   }

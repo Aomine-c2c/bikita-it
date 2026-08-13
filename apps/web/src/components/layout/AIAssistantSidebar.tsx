@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, X, Send, _Search, _User, _Laptop, Bot, _AlertTriangle, ArrowRight } from "lucide-react";
+import { Sparkles, X, Send, Search, User, Laptop, Bot, AlertTriangle, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { aiApi } from "@/lib/api";
@@ -25,7 +24,7 @@ const quickPrompts = [
 export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps) {
   const [query, setQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [messages, setMessages] = useState<{role: "user" | "ai", content: unknown}[]>([]);
+  const [messages, setMessages] = useState<{role: "user" | "ai", content: any}[]>([]);
 
   const handleSend = async (text: string) => {
     if (!text.trim()) return;

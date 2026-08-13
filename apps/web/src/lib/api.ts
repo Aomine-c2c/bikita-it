@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
  
-// @ts-nocheck
+
 /**
  * Pulse API Client
  * Centralised fetch wrapper for all backend API calls.
@@ -9,29 +8,19 @@
  * once via the `get_api_port` Tauri command and cache it for the session.
  */
 
-let _tauriApiBase: string | null = null;
+
 
 async function getApiBase(): Promise<string> {
-  // If we are running inside Tauri (either dev mode or packaged prod), 
-  // bypass Next.js entirely and hit the local Axum HTTP server directly.
+  // If we are running inside Tauri, use 3001 to comply with CSP
   if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
     return 'http://127.0.0.1:3001/api';
   }
-  
-  // Fallback for purely web deployment (if any)
   return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001/api';
 }
 
 function getAuthToken() {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  // Try getting from cookies first (better for SSR), fallback to localStorage
-  const cookies = document.cookie.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'token') return value;
-  }
+  if (typeof window === 'undefined') return null;
+  // Temporary fallback until HttpOnly cookies are fully implemented on backend
   return localStorage.getItem('token');
 }
 
@@ -49,7 +38,7 @@ function sleep(ms: number) {
  * backend not yet started) as opposed to an HTTP error (4xx/5xx).
  * Only network failures should be retried.
  */
-function isNetworkError(err: unknown): boolean {
+function isNetworkError(err: any): boolean {
   return err instanceof TypeError && err.message === 'Failed to fetch';
 }
 
@@ -83,9 +72,13 @@ export async function apiFetch<T>(
       const res = await fetch(url, {
         ...options,
         headers,
+        credentials: 'omit', // Switch to 'include' when migrating to HttpOnly cookies
       });
 
       if (!res.ok) {
+        if (res.status === 401 && typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         const error = await res.text();
         throw new Error(`API Error ${res.status}: ${error}`);
       }
@@ -136,12 +129,12 @@ export { getApiBase };
 
 // ---------- Asset API ----------
 export interface Paginated<T> {
-  [key: string]: unknown; data: T[]; pagination: { total: number; page: number; limit: number; pages: number } }
+  [key: string]: any; data: T[]; pagination: { total: number; page: number; limit: number; pages: number } }
 
 export interface Asset {
    
+
   [key: string]: any;
-  [key: string]: unknown;
   id: string;
   name: string;
   category: string;
@@ -153,7 +146,6 @@ export interface Asset {
   condition?: string | null;
   purchaseDate?: string | null;
   warrantyExpiry?: string | null;
-  purchaseCost?: number | null;
   ipAddress?: string | null;
   macAddress?: string | null;
   specs?: Record<string, string> | null;
@@ -164,11 +156,14 @@ export interface Asset {
   createdAt: string;
 }
 
-function normalizeAsset(raw: unknown): Asset {
+function normalizeAsset(raw: any): Asset {
   return {
     ...raw,
     manufacturer: raw.manufacturer ?? raw.make ?? null,
-    assetTag: raw.assetTag ?? raw.tag ?? null,
+    assetTag: raw.assetTag ?? raw.asset_tag ?? raw.tag ?? null,
+    serialNumber: raw.serialNumber ?? raw.serial_number ?? null,
+    ipAddress: raw.ipAddress ?? raw.ip_address ?? null,
+    macAddress: raw.macAddress ?? raw.mac_address ?? null,
     assignedUser: raw.assignedUser ?? raw.assignee ?? null,
     purchaseDate: raw.purchaseDate ?? raw.installationDate ?? null,
     warrantyExpiry: raw.warrantyExpiry ?? null,
@@ -177,24 +172,30 @@ function normalizeAsset(raw: unknown): Asset {
 
 export const assetApi = {
   getAll: async () => {
-    const result = await apiFetch<Paginated<unknown> | any[]>('/assets');
+    const result = await apiFetch<Paginated<any> | any[]>('/assets');
     const rows = Array.isArray(result) ? result : result.data;
     return rows.map(normalizeAsset);
   },
-  getOne: async (id: string) => normalizeAsset(await apiFetch<unknown>(`/assets/${id}`)),
+  getOne: async (id: string) => normalizeAsset(await apiFetch<any>(`/assets/${id}`)),
   create: (data: Partial<Asset>) =>
     apiFetch<Asset>('/assets', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Asset>) =>
     apiFetch<Asset>(`/assets/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   remove: (id: string) =>
     apiFetch<void>(`/assets/${id}`, { method: 'DELETE' }),
+  reassign: (id: string, assigneeId: string | null, notes?: string) =>
+    apiFetch<Asset>(`/assets/${id}/reassign`, { method: 'POST', body: JSON.stringify({ assigneeId, notes }) }),
+  retire: (id: string, reason: string, notes?: string) =>
+    apiFetch<Asset>(`/assets/${id}/retire`, { method: 'POST', body: JSON.stringify({ reason, notes }) }),
+  logEvent: (id: string, event_type: string, description: string) =>
+    apiFetch<any>(`/assets/${id}/log`, { method: 'POST', body: JSON.stringify({ event_type, description }) }),
 };
 
 // ---------- Inventory API ----------
 export interface InventoryItem {
    
+
   [key: string]: any;
-  [key: string]: unknown;
   id: string;
   name: string;
   sku?: string | null;
@@ -203,7 +204,6 @@ export interface InventoryItem {
   currentMeterMark?: number;
   minStock: number;
   maxStock: number;
-  unitCost?: number | null;
   status?: string | null;
   binLocation?: string | null;
   supplier?: string | null;
@@ -221,13 +221,15 @@ export const inventoryApi = {
     apiFetch<InventoryItem>(`/inventory/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   remove: (id: string) =>
     apiFetch<void>(`/inventory/${id}`, { method: 'DELETE' }),
+  issueAsset: (id: string, assigneeId: string | null, notes?: string) =>
+    apiFetch<any>(`/inventory/${id}/issue-asset`, { method: 'POST', body: JSON.stringify({ assigneeId, notes }) }),
 };
 
 // ---------- Repairs API ----------
 export interface Repair {
    
+
   [key: string]: any;
-  [key: string]: unknown;
   id: string;
   description: string;
   status: string;
@@ -277,20 +279,22 @@ export const repairsApi = {
 // ---------- Network API ----------
 export interface NetworkDevice {
    
+
   [key: string]: any;
-  [key: string]: unknown;
   id: string;
   hostname: string;
-  macAddress: string;
-  ipAddress: string;
+  mac_address: string;
+  ip_address: string;
   os?: string | null;
+  vendor?: string | null;
   deviceType?: string | null;
-  connectionStatus: string;
+  status: string;
   accessPoint?: string | null;
-  lastSeen: string;
+  last_seen: string;
   locationId?: string | null;
   networkName?: string | null;
   employee?: { id: string; name: string; email: string } | null;
+  mapped_asset_name?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -301,8 +305,8 @@ export const networkApi = {
     return Array.isArray(result) ? result : result.data;
   },
   getStaged: async () => apiFetch<NetworkDevice[]>('/devices/discovery/staged').catch(() => []),
-  triggerScan: () => apiFetch<{ message: string }>('/devices/discovery/scan', { method: 'POST' }).catch(() => ({ message: 'Scan complete' })),
-  promoteDevice: (id: string) => apiFetch<NetworkDevice>(`/devices/discovery/promote/${id}`, { method: 'POST' }).catch(() => ({ id, connectionStatus: 'ACTIVE' } as NetworkDevice)),
+  triggerScan: (devices: Partial<NetworkDevice>[]) => apiFetch<{ message: string }>('/devices/discovery/scan', { method: 'POST', body: JSON.stringify({ devices }) }),
+  promoteDevice: (id: string) => apiFetch<NetworkDevice>(`/devices/discovery/promote/${id}`, { method: 'POST' }).catch(() => ({ id, connectionStatus: 'ACTIVE' } as unknown as NetworkDevice)),
   getOne: (id: string) => apiFetch<NetworkDevice>(`/devices/${id}`),
   create: (data: Partial<NetworkDevice>) =>
     apiFetch<NetworkDevice>('/devices', { method: 'POST', body: JSON.stringify(data) }),
@@ -315,8 +319,8 @@ export const networkApi = {
 // ---------- Dashboard API ----------
 export interface DashboardStats {
    
+
   [key: string]: any;
-  [key: string]: unknown;
   kpis: {
     totalHardware: number;
     atRiskHardware: number;
@@ -336,8 +340,8 @@ export const dashboardApi = {
 // ---------- Employees API ----------
 export interface Employee {
    
+
   [key: string]: any;
-  [key: string]: unknown;
   id: string;
   name: string;
   email: string;
@@ -355,33 +359,107 @@ export const employeesApi = {
     return Array.isArray(result) ? result : result.data;
   },
   getOne: (id: string) => apiFetch<Employee>(`/employees/${id}`),
-  getProfile: (id: string) => apiFetch<unknown>(`/employees/${id}/profile`),
+  getProfile: (id: string) => apiFetch<any>(`/employees/${id}/profile`),
   create: (data: Partial<Employee>) => apiFetch<Employee>('/employees', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Employee>) => apiFetch<Employee>(`/employees/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   remove: (id: string) => apiFetch<void>(`/employees/${id}`, { method: 'DELETE' }),
 };
 
+export interface Camera {
+  id: string | number;
+  name: string;
+  ip_address: string;
+  mac_address?: string;
+  vendor?: string;
+  model?: string;
+  status: string;
+  resolution?: string;
+}
+
+export interface Connection {
+  id: string | number;
+  source_device_id: string | number;
+  target_device_id: string | number;
+  port?: string;
+  speed?: string;
+  status: string;
+}
+
+export interface KnowledgeArticle {
+  id: string | number;
+  title: string;
+  content: string;
+  tags?: string[];
+  author_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------- Ticket API ----------
+export interface TicketComment {
+  id: number;
+  authorName: string;
+  content: string;
+  isInternal: boolean;
+  createdAt: string;
+}
+
+export interface Ticket {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  category: string;
+  requesterId?: string | null;
+  requesterName?: string | null;
+  department?: string | null;
+  location?: string | null;
+  assetId?: string | null;
+  assigneeId?: number | null;
+  assigneeName?: string | null;
+  dueDate?: string | null;
+  createdAt: string;
+  comments?: TicketComment[] | null;
+}
+
+export const ticketsApi = {
+  getAll: async () => {
+    const result = await apiFetch<Ticket[]>('/tickets');
+    return result;
+  },
+  getOne: (id: string) => apiFetch<Ticket>(`/tickets/${id}`),
+  create: (data: Partial<Ticket>) =>
+    apiFetch<Ticket>('/tickets', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<Ticket>) =>
+    apiFetch<Ticket>(`/tickets/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  assign: (id: string, assigneeId: number | null) =>
+    apiFetch<Ticket>(`/tickets/${id}/assign`, { method: 'POST', body: JSON.stringify({ assigneeId }) }),
+  addComment: (id: string, content: string, isInternal: boolean, authorId?: number) =>
+    apiFetch<Ticket>(`/tickets/${id}/comments`, { method: 'POST', body: JSON.stringify({ content, isInternal, authorId }) }),
+};
+
 
 export interface Location {
    
-  [key: string]: any;
-  [key: string]: unknown; id: string | number; name: string; parentId?: string | number | null; }
+
+  [key: string]: any; id: string | number; name: string; parentId?: string | number | null; }
 export interface OperationHistoryRecord {
    
-  [key: string]: any;
-  [key: string]: unknown; id: string | number; }
+
+  [key: string]: any; id: string | number; }
 export interface OperationPayload {
    
-  [key: string]: any;
-  [key: string]: unknown; }
+
+  [key: string]: any; }
 
 
 
 
 export interface LocationDetails {
    
-  [key: string]: any;
-  [key: string]: unknown; id: string | number; }
+
+  [key: string]: any; id: string | number; }
 
 export const locationsApi = {
   getTree: async () => await apiFetch('/locations/tree'),
@@ -391,67 +469,143 @@ export const locationsApi = {
 
 export const operationsApi = {
   getHistory: async () => await apiFetch<OperationHistoryRecord[]>('/operations/history').catch(() => []),
-  execute: async (payload: unknown) => await apiFetch<unknown>('/operations/execute', { method: 'POST', body: JSON.stringify(payload) }).catch(() => ({ status: 'success' })),
+  execute: async (payload: any) => await apiFetch<any>('/operations/execute', { method: 'POST', body: JSON.stringify(payload) }).catch(() => ({ status: 'success' })),
   getAll: async () => await apiFetch<any[]>('/operations').catch(() => [])
 };
 
 
 export interface LocationRow {
    
-  [key: string]: any;
-  [key: string]: unknown; id: string | number; }
+
+  [key: string]: any; id: string | number; }
 export interface InstalledRow {
    
-  [key: string]: any;
-  [key: string]: unknown; id: string | number; }
+
+  [key: string]: any; id: string | number; }
 
 
 
 
 
 
-export interface EmployeeProfile {
-   
-  [key: string]: any; [key: string]: unknown; }
-export interface TimelineEvent {
-   
-  [key: string]: any; [key: string]: unknown; }
-export interface GlobalSearchResult {
-   
-  [key: string]: any; [key: string]: unknown; }
+export interface EmployeeProfile { [key: string]: any; }
+export interface TimelineEvent { [key: string]: any; }
+export interface GlobalSearchResult { [key: string]: any; }
 
 export const timelineApi = {
-  getTimeline: async (..._args: unknown[]) => [],
-  getEvents: async (..._args: unknown[]) => []
+  getTimeline: async (module?: string, limit = 100): Promise<TimelineEvent[]> => {
+    try {
+      const params = new URLSearchParams();
+      if (module) params.set('module', module);
+      params.set('limit', String(limit));
+      const data = await apiFetch<any[]>(`/timeline?${params}`);
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  },
+  getEvents: async (module?: string): Promise<TimelineEvent[]> => {
+    return timelineApi.getTimeline(module);
+  },
 };
 
 export const aiApi = {
-  ask: async (query: string, context?: unknown) => await apiFetch<unknown>('/ai/ask', { method: 'POST', body: JSON.stringify({ query, context }) }),
-  processQuery: async (..._args: unknown[]) => ({ text: '' }),
-  chat: async (..._args: unknown[]) => ({ text: '' })
+  ask: async (query: string, context?: any) => await apiFetch<any>('/ai/ask', { method: 'POST', body: JSON.stringify({ query, context }) }),
+  processQuery: async (..._args: any[]) => ({ text: '' }),
+  chat: async (..._args: any[]) => ({ text: '' })
 };
 
 export const searchApi = {
-  globalSearch: async (..._args: unknown[]) => ({})
+  globalSearch: async (query: string): Promise<{ assets: any[]; tickets: any[]; employees: any[] }> => {
+    if (!query || query.trim().length < 2) return { assets: [], tickets: [], employees: [] };
+    try {
+      const data = await apiFetch<any>(`/search?q=${encodeURIComponent(query.trim())}`);
+      return {
+        assets: Array.isArray(data?.assets) ? data.assets : [],
+        tickets: Array.isArray(data?.tickets) ? data.tickets : [],
+        employees: Array.isArray(data?.employees) ? data.employees : [],
+      };
+    } catch {
+      return { assets: [], tickets: [], employees: [] };
+    }
+  },
+};
+
+// ---------- Accessories API ----------
+export interface AccessoryItem {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  stock: number;
+  reorderLevel: number;
+  location: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const accessoriesApi = {
+  getAll: async (): Promise<AccessoryItem[]> => {
+    const data = await apiFetch<any>('/accessories');
+    return Array.isArray(data) ? data : [];
+  },
+  create: (data: Partial<AccessoryItem>) =>
+    apiFetch<AccessoryItem>('/accessories', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<AccessoryItem>) =>
+    apiFetch<AccessoryItem>(`/accessories/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  remove: (id: string) =>
+    apiFetch<void>(`/accessories/${id}`, { method: 'DELETE' }),
+  dispatch: (id: string, quantity: number, notes?: string) =>
+    apiFetch<AccessoryItem>(`/accessories/${id}/dispatch`, { method: 'POST', body: JSON.stringify({ quantity, notes }) }),
+  restock: (id: string, quantity: number) =>
+    apiFetch<AccessoryItem>(`/accessories/${id}/restock`, { method: 'POST', body: JSON.stringify({ quantity }) }),
+};
+
+// ---------- Software API ----------
+export interface SoftwareLicense {
+  id: string;
+  name: string;
+  version: string;
+  vendor: string;
+  totalSeats: number;
+  assignedSeats: number;
+  expiryDate: string;
+  status: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const softwareApi = {
+  getAll: async (): Promise<SoftwareLicense[]> => {
+    const data = await apiFetch<any>('/software');
+    return Array.isArray(data) ? data : [];
+  },
+  getKpis: () => apiFetch<any>('/software/kpis'),
+  create: (data: Partial<SoftwareLicense>) =>
+    apiFetch<SoftwareLicense>('/software', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<SoftwareLicense>) =>
+    apiFetch<SoftwareLicense>(`/software/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  remove: (id: string) =>
+    apiFetch<void>(`/software/${id}`, { method: 'DELETE' }),
 };
 
 export interface KnowledgeDocument {
-   
+  id: string;
+  title: string;
+  content?: string;
+  category: string;
+  tags?: string[];
   [key: string]: any;
-  id: string; 
-  title: string; 
-  content?: string; 
-  category: string; 
-  tags?: string[]; 
-  [key: string]: unknown;
 }
 
 export type DocumentCategory = string;
 
 export const knowledgeApi = {
-  getAll: async () => await apiFetch<unknown>('/knowledge'),
-  getOne: async (id: string) => await apiFetch<unknown>(`/knowledge/${id}`),
-  create: async (data: unknown) => await apiFetch<unknown>('/knowledge', { method: 'POST', body: JSON.stringify(data) }),
-  update: async (id: string, data: unknown) => await apiFetch<unknown>(`/knowledge/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  remove: async (id: string) => await apiFetch<unknown>(`/knowledge/${id}`, { method: 'DELETE' }),
+  getAll: async () => await apiFetch<any>('/knowledge'),
+  getOne: async (id: string) => await apiFetch<any>(`/knowledge/${id}`),
+  create: async (data: any) => await apiFetch<any>('/knowledge', { method: 'POST', body: JSON.stringify(data) }),
+  update: async (id: string, data: any) => await apiFetch<any>(`/knowledge/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  remove: async (id: string) => await apiFetch<any>(`/knowledge/${id}`, { method: 'DELETE' }),
 };

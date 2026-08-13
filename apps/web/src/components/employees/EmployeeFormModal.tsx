@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, AlertCircle } from "lucide-react";
@@ -63,7 +62,7 @@ export function EmployeeFormModal({ isOpen, onClose, onSuccess, employeeToEdit }
       }
       onSuccess();
       onClose();
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err.message || `Failed to ${employeeToEdit ? 'update' : 'create'} employee`);
     } finally {
       setIsSubmitting(false);
@@ -121,7 +120,7 @@ export function EmployeeFormModal({ isOpen, onClose, onSuccess, employeeToEdit }
                     <label htmlFor="emp-department" className="block text-sm font-semibold text-foreground mb-1.5">Department</label>
                     <input id="emp-department" list="departments-list" type="text" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary shadow-sm" placeholder="e.g. Engineering" />
                     <datalist id="departments-list">
-                      {taxonomies.departments?.map(d => <option key={d} value={d} />)}
+                      {["Engineering", "Design", "Product", "Operations", "HR", "Sales", "Support", "Marketing"].map(d => <option key={d} value={d} />)}
                     </datalist>
                   </div>
                   <div>

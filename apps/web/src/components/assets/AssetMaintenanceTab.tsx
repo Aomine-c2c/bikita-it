@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
-import { type _Asset } from "@/lib/api";
+import { type Asset } from "@/lib/api";
 import { Wrench, Clock, ShieldCheck, Cpu, HardDrive, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +17,7 @@ const getTypeIcon = (type: string) => {
   return <AlertCircle className="w-3.5 h-3.5" />;
 };
 
-export function AssetMaintenanceTab({ asset }: { asset: unknown }) {
+export function AssetMaintenanceTab({ asset }: { asset: any }) {
   const repairs = asset.repairs || [];
 
   return (
@@ -47,45 +46,36 @@ export function AssetMaintenanceTab({ asset }: { asset: unknown }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {repairs.map((rp: unknown) => (
+              {repairs.map((rp: any) => (
+                
                 <tr key={rp.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
                     <div className="flex flex-col">
-                      <span>{rp.scheduledDate ? new Date(rp.scheduledDate).toLocaleDateString() : new Date(rp.createdAt).toLocaleDateString()}</span>
-                      {rp.completedDate && (
-                        <span className="text-xs text-muted-foreground">Completed {new Date(rp.completedDate).toLocaleDateString()}</span>
-                      )}
+                      <span>{rp.createdAt ? rp.createdAt.split('T')[0] : ''}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                      {getTypeIcon(rp.type || "Repair")}
-                      {rp.type || "Repair"}
+                      {getTypeIcon("Repair")}
+                      Repair Ticket
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={cn(
                       "inline-flex items-center px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider",
-                      rp.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700" :
-                      rp.status === "IN_PROGRESS" ? "bg-blue-50 text-blue-700" :
-                      rp.status === "QUEUED" ? "bg-amber-50 text-amber-700" :
+                      rp.status === "Closed" || rp.status === "Resolved" ? "bg-emerald-50 text-emerald-700" :
+                      rp.status === "In Progress" ? "bg-blue-50 text-blue-700" :
+                      rp.status === "New" ? "bg-amber-50 text-amber-700" :
                       "bg-slate-50 text-slate-600"
                     )}>
                       {rp.status}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    {rp.technician?.name ? (
-                      <span className="font-medium text-foreground">{rp.technician.name}</span>
-                    ) : (
-                      <span className="text-muted-foreground italic">Unassigned</span>
-                    )}
+                    <span className="text-muted-foreground italic">IT Support</span>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-foreground font-medium">{rp.description}</p>
-                    {rp.remarks && (
-                      <p className="text-xs text-muted-foreground mt-1 bg-slate-50 p-2 rounded italic">&quot;{rp.remarks}&quot;</p>
-                    )}
+                    <p className="text-foreground font-medium">{rp.title}</p>
                   </td>
                 </tr>
               ))}

@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React from "react";
-import { _Activity, Router, Server, Wifi, ShieldAlert, Globe } from "lucide-react";
+import { Activity, Router, Server, Wifi, ShieldAlert, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 

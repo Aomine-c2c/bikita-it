@@ -1,29 +1,11 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  closestCorners,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragStartEvent,
-  DragOverEvent,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
+import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, DragStartEvent, DragOverEvent, DragEndEvent,  } from "@dnd-kit/core";
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable,  } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MoreHorizontal, MessageSquare, Paperclip, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -108,7 +90,7 @@ function SortableTicket({ ticket, onClick }: { ticket: Ticket; onClick?: () => v
     >
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">{ticket.id.substring(0,8)}</span>
+          <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">{String(ticket.id).substring(0,8)}</span>
           <span className="text-[10px] text-muted-foreground/60">·</span>
           <span className="text-[10px] text-muted-foreground">{ticket.category}</span>
         </div>
@@ -157,12 +139,27 @@ export function KanbanBoard({ onTicketClick }: { onTicketClick: (ticketId: strin
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await apiFetch<any[]>("get_helpdesk_tickets");
-        if (Array.isArray(res)) {
-          const mappedTickets = res.map(t => ({
-            ...t,
-            columnId: t.status, // We use status as columnId for the board
-          }));
+        const res = await apiFetch<any>("/tickets");
+        console.log("KanbanBoard tickets response:", res);
+        if (res && res.data) {
+          const mappedTickets = res.data.map((t: any) => {
+            const slaHours = t.slaDueDate ? Math.max(0, Math.floor((new Date(t.slaDueDate).getTime() - new Date().getTime()) / 3600000)) : undefined;
+            return {
+              ...t,
+              columnId: t.status, // We use status as columnId for the board
+              slaHours,
+            };
+          });
+          setTickets(mappedTickets);
+        } else if (Array.isArray(res)) {
+          const mappedTickets = res.map(t => {
+            const slaHours = t.slaDueDate ? Math.max(0, Math.floor((new Date(t.slaDueDate).getTime() - new Date().getTime()) / 3600000)) : undefined;
+            return {
+              ...t,
+              columnId: t.status,
+              slaHours,
+            };
+          });
           setTickets(mappedTickets);
         }
       } catch (e) {
@@ -238,11 +235,21 @@ export function KanbanBoard({ onTicketClick }: { onTicketClick: (ticketId: strin
       // If we dropped over a column (overIndex might be -1 if overId is a columnId)
       if (overIndex === -1) {
         const updated = [...prev];
+        const oldStatus = updated[activeIndex].columnId;
         updated[activeIndex].columnId = overId as string;
+        if (oldStatus !== overId) {
+          apiFetch(`/tickets/${activeId}`, { method: 'PATCH', body: JSON.stringify({ status: overId }) }).catch(console.error);
+        }
         return updated;
       }
 
-      return arrayMove(prev, activeIndex, overIndex);
+      const updatedList = arrayMove(prev, activeIndex, overIndex);
+      // Since it's a list move within the same column or across columns
+      const newStatus = updatedList[overIndex].columnId;
+      if (prev[activeIndex].columnId !== newStatus) {
+         apiFetch(`/tickets/${activeId}`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) }).catch(console.error);
+      }
+      return updatedList;
     });
   };
 

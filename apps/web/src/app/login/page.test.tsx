@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -26,13 +25,13 @@ describe('LoginPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(useRouter as unknown).mockReturnValue({
+    ;(useRouter as any).mockReturnValue({
       push: mockPush,
       refresh: mockRefresh,
     })
     
     // Reset apiFetch mock
-    ;(apiFetch as unknown).mockReset()
+    ;(apiFetch as any).mockReset()
   })
 
   it('renders login form elements', () => {
@@ -45,7 +44,7 @@ describe('LoginPage', () => {
   })
 
   it('shows error message on failed login', async () => {
-    ;(apiFetch as unknown).mockRejectedValueOnce(new Error('Invalid credentials'))
+    ;(apiFetch as any).mockRejectedValueOnce(new Error('Invalid credentials'))
 
     render(<LoginPage />)
     
@@ -60,7 +59,7 @@ describe('LoginPage', () => {
   })
 
   it('redirects to home on successful login', async () => {
-    ;(apiFetch as unknown).mockResolvedValueOnce({ access_token: 'fake-jwt-token' })
+    ;(apiFetch as any).mockResolvedValueOnce({ access_token: 'fake-jwt-token' })
 
     render(<LoginPage />)
     

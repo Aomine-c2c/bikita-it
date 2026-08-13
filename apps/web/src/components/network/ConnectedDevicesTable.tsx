@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, MonitorSmartphone, Wifi, RefreshCcw, _Edit2, Link } from "lucide-react";
-import { networkApi, _NetworkDevice } from "@/lib/api";
+import { Search, MonitorSmartphone, Wifi, RefreshCcw, Edit2, Link } from "lucide-react";
+import { networkApi, NetworkDevice } from "@/lib/api";
 
 import { useQuery } from "@tanstack/react-query";
 
@@ -18,17 +17,17 @@ export function ConnectedDevicesTable() {
     queryKey: ['networkDevices'],
     queryFn: async () => {
       const data = await networkApi.getAll();
-      return Array.isArray(data) ? data : (data as unknown).data ?? [];
+      return Array.isArray(data) ? data : (data as any).data ?? [];
     }
   });
 
-  const filteredDevices = devices.filter((dev: unknown) => {
+  const filteredDevices = devices.filter((dev: any) => {
     const q = searchQuery.toLowerCase();
     const mac = dev.macAddress?.toLowerCase() || "";
     const ip = dev.ipAddress?.toLowerCase() || "";
     const hostname = dev.hostname?.toLowerCase() || "";
-    const employee = (dev as unknown).employeeId?.toLowerCase() || (dev as unknown).employee?.name?.toLowerCase() || "";
-    const asset = (dev as unknown).assetId?.toLowerCase() || (dev as unknown).asset?.name?.toLowerCase() || "";
+    const employee = (dev as any).employeeId?.toLowerCase() || (dev as any).employee?.name?.toLowerCase() || "";
+    const asset = (dev as any).assetId?.toLowerCase() || (dev as any).asset?.name?.toLowerCase() || "";
     
     return mac.includes(q) || ip.includes(q) || hostname.includes(q) || employee.includes(q) || asset.includes(q);
   });
@@ -88,7 +87,7 @@ export function ConnectedDevicesTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
-              {filteredDevices.map((device: unknown, idx: number) => (
+              {filteredDevices.map((device: any, idx: number) => (
                 <motion.tr 
                   key={device.id}
                   initial={{ opacity: 0, y: 5 }}
@@ -106,26 +105,26 @@ export function ConnectedDevicesTable() {
                     {device.macAddress}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">
-                    {(device as unknown).networkName || '-'}
+                    {(device as any).networkName || '-'}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">
-                    {(device as unknown).os || '-'} / {(device as unknown).deviceType || '-'}
+                    {(device as any).os || '-'} / {(device as any).deviceType || '-'}
                   </td>
                   <td className="px-4 py-3 text-xs">
-                    {(device as unknown).employeeId ? (
+                    {(device as any).employeeId ? (
                       <span className="inline-flex items-center gap-1 text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">
                         <Link className="w-3 h-3" />
-                        {(device as unknown).employeeId}
+                        {(device as any).employeeId}
                       </span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs">
-                    {(device as unknown).assetId ? (
+                    {(device as any).assetId ? (
                       <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">
                         <Link className="w-3 h-3" />
-                        {(device as unknown).assetId}
+                        {(device as any).assetId}
                       </span>
                     ) : (
                       <span className="text-muted-foreground">-</span>

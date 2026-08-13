@@ -1,15 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { timelineApi, TimelineEvent } from "@/lib/api";
 import { formatDistanceToNow, format } from "date-fns";
-import { 
-  Box, Users, MapPin, Network, ClipboardList, Wrench, Activity, Search
-} from "lucide-react";
+import { Box, Users, MapPin, Network, ClipboardList, Wrench, Activity, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const MODULES = [
@@ -124,9 +121,9 @@ export function ActivityFeed() {
                       </p>
                     </div>
                     <div className="text-xs text-muted-foreground whitespace-nowrap text-right shrink-0">
-                      {formatDistanceToNow(new Date((evt as unknown).createdAt || evt.created_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date((evt as any).createdAt || evt.created_at), { addSuffix: true })}
                       <div className="text-[10px] opacity-70 mt-0.5">
-                        {format(new Date((evt as unknown).createdAt || evt.created_at), "MMM d, h:mm a")}
+                        {format(new Date((evt as any).createdAt || evt.created_at), "MMM d, h:mm a")}
                       </div>
                     </div>
                   </div>
@@ -137,7 +134,7 @@ export function ActivityFeed() {
                       {evt.module}
                     </span>
                     <span className="inline-flex text-[10px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100">
-                      ID: {(evt as unknown).entityId || (evt as unknown).entity_id || evt.id.substring(0,8)}...
+                      ID: {(evt as any).entityId || (evt as any).entity_id || evt.id.substring(0,8)}...
                     </span>
                     <span className={cn("inline-flex text-[10px] font-bold uppercase px-2 py-0.5 rounded border", 
                       evt.action === "CREATED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :

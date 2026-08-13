@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
  
  
-// @ts-nocheck
-import { AIModule, _AIIntent, AIContext, AIResponse } from './types';
+
+import { AIModule, AIIntent, AIContext, AIResponse } from './types';
 import { IntentParser } from './IntentParser';
 
 export class CommandCenter {
