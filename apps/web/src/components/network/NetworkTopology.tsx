@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
   ReactFlow, Controls, Background, useNodesState, useEdgesState,
-  addEdge, type Connection, type Edge, type Node, Handle, Position,
+  addEdge, type Connection, type Edge, Handle, Position,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { cn } from "@/lib/utils";
@@ -53,7 +53,7 @@ const nodeTypes = { networkNode: NetworkNode };
 
 // ─── Layout helper — simple force-free grid arrangement ───────────────────────
 
-function layoutDevices(devices: NetworkDevice[]): Node[] {
+function layoutDevices(devices: NetworkDevice[]): any[] {
   const COLS = 4;
   const H_GAP = 200;
   const V_GAP = 120;
@@ -125,7 +125,7 @@ export function NetworkTopology() {
 
   useEffect(() => { loadDevices(); }, [loadDevices]);
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
     setSelectedDevice(node.data);
   }, []);
 

@@ -3,23 +3,23 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ShieldAlert, ArrowRight, Box, ClipboardList, Wrench, Network, CheckCircle2 } from "lucide-react";
+import { ArrowRight, ShieldCheck, Box, ClipboardList, Wrench, Network, Zap } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
-interface GrainParticle {
+interface Point3D {
   x: number;
   y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  baseAlpha: number;
-  color: string;
+  z: number;
 }
 
-interface PulseRing {
-  radius: number;
-  maxRadius: number;
-  speed: number;
+interface Particle3D {
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  size: number;
   alpha: number;
 }
 
@@ -28,6 +28,7 @@ export function ParticleSplash() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isWarping, setIsWarping] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+
   const [telemetry, setTelemetry] = useState({
     assets: 50,
     inventory: 142,
@@ -35,7 +36,6 @@ export function ParticleSplash() {
     network: 99.8,
   });
 
-  // Fetch real telemetry stats to showcase
   useEffect(() => {
     async function loadStats() {
       try {
@@ -50,13 +50,13 @@ export function ParticleSplash() {
           network: 99.8,
         });
       } catch {
-        // Keep default telemetry stats
+        // Fallback
       }
     }
     loadStats();
   }, []);
 
-  const handleProceed = async () => {
+  const handleAdaptationTrigger = async () => {
     if (isNavigating) return;
     setIsNavigating(true);
     setIsWarping(true);
@@ -73,11 +73,11 @@ export function ParticleSplash() {
         } else {
           router.push("/login");
         }
-      }, 600);
+      }, 700);
     } catch {
       setTimeout(() => {
         router.push("/login");
-      }, 600);
+      }, 700);
     }
   };
 
@@ -85,7 +85,7 @@ export function ParticleSplash() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        handleProceed();
+        handleAdaptationTrigger();
       }
     };
 
@@ -93,6 +93,7 @@ export function ParticleSplash() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isNavigating]);
 
+  // 3D Mahoraga Wheel & Grain Particles Engine
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -110,107 +111,207 @@ export function ParticleSplash() {
     };
     window.addEventListener("resize", handleResize);
 
-    // 500+ Grain Particles
-    const PARTICLE_COUNT = 520;
-    const colors = [
-      "rgba(99, 102, 241, ", // Indigo
-      "rgba(16, 185, 129, ", // Emerald
-      "rgba(59, 130, 246, ", // Blue
-      "rgba(148, 163, 184, ", // Slate
-    ];
+    // 3D Rotation State
+    let angleZ = 0;
+    let angleY = 0.2;
+    let angleX = 0.3;
 
-    const particles: GrainParticle[] = Array.from({ length: PARTICLE_COUNT }).map(() => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
+    // 450 Micro-Grain Particles around the Wheel
+    const PARTICLE_COUNT = 450;
+    const particles: Particle3D[] = Array.from({ length: PARTICLE_COUNT }).map(() => ({
+      x: (Math.random() - 0.5) * 800,
+      y: (Math.random() - 0.5) * 800,
+      z: (Math.random() - 0.5) * 800,
       vx: (Math.random() - 0.5) * 0.8,
       vy: (Math.random() - 0.5) * 0.8,
-      size: Math.random() * 1.2 + 0.6, // Fine grain size 0.6px - 1.8px
-      baseAlpha: Math.random() * 0.4 + 0.2,
-      color: colors[Math.floor(Math.random() * colors.length)],
+      vz: (Math.random() - 0.5) * 0.8,
+      size: Math.random() * 1.5 + 0.8,
+      alpha: Math.random() * 0.5 + 0.2,
     }));
 
-    // Radial Pulse Shockwaves
-    let pulseRings: PulseRing[] = [];
-    let lastPulseTime = 0;
+    // 3D Projection Math helper
+    const project = (p: Point3D) => {
+      // Z rotation
+      const cosZ = Math.cos(angleZ);
+      const sinZ = Math.sin(angleZ);
+      const x1 = p.x * cosZ - p.y * sinZ;
+      const y1 = p.x * sinZ + p.y * cosZ;
+      const z1 = p.z;
 
-    const render = (time: number) => {
+      // Y rotation
+      const cosY = Math.cos(angleY);
+      const sinY = Math.sin(angleY);
+      const x2 = x1 * cosY + z1 * sinY;
+      const y2 = y1;
+      const z2 = -x1 * sinY + z1 * cosY;
+
+      // X rotation
+      const cosX = Math.cos(angleX);
+      const sinX = Math.sin(angleX);
+      const x3 = x2;
+      const y3 = y2 * cosX - z2 * sinX;
+      const z3 = y2 * sinX + z2 * cosX;
+
+      // Perspective projection
+      const fov = 450;
+      const scale = fov / (fov + z3 + 400);
+      return {
+        x: width / 2 + x3 * scale,
+        y: height / 2 + y3 * scale,
+        scale,
+        z: z3,
+      };
+    };
+
+    let shockwaveRadius = 0;
+
+    const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      const centerX = width / 2;
-      const centerY = height / 2;
+      // Smooth Z rotation (continuous + Mahoraga click turns)
+      const rotationSpeed = isWarping ? 0.08 : 0.006;
+      angleZ += rotationSpeed;
 
-      // Spawn continuous 2-second pulse shockwaves
-      const pulseInterval = isWarping ? 300 : 2000;
-      if (time - lastPulseTime > pulseInterval) {
-        pulseRings.push({
-          radius: 0,
-          maxRadius: Math.max(width, height) * 0.8,
-          speed: isWarping ? 12 : 3.5,
-          alpha: 0.8,
-        });
-        lastPulseTime = time;
-      }
+      // Ambient X/Y tilt wobble
+      angleY = Math.sin(Date.now() * 0.001) * 0.25;
+      angleX = Math.cos(Date.now() * 0.001) * 0.2;
 
-      // Update & draw pulse shockwaves
-      pulseRings = pulseRings.filter((ring) => ring.radius < ring.maxRadius && ring.alpha > 0.01);
-      pulseRings.forEach((ring) => {
-        ring.radius += ring.speed;
-        ring.alpha -= 0.003 * (isWarping ? 3 : 1);
-
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, ring.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(99, 102, 241, ${Math.max(0, ring.alpha * 0.35)})`;
-        ctx.lineWidth = isWarping ? 3 : 1.5;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "#6366f1";
-        ctx.stroke();
-      });
-
-      // Render micro-grain particles & pulse shockwave interactions
+      // Draw background 3D Micro-Grain Particles
       particles.forEach((p) => {
-        const speed = isWarping ? 14 : 1;
-        p.x += p.vx * speed;
-        p.y += p.vy * speed;
+        p.x += p.vx * (isWarping ? 4 : 1);
+        p.y += p.vy * (isWarping ? 4 : 1);
+        p.z += p.vz * (isWarping ? 4 : 1);
 
-        if (p.x < 0) p.x = width;
-        if (p.x > width) p.x = 0;
-        if (p.y < 0) p.y = height;
-        if (p.y > height) p.y = 0;
+        if (p.x > 500) p.x = -500;
+        if (p.x < -500) p.x = 500;
+        if (p.y > 500) p.y = -500;
+        if (p.y < -500) p.y = 500;
+        if (p.z > 500) p.z = -500;
+        if (p.z < -500) p.z = 500;
 
-        // Calculate distance to center
-        const dx = p.x - centerX;
-        const dy = p.y - centerY;
-        const distToCenter = Math.sqrt(dx * dx + dy * dy);
-
-        // Check if any pulse ring is currently passing through this grain particle
-        let currentAlpha = p.baseAlpha;
-        let glowBoost = 0;
-
-        pulseRings.forEach((ring) => {
-          const ringDist = Math.abs(distToCenter - ring.radius);
-          if (ringDist < 40) {
-            glowBoost = (1 - ringDist / 40) * 0.6;
-          }
-        });
-
-        const finalAlpha = Math.min(1, currentAlpha + glowBoost);
-
+        const proj = project(p);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, glowBoost > 0.2 ? p.size * 1.5 : p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${finalAlpha})`;
-        if (glowBoost > 0.2) {
-          ctx.shadowBlur = 8;
-          ctx.shadowColor = "#6366f1";
-        } else {
-          ctx.shadowBlur = 0;
-        }
+        ctx.arc(proj.x, proj.y, p.size * proj.scale, 0, Math.PI * 2);
+        ctx.fillStyle = isWarping
+          ? `rgba(99, 102, 241, ${p.alpha * proj.scale})`
+          : `rgba(148, 163, 184, ${p.alpha * proj.scale * 0.7})`;
         ctx.fill();
       });
+
+      // ─── DRAW 3D MAHORAGA WHEEL (Eight-Handled Divergent Sila Divine General Wheel) ───
+      const WHEEL_RADIUS = 160;
+      const HANDLE_COUNT = 8;
+
+      // 1. Draw Outer Rim Circle
+      const SEGMENTS = 64;
+      ctx.beginPath();
+      for (let i = 0; i <= SEGMENTS; i++) {
+        const theta = (i / SEGMENTS) * Math.PI * 2;
+        const pt = project({
+          x: Math.cos(theta) * WHEEL_RADIUS,
+          y: Math.sin(theta) * WHEEL_RADIUS,
+          z: 0,
+        });
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = isWarping ? "rgba(99, 102, 241, 0.9)" : "rgba(99, 102, 241, 0.6)";
+      ctx.lineWidth = isWarping ? 4 : 2.5;
+      ctx.shadowBlur = isWarping ? 25 : 12;
+      ctx.shadowColor = "#6366f1";
+      ctx.stroke();
+
+      // Inner Hub Rim Circle
+      ctx.beginPath();
+      for (let i = 0; i <= SEGMENTS; i++) {
+        const theta = (i / SEGMENTS) * Math.PI * 2;
+        const pt = project({
+          x: Math.cos(theta) * (WHEEL_RADIUS * 0.4),
+          y: Math.sin(theta) * (WHEEL_RADIUS * 0.4),
+          z: 0,
+        });
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.7)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Central Energy Core Node
+      const centerPt = project({ x: 0, y: 0, z: 0 });
+      ctx.beginPath();
+      ctx.arc(centerPt.x, centerPt.y, 12 * centerPt.scale, 0, Math.PI * 2);
+      ctx.fillStyle = "#6366f1";
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = "#10b981";
+      ctx.fill();
+
+      // 2. Draw 8 Spokes & 8 Handles (Eight-Handled Divergent Sila Wheel)
+      for (let h = 0; h < HANDLE_COUNT; h++) {
+        const angle = (h / HANDLE_COUNT) * Math.PI * 2;
+
+        const hubPt = project({
+          x: Math.cos(angle) * (WHEEL_RADIUS * 0.4),
+          y: Math.sin(angle) * (WHEEL_RADIUS * 0.4),
+          z: 0,
+        });
+
+        const rimPt = project({
+          x: Math.cos(angle) * WHEEL_RADIUS,
+          y: Math.sin(angle) * WHEEL_RADIUS,
+          z: 0,
+        });
+
+        const handleTipPt = project({
+          x: Math.cos(angle) * (WHEEL_RADIUS + 45),
+          y: Math.sin(angle) * (WHEEL_RADIUS + 45),
+          z: 0,
+        });
+
+        // Draw Spoke Line
+        ctx.beginPath();
+        ctx.moveTo(hubPt.x, hubPt.y);
+        ctx.lineTo(rimPt.x, rimPt.y);
+        ctx.strokeStyle = "rgba(99, 102, 241, 0.7)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw Handle Shaft
+        ctx.beginPath();
+        ctx.moveTo(rimPt.x, rimPt.y);
+        ctx.lineTo(handleTipPt.x, handleTipPt.y);
+        ctx.strokeStyle = "#3b82f6";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Draw Mahoraga Handle Tip Knob
+        ctx.beginPath();
+        ctx.arc(handleTipPt.x, handleTipPt.y, 7 * handleTipPt.scale, 0, Math.PI * 2);
+        ctx.fillStyle = isWarping ? "#10b981" : "#6366f1";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#6366f1";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Draw Shockwave Ring on ENTER / Click Adaptation
+      if (isWarping) {
+        shockwaveRadius += 15;
+        ctx.beginPath();
+        ctx.arc(centerPt.x, centerPt.y, shockwaveRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(16, 185, 129, ${Math.max(0, 1 - shockwaveRadius / 600)})`;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#10b981";
+        ctx.stroke();
+      }
 
       animationFrameId = requestAnimationFrame(render);
     };
 
-    render(0);
+    render();
 
     return () => {
       cancelAnimationFrame(animationFrameId);
@@ -220,15 +321,15 @@ export function ParticleSplash() {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-slate-950 flex items-center justify-center font-sans select-none">
-      {/* Canvas micro-grain particle background */}
+      {/* 3D Mahoraga Wheel & Grain Canvas */}
       <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
 
-      {/* Ambient native Indigo & Emerald background glows */}
+      {/* Ambient background glows */}
       <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-indigo-600/15 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-emerald-600/15 rounded-full blur-[130px] pointer-events-none" />
 
-      {/* Main Container Showcase */}
-      <div className="relative z-10 max-w-4xl w-full mx-4 flex flex-col items-center">
+      {/* Centerpiece Container */}
+      <div className="relative z-10 max-w-4xl w-full mx-4 flex flex-col items-center pointer-events-auto">
         
         {/* Centerpiece Glassmorphic Card */}
         <motion.div
@@ -237,11 +338,11 @@ export function ParticleSplash() {
           transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
           className="bg-slate-900/85 backdrop-blur-2xl border border-slate-800 rounded-3xl p-8 sm:p-10 max-w-lg w-full shadow-2xl text-center flex flex-col items-center border-indigo-500/20 mb-8"
         >
-          {/* Pulsing Logo Badge */}
+          {/* Mahoraga Adaptation Status Badge */}
           <div className="relative mb-5">
             <div className="absolute inset-0 rounded-2xl bg-indigo-500/25 blur-xl animate-pulse" />
             <div className="relative w-16 h-16 rounded-2xl bg-indigo-600 border border-indigo-400/40 flex items-center justify-center shadow-2xl">
-              <ShieldAlert className="w-9 h-9 text-white" />
+              <Zap className="w-9 h-9 text-emerald-400 animate-bounce" />
             </div>
           </div>
 
@@ -249,44 +350,34 @@ export function ParticleSplash() {
           <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
             PULSE <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-emerald-400 to-indigo-300">IT Operations</span>
           </h1>
-          <span className="mt-1 text-[10px] font-black tracking-widest text-indigo-400 uppercase bg-indigo-950/80 border border-indigo-800/50 px-3 py-1 rounded-full">
-            Enterprise Infrastructure Node Architecture v2.0
+          <span className="mt-1 text-[10px] font-black tracking-widest text-indigo-400 uppercase bg-indigo-950/80 border border-indigo-800/50 px-3 py-1 rounded-full flex items-center gap-1.5 justify-center">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            Divine General Wheel Architecture v2.0
           </span>
 
           <p className="mt-4 text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm">
-            Unified hardware lifecycle, consumable inventory, automated helpdesk SLAs, and real-time network telemetry.
+            Continuous system adaptation — asset lifecycle tracking, consumable inventory, automated helpdesk SLAs, and network telemetry.
           </p>
 
-          {/* Live Heartbeat SVG Wave */}
+          {/* 3D Wheel Adaptation Notches Indicator */}
           <div className="w-full my-6 py-2.5 px-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl flex items-center justify-between gap-3 text-[11px] text-slate-400">
             <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span className="font-bold text-slate-300">System Pulse Active</span>
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span className="font-bold text-slate-300">Mahoraga Wheel Active</span>
             </div>
 
-            <svg className="w-32 h-6 text-indigo-400" viewBox="0 0 100 25" fill="none">
-              <path
-                d="M0 12.5 H30 L35 2 L42 23 L48 8 L54 17 L58 12.5 H100"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <span className="font-mono text-indigo-400 font-bold">8-Handled Rotation</span>
 
-            <span className="font-mono text-emerald-400 font-bold">2.0s Shockwave</span>
+            <span className="font-mono text-emerald-400 font-bold">60 FPS</span>
           </div>
 
-          {/* Enter Prompt & Button */}
+          {/* Enter Prompt & Adaptation Spin Button */}
           <button
-            onClick={handleProceed}
+            onClick={handleAdaptationTrigger}
             disabled={isNavigating}
             className="w-full py-3.5 px-6 bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white font-bold rounded-2xl shadow-xl hover:shadow-indigo-500/25 transition-all flex items-center justify-center gap-3 text-sm cursor-pointer group border border-indigo-400/30"
           >
-            <span>Initialize System</span>
+            <span>Rotate Wheel & Initialize</span>
             <kbd className="hidden sm:inline-flex items-center justify-center bg-white/20 text-white rounded-md text-[10px] font-black h-5 px-2 tracking-wider border border-white/30">
               ENTER ↵
             </kbd>
@@ -311,7 +402,7 @@ export function ParticleSplash() {
           </div>
         </motion.div>
 
-        {/* "Showing Everything" — 4 Core Module Showcase Widgets */}
+        {/* 4 Core Module Showcase Widgets with Uniform App Colors */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: isWarping ? 0 : 1, y: 0 }}
