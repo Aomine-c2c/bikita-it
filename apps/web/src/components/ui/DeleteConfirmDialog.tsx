@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
@@ -24,8 +24,8 @@ export function DeleteConfirmDialog({ isOpen, onClose, onConfirm, title, message
     try {
       await onConfirm();
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to delete item");
+    } catch (err: unknown) {
+      setError((err as Error)?.message || "Failed to delete item");
     } finally {
       setIsDeleting(false);
     }

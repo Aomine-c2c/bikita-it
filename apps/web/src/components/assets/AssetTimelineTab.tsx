@@ -7,8 +7,34 @@ import React from "react";
 import { type Asset } from "@/lib/api";
 import { Activity, Clock } from "lucide-react";
 
-export function AssetTimelineTab({ asset }: { asset: any }) {
-  const events: any[] = [];
+export interface AssetTimelineEvent {
+  id: string | number;
+  date: string;
+  title: string;
+  type: "system" | "movement" | "repair" | string;
+  desc?: string;
+}
+
+interface AssetTimelineTabProps {
+  asset: Asset & {
+    history?: Array<{
+      id: string | number;
+      timestamp: string;
+      event_type: string;
+      description?: string;
+      performed_by?: string;
+    }>;
+    repairs?: Array<{
+      id: string | number;
+      createdAt: string;
+      status: string;
+      description?: string;
+    }>;
+  };
+}
+
+export function AssetTimelineTab({ asset }: AssetTimelineTabProps) {
+  const events: AssetTimelineEvent[] = [];
   
   if (asset.createdAt) {
     events.push({ id: 'created', date: asset.createdAt, title: 'Asset Created', type: 'system' });
@@ -18,18 +44,18 @@ export function AssetTimelineTab({ asset }: { asset: any }) {
   }
   
   const history = asset.history || [];
-  history.forEach((tx: any) => {
+  history.forEach((tx) => {
     events.push({ 
       id: tx.id, 
       date: tx.timestamp, 
       title: tx.event_type, 
       type: 'movement', 
-      desc: `${tx.description} (by ${tx.performed_by || 'System'})` 
+      desc: `${tx.description || ''} (by ${tx.performed_by || 'System'})` 
     });
   });
 
   const repairs = asset.repairs || [];
-  repairs.forEach((rp: any) => {
+  repairs.forEach((rp) => {
     events.push({ id: rp.id, date: rp.createdAt, title: `Repair: ${rp.status}`, type: 'repair', desc: rp.description });
   });
 
@@ -43,7 +69,7 @@ export function AssetTimelineTab({ asset }: { asset: any }) {
       </div>
 
       <div className="bg-white border border-border/60 rounded-2xl p-8">
-        <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/60 before:to-transparent">
+        <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-border/60 before:to-transparent">
           {events.map((event) => (
             
             <div key={event.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">

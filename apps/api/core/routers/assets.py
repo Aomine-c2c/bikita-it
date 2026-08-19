@@ -8,6 +8,77 @@ from .schemas import AssetSchema, AssetInSchema, AssetHistorySchema
 
 router = Router()
 
+def normalize_asset_payload(payload_dict: dict) -> dict:
+    data = {}
+    if "name" in payload_dict and payload_dict["name"] is not None:
+        data["name"] = payload_dict["name"]
+    if "category" in payload_dict and payload_dict["category"] is not None:
+        data["category"] = payload_dict["category"]
+    if "status" in payload_dict and payload_dict["status"] is not None:
+        data["status"] = payload_dict["status"]
+    
+    # Make / Manufacturer
+    make = payload_dict.get("make") or payload_dict.get("manufacturer")
+    if make is not None:
+        data["make"] = make
+        
+    if "model" in payload_dict and payload_dict["model"] is not None:
+        data["model"] = payload_dict["model"]
+        
+    # Serial Number
+    serial = payload_dict.get("serial_number") or payload_dict.get("serialNumber")
+    if serial is not None:
+        data["serial_number"] = serial
+        
+    # Asset Tag
+    tag = payload_dict.get("asset_tag") or payload_dict.get("assetTag") or payload_dict.get("tag")
+    if tag is not None:
+        data["asset_tag"] = tag
+        
+    # IP Address
+    ip = payload_dict.get("ip_address") or payload_dict.get("ipAddress")
+    if ip is not None:
+        data["ip_address"] = ip or None
+        
+    # MAC Address
+    mac = payload_dict.get("mac_address") or payload_dict.get("macAddress")
+    if mac is not None:
+        data["mac_address"] = mac or None
+        
+    # Purchase Date
+    pdate = payload_dict.get("purchase_date") or payload_dict.get("purchaseDate")
+    if pdate is not None:
+        data["purchase_date"] = pdate or None
+        
+    # Warranty Expiry
+    wdate = payload_dict.get("warranty_expiry") or payload_dict.get("warrantyExpiry")
+    if wdate is not None:
+        data["warranty_expiry"] = wdate or None
+        
+    if "notes" in payload_dict and payload_dict["notes"] is not None:
+        data["notes"] = payload_dict["notes"]
+        
+    if "specs" in payload_dict and payload_dict["specs"] is not None:
+        data["specs"] = payload_dict["specs"]
+        
+    # Location
+    loc_id = payload_dict.get("location_id") or payload_dict.get("locationId")
+    if loc_id is not None:
+        try:
+            data["location_id"] = int(loc_id) if loc_id else None
+        except (ValueError, TypeError):
+            pass
+            
+    # Assignee
+    assignee_id = payload_dict.get("assigned_to_id") or payload_dict.get("assigneeId")
+    if assignee_id is not None:
+        try:
+            data["assigned_to_id"] = int(assignee_id) if assignee_id else None
+        except (ValueError, TypeError):
+            pass
+            
+    return data
+
 # ─── Core CRUD ────────────────────────────────────────────────────────────────
 
 @router.get("", response=List[AssetSchema])
@@ -20,20 +91,16 @@ def get_asset(request, asset_id: int):
 
 @router.post("", response=AssetSchema)
 def create_asset(request, payload: AssetInSchema):
-    data = payload.dict(exclude_unset=True)
-    data.pop('id', None)
-    data.pop('created_at', None)
-    data.pop('updated_at', None)
+    raw_data = payload.dict(exclude_unset=True)
+    data = normalize_asset_payload(raw_data)
     asset = Asset.objects.create(**data)
     return asset
 
 @router.patch("/{asset_id}", response=AssetSchema)
 def update_asset(request, asset_id: int, payload: AssetInSchema):
     asset = get_object_or_404(Asset, id=asset_id)
-    data = payload.dict(exclude_unset=True)
-    data.pop('id', None)
-    data.pop('created_at', None)
-    data.pop('updated_at', None)
+    raw_data = payload.dict(exclude_unset=True)
+    data = normalize_asset_payload(raw_data)
     for attr, value in data.items():
         setattr(asset, attr, value)
     asset.save()

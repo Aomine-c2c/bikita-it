@@ -1,7 +1,7 @@
  
  
 
-import { AIModule, AIIntent, AIContext, AIResponse } from './types';
+import { AIModule, AIContext, AIResponse } from './types';
 import { IntentParser } from './IntentParser';
 
 export class CommandCenter {

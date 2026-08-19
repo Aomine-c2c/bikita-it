@@ -12,15 +12,22 @@ interface LifecycleTransitionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  item: InventoryItem;
+  item: (InventoryItem & Record<string, unknown>) | null;
+}
+
+interface SimpleOption {
+  id: string | number;
+  name?: string | null;
+  asset_tag?: string | null;
+  model?: string | null;
 }
 
 export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: LifecycleTransitionModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [employees, setEmployees] = useState<unknown[]>([]);
-  const [locations, setLocations] = useState<unknown[]>([]);
-  const [hardwareAssets, setHardwareAssets] = useState<unknown[]>([]);
+  const [employees, setEmployees] = useState<SimpleOption[]>([]);
+  const [locations, setLocations] = useState<SimpleOption[]>([]);
+  const [hardwareAssets, setHardwareAssets] = useState<SimpleOption[]>([]);
 
   const isFixedAsset = item?.category === "Fixed Assets";
 
@@ -36,27 +43,28 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
 
   useEffect(() => {
     // Fetch employees, locations, and hardware assets for assignment options
-    employeesApi.getAll().then((res: any) => {
-      setEmployees(Array.isArray(res) ? res : (res.data || []));
+    employeesApi.getAll().then((res) => {
+      setEmployees(Array.isArray(res) ? res : []);
     }).catch(console.error);
     
-    locationsApi.getAll().then((res: any) => {
-      setLocations(Array.isArray(res) ? res : (res.data || []));
+    locationsApi.getAll().then((res) => {
+      setLocations(Array.isArray(res) ? res : []);
     }).catch(console.error);
     
-    assetApi.getAll().then((res: any) => {
-      setHardwareAssets(Array.isArray(res) ? res : (res.data || []));
+    assetApi.getAll().then((res) => {
+      setHardwareAssets(Array.isArray(res) ? res : []);
     }).catch(console.error);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!item) return;
     setIsSubmitting(true);
     setError(null);
 
     try {
       if (isFixedAsset) {
-        await inventoryApi.issueAsset(item.id, formData.targetId, formData.notes);
+        await inventoryApi.issueAsset(String(item.id), formData.targetId, formData.notes);
       } else {
         const payload = {
           ...formData,
@@ -69,8 +77,8 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
         });
       }
       onSuccess();
-    } catch (err: any) {
-      setError(err.message || "Failed to issue item");
+    } catch (err: unknown) {
+      setError((err as Error)?.message || "Failed to issue item");
     } finally {
       setIsSubmitting(false);
     }
@@ -79,7 +87,7 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && item && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -186,7 +194,7 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
                       <label className="block text-sm font-semibold text-foreground mb-1.5">Assign To Employee *</label>
                       <select required value={formData.targetId} onChange={e => setFormData({...formData, targetId: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary">
                         <option value="">Select Employee...</option>
-                        {employees.map((emp: { id: string; name: string }) => (
+                        {employees.map((emp) => (
                           <option key={emp.id} value={emp.id}>{emp.name}</option>
                         ))}
                       </select>
@@ -198,7 +206,7 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
                       <label className="block text-sm font-semibold text-foreground mb-1.5">Install Location *</label>
                       <select required value={formData.targetId} onChange={e => setFormData({...formData, targetId: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary">
                         <option value="">Select Location...</option>
-                        {locations.map((loc: { id: string; name: string }) => (
+                        {locations.map((loc) => (
                           <option key={loc.id} value={loc.id}>{loc.name}</option>
                         ))}
                       </select>
@@ -210,7 +218,7 @@ export function LifecycleTransitionModal({ isOpen, onClose, onSuccess, item }: L
                       <label className="block text-sm font-semibold text-foreground mb-1.5">Hardware Asset *</label>
                       <select required value={formData.targetId} onChange={e => setFormData({...formData, targetId: e.target.value})} className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-primary">
                         <option value="">Select Asset...</option>
-                        {hardwareAssets.map((asset: { id: string; asset_tag: string; model: string }) => (
+                        {hardwareAssets.map((asset) => (
                           <option key={asset.id} value={asset.id}>{asset.asset_tag} - {asset.model}</option>
                         ))}
                       </select>

@@ -39,7 +39,7 @@ export function DocViewerDrawer({
         { field: "Category", value: doc.category },
         { field: "Author", value: doc.authorName || "IT Administrator" },
         { field: "Last Updated", value: doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString() : "Recent" },
-        { field: "Content Summary", value: doc.content.slice(0, 300) },
+        { field: "Content Summary", value: (doc.content || "").slice(0, 300) },
       ],
       `knowledge_doc_${doc.id}`
     );

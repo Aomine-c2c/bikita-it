@@ -10,9 +10,28 @@ import { LifecycleTransitionModal } from "@/components/inventory/LifecycleTransi
 import { InventoryFormModal } from "@/components/inventory/InventoryFormModal";
 import { ReceiveStockFAB } from "@/components/inventory/ReceiveStockFAB";
 import { motion } from "framer-motion";
-import { LayoutGrid, Table, Search, AlertTriangle, Plus, RefreshCw, Filter } from "lucide-react";
+import { LayoutGrid, Table, Search, AlertTriangle, Plus, RefreshCw, Filter, FileSpreadsheet, Printer } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { inventoryApi } from "@/lib/api";
+import { inventoryApi, InventoryItem } from "@/lib/api";
+import { exportInventoryExcel, printInventorySheet } from "@/lib/excelExport";
+
+export interface InventoryDisplayItem extends Record<string, unknown> {
+  id: string;
+  sku: string;
+  name: string;
+  category: string;
+  quantity: number;
+  reorderLevel: number;
+  warehouse: string;
+  shelf: string;
+  supplier: string;
+  cost: string;
+  trackable: string;
+  minStock: number;
+  maxStock: number;
+  binLocation?: string;
+  unitCost?: number | string;
+}
 
 export default function InventoryPage() {
   const queryClient = useQueryClient();
@@ -24,23 +43,25 @@ export default function InventoryPage() {
   const [onlyLowStock, setOnlyLowStock] = useState<boolean>(false);
 
   // Modals
-  const [qrItem, setQrItem] = useState<any>(null);
-  const [promoteItem, setPromoteItem] = useState<any>(null);
-  const [editItem, setEditItem] = useState<any>(null);
+  const [qrItem, setQrItem] = useState<InventoryDisplayItem | null>(null);
+  const [promoteItem, setPromoteItem] = useState<InventoryDisplayItem | null>(null);
+  const [editItem, setEditItem] = useState<InventoryDisplayItem | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   // Query Real Data
-  const { data: rawInventory = [], isLoading, refetch } = useQuery({
+  const { data: rawInventory = [], refetch } = useQuery<InventoryDisplayItem[]>({
     queryKey: ["inventory"],
     queryFn: async () => {
       const items = await inventoryApi.getAll();
-      return items.map((item: any) => ({
-        id: item.id,
+      return items.map((item: InventoryItem) => ({
+        id: String(item.id),
         sku: item.sku ?? `SKU-${item.id}`,
         name: item.name,
         category: item.category || "General",
         quantity: item.quantity || 0,
         reorderLevel: item.minStock ?? item.min_stock ?? 5,
+        minStock: Number(item.minStock ?? item.min_stock ?? 5),
+        maxStock: Number(item.maxStock ?? item.max_stock ?? 100),
         warehouse: (item.binLocation ?? item.bin_location)?.split("-")[0] ?? "Main HQ",
         shelf: item.binLocation ?? item.bin_location ?? "A-1",
         supplier: item.supplier ?? "Vendor Inc",
@@ -53,7 +74,7 @@ export default function InventoryPage() {
   // Fast Stock Adjustment Mutation
   const adjustMutation = useMutation({
     mutationFn: async ({ id, delta }: { id: number | string; delta: number }) => {
-      const current = rawInventory.find((i: any) => i.id === id);
+      const current = rawInventory.find((i: InventoryDisplayItem) => i.id === id);
       if (!current) return;
       const newQty = Math.max(0, current.quantity + delta);
       await inventoryApi.update(String(id), { quantity: newQty });
@@ -66,13 +87,13 @@ export default function InventoryPage() {
   // Extract Categories
   const categories = useMemo(() => {
     const set = new Set<string>();
-    rawInventory.forEach((item: any) => set.add(item.category));
+    rawInventory.forEach((item: InventoryDisplayItem) => set.add(item.category));
     return ["ALL", ...Array.from(set)];
   }, [rawInventory]);
 
   // Filtered Inventory
   const filtered = useMemo(() => {
-    return rawInventory.filter((item: any) => {
+    return rawInventory.filter((item: InventoryDisplayItem) => {
       // Search
       const matchesSearch =
         !search ||
@@ -90,12 +111,12 @@ export default function InventoryPage() {
   }, [rawInventory, search, selectedCategory, onlyLowStock]);
 
   const lowStockCount = useMemo(() => {
-    return rawInventory.filter((i: any) => i.quantity <= i.reorderLevel).length;
+    return rawInventory.filter((i: InventoryDisplayItem) => i.quantity <= i.reorderLevel).length;
   }, [rawInventory]);
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 pb-20 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+      <div className="space-y-6 pb-20 relative min-h-[calc(100vh-4rem)] max-w-375 mx-auto">
         {/* Modals */}
         <BarcodeQRModal isOpen={!!qrItem} onClose={() => setQrItem(null)} item={qrItem} />
 
@@ -145,10 +166,28 @@ export default function InventoryPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap gap-2.5">
+            <button
+              onClick={() => exportInventoryExcel(rawInventory as unknown as InventoryItem[])}
+              title="Export inventory stock roster to Excel spreadsheet"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-muted-foreground hover:text-emerald-600 hover:border-emerald-500/40 transition-all cursor-pointer shadow-xs"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Excel Export</span>
+            </button>
+
+            <button
+              onClick={() => printInventorySheet(rawInventory as unknown as InventoryItem[])}
+              title="Generate printable inventory stock copy"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-xs"
+            >
+              <Printer className="w-3.5 h-3.5 text-primary" />
+              <span>Print Sheet</span>
+            </button>
+
             <button
               onClick={() => refetch()}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card/60 border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-xs"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Sync</span>
@@ -181,6 +220,22 @@ export default function InventoryPage() {
                 placeholder="Search SKU, item name, shelf..."
                 className="w-full pl-9 pr-3 py-1.5 bg-background/80 border border-border/50 rounded-xl text-xs outline-none focus:border-primary shadow-sm"
               />
+            </div>
+
+            {/* Category Filter Dropdown */}
+            <div className="flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-1.5 bg-background/80 border border-border/50 rounded-xl text-xs font-semibold outline-none focus:border-primary transition-colors shadow-sm cursor-pointer"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat === "ALL" ? "All Categories" : cat}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Low Stock Alerts Pill */}

@@ -21,7 +21,7 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
         // Local mode (authEnabled: false) — treat as always ready, no login/setup needed
         if (!data.authEnabled) {
           if (pathname === "/login" || pathname === "/setup") {
-            window.location.href = "/";
+            router.replace("/");
             return;
           }
           setState("ready");
@@ -30,20 +30,20 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
 
         // Auth-enabled mode — enforce setup and login flows
         if (pathname === "/setup") {
-          if (data.isSetupComplete) window.location.href = "/";
+          if (data.isSetupComplete) router.replace("/");
           else setState("ready");
           return;
         }
 
         if (!data.isSetupComplete) {
-          window.location.href = "/setup";
+          router.replace("/setup");
           return;
         }
 
-        if (pathname !== "/login") {
+        if (pathname !== "/login" && !pathname.startsWith("/portal") && !pathname.startsWith("/welcome")) {
           const hasToken = document.cookie.includes("token=") || !!localStorage.getItem("token");
           if (!hasToken) {
-            window.location.href = "/login";
+            router.replace("/login");
             return;
           }
         }

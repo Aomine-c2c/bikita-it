@@ -16,12 +16,19 @@ export function exportToCSV(filename: string, rows: object[]) {
     '\n' +
     rows.map(row => {
       return keys.map(k => {
-        let cell = row[k as keyof typeof row] === null || row[k as keyof typeof row] === undefined ? '' : row[k as keyof typeof row];
-        cell = (cell as any) instanceof Date ? (cell as any).toLocaleString() : (cell as any).toString().replace(/"/g, '""');
-        if (cell.search(/("|,|\n)/g) >= 0) {
-          cell = `"${cell}"`;
+        const val = (row as Record<string, unknown>)[k];
+        let cellText = '';
+        if (val === null || val === undefined) {
+          cellText = '';
+        } else if (val instanceof Date) {
+          cellText = val.toLocaleString();
+        } else {
+          cellText = String(val).replace(/"/g, '""');
         }
-        return cell;
+        if (cellText.search(/("|,|\n)/g) >= 0) {
+          cellText = `"${cellText}"`;
+        }
+        return cellText;
       }).join(separator);
     }).join('\n');
 

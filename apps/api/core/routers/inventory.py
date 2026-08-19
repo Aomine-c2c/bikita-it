@@ -1,9 +1,10 @@
 from core.permissions import require_admin
-from ninja import Router, Schema
+from ninja import Router, Schema, errors
 from typing import List, Optional
 from django.shortcuts import get_object_or_404
 from core.models import InventoryItem, Asset, Employee, Location, OperationLog
 from .schemas import InventoryItemSchema, InventoryItemInSchema
+from .utils import safe_fk_id
 
 router = Router()
 
@@ -17,22 +18,31 @@ def get_inventory(request):
 def get_inventory_item(request, item_id: int):
     return get_object_or_404(InventoryItem, id=item_id)
 
+def normalize_inventory_payload(payload_dict: dict) -> dict:
+    data = {}
+    if "name" in payload_dict and payload_dict["name"] is not None:
+        data["name"] = payload_dict["name"]
+    if "category" in payload_dict and payload_dict["category"] is not None:
+        data["category"] = payload_dict["category"]
+    if "quantity" in payload_dict and payload_dict["quantity"] is not None:
+        data["quantity"] = payload_dict["quantity"]
+    min_stock = payload_dict.get("min_stock") if payload_dict.get("min_stock") is not None else payload_dict.get("minStock")
+    if min_stock is not None:
+        data["min_stock"] = min_stock
+    return data
+
 @router.post("", response=InventoryItemSchema)
 def create_inventory_item(request, payload: InventoryItemInSchema):
-    data = payload.dict(exclude_unset=True)
-    data.pop('id', None)
-    data.pop('created_at', None)
-    data.pop('updated_at', None)
+    raw_data = payload.dict(exclude_unset=True)
+    data = normalize_inventory_payload(raw_data)
     item = InventoryItem.objects.create(**data)
     return item
 
 @router.patch("/{item_id}", response=InventoryItemSchema)
 def update_inventory_item(request, item_id: int, payload: InventoryItemInSchema):
     item = get_object_or_404(InventoryItem, id=item_id)
-    data = payload.dict(exclude_unset=True)
-    data.pop('id', None)
-    data.pop('created_at', None)
-    data.pop('updated_at', None)
+    raw_data = payload.dict(exclude_unset=True)
+    data = normalize_inventory_payload(raw_data)
     for attr, value in data.items():
         setattr(item, attr, value)
     item.save()
@@ -63,14 +73,15 @@ def issue_consumable(request, item_id: int, payload: IssueConsumablePayload):
 
     # Determine how many units to deduct
     if payload.useCableMarking and payload.newMeterMark is not None:
-        qty_used = payload.newMeterMark - (item.currentMeterMark or 0)
+        curr_mark = getattr(item, 'current_meter_mark', getattr(item, 'currentMeterMark', 0)) or 0
+        qty_used = payload.newMeterMark - curr_mark
         if qty_used <= 0:
-            return {"error": "New meter mark must be greater than the current mark."}, 400
+            raise errors.HttpError(400, "New meter mark must be greater than the current mark.")
         item.quantity = max(0, item.quantity - qty_used)
         item.save()
     else:
         if payload.quantity > item.quantity:
-            return {"error": f"Insufficient stock. Available: {item.quantity}"}, 400
+            raise errors.HttpError(400, f"Insufficient stock. Available: {item.quantity}")
         item.quantity -= payload.quantity
         item.save()
 
@@ -97,8 +108,9 @@ def issue_asset(request, item_id: int, payload: IssueAssetPayload):
     item = get_object_or_404(InventoryItem, id=item_id)
 
     employee = None
-    if payload.assigneeId:
-        employee = Employee.objects.filter(id=payload.assigneeId).first()
+    emp_id = safe_fk_id(payload.assigneeId)
+    if emp_id:
+        employee = Employee.objects.filter(id=emp_id).first()
 
     # Create a Hardware Asset from this inventory item
     asset = Asset.objects.create(

@@ -18,6 +18,7 @@ graph TD
 ```
 
 ### Key Architectural Pillars
+
 - **Hybrid Platform Target**: Operates seamlessly as both a standalone **Tauri v2 Desktop Application** and a **Web Application**.
 - **Static Export Compatibility**: Next.js configured with `output: 'export'` generating 100% pre-rendered static assets loaded into WebView2.
 - **Embedded Database**: Local SQLite database managed via Rust (`rusqlite` with `Mutex` thread-safety) for instant startup and zero external database latency.
@@ -53,6 +54,7 @@ erDiagram
 ### Table Definitions & Constraints
 
 #### `users`
+
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | TEXT | PRIMARY KEY | Unique user identifier |
@@ -63,6 +65,7 @@ erDiagram
 | `created_at` | TEXT | DEFAULT CURRENT_TIMESTAMP | Account creation timestamp |
 
 #### `locations`
+
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | TEXT | PRIMARY KEY | Site/Room identifier |
@@ -71,6 +74,7 @@ erDiagram
 | `parent_id` | TEXT | FOREIGN KEY(locations.id) | Parent location for nested hierarchy |
 
 #### `hardware` (Assets)
+
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | TEXT | PRIMARY KEY | Unique Asset ID |
@@ -82,9 +86,10 @@ erDiagram
 | `model` | TEXT | NOT NULL | Model designation |
 | `serial_number` | TEXT | UNIQUE | Manufacturer serial number |
 | `location_id` | TEXT | FOREIGN KEY(locations.id) | Current physical location |
-| `assigned_user_id`| TEXT | FOREIGN KEY(users.id) | Assigned employee |
+| `assigned_user_id` | TEXT | FOREIGN KEY(users.id) | Assigned employee |
 
 #### `inventory` (Consumables & Parts)
+
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | TEXT | PRIMARY KEY | SKU/Item ID |
@@ -95,6 +100,7 @@ erDiagram
 | `min_quantity` | INTEGER | NOT NULL DEFAULT 5 | Low stock alert threshold |
 
 #### `network_devices`
+
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | TEXT | PRIMARY KEY | Network device ID |
@@ -106,6 +112,7 @@ erDiagram
 | `location_id` | TEXT | FOREIGN KEY(locations.id) | Site location |
 
 #### Database Triggers
+
 - **`network_device_insert_trigger`**: Automatically logs new network device discoveries to `operations_history`.
 - **`asset_status_audit_trigger`**: Records status transitions in the asset audit log whenever `hardware.status` is updated.
 

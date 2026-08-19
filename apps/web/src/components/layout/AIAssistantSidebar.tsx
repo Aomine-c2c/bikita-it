@@ -44,7 +44,7 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
       setIsTyping(false);
       setMessages(prev => [...prev, { 
         role: "ai", 
-        content: <p className="text-sm text-foreground leading-relaxed text-red-500">Failed to connect to AI engine.</p> 
+        content: <p className="text-sm text-destructive leading-relaxed font-semibold">Failed to connect to AI engine.</p> 
       }]);
     }
   };
@@ -62,12 +62,12 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
           {/* Header */}
           <div className="h-16 px-6 flex items-center justify-between border-b border-border/40 shrink-0 bg-white">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-indigo-500" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-primary" />
               </div>
               <h2 className="text-sm font-bold text-foreground tracking-tight">Pulse AI</h2>
             </div>
-            <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground hover:bg-slate-100 rounded-lg transition-colors">
+            <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -78,9 +78,9 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
             {/* Welcome Message */}
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center relative">
-                  <div className="absolute inset-0 bg-indigo-500/20 rounded-2xl blur-xl" />
-                  <Sparkles className="w-8 h-8 text-indigo-500 relative z-10" />
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center relative">
+                  <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl" />
+                  <Sparkles className="w-8 h-8 text-primary relative z-10" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-foreground mb-2">How can I help?</h3>
@@ -92,7 +92,7 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
                     <button 
                       key={i}
                       onClick={() => handleSend(prompt)}
-                      className="w-full p-3 bg-white border border-border/60 hover:border-indigo-500/50 rounded-xl text-xs font-medium text-foreground hover:text-indigo-600 transition-all flex items-center justify-between group shadow-sm"
+                      className="w-full p-3 bg-card border border-border/60 hover:border-primary/50 rounded-xl text-xs font-medium text-foreground hover:text-primary transition-all flex items-center justify-between group shadow-xs"
                     >
                       {prompt}
                       <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />

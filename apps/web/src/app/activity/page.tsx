@@ -11,10 +11,33 @@ import { generateTablePdf } from "@/lib/pdf";
 import { ShieldAlert, Download, FileText, RefreshCw, LayoutGrid, Table, AlertTriangle, Key, ShieldCheck, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+export interface AuditLogItem {
+  id?: string | number;
+  timestamp?: string;
+  created_at?: string;
+  createdAt?: string;
+  entityId?: string;
+  performedBy?: string;
+  user?: string;
+  actor?: string;
+  action?: string;
+  description?: string;
+  severity?: string;
+  ip?: string;
+  ip_address?: string;
+  location?: string;
+  module?: string;
+  target?: string;
+  before_state?: Record<string, unknown>;
+  after_state?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export default function ActivityPage() {
-  const [events, setEvents]             = useState<any[]>([]);
+  const [events, setEvents]             = useState<AuditLogItem[]>([]);
   const [loading, setLoading]           = useState(true);
-  const [activeEvent, setActiveEvent]   = useState<any | null>(null);
+  const [activeEvent, setActiveEvent]   = useState<AuditLogItem | null>(null);
   const [severityFilter, setSeverityFilter] = useState("ALL");
   const [viewMode, setViewMode]         = useState<"timeline" | "table">("timeline");
 
@@ -22,7 +45,7 @@ export default function ActivityPage() {
     setLoading(true);
     try {
       // /timeline is the real endpoint wired in the last sprint
-      const data = await apiFetch<any[]>("/timeline?limit=200");
+      const data = await apiFetch<AuditLogItem[]>("/timeline?limit=200");
       setEvents(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("Failed to fetch activity logs:", e);
@@ -32,7 +55,23 @@ export default function ActivityPage() {
     }
   }, []);
 
-  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+  useEffect(() => {
+    let isMounted = true;
+    apiFetch<AuditLogItem[]>("/timeline?limit=200")
+      .then((data) => {
+        if (isMounted) setEvents(Array.isArray(data) ? data : []);
+      })
+      .catch((e) => {
+        console.error("Failed to fetch activity logs:", e);
+        if (isMounted) setEvents([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredEvents = events.filter((e) => {
     if (severityFilter === "ALL") return true;
@@ -79,7 +118,7 @@ export default function ActivityPage() {
 
   return (
     <DashboardLayout>
-      <div data-tour="audit-log" className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+      <div data-tour="audit-log" className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-375 mx-auto">
         <AuditEventDrawer isOpen={!!activeEvent} onClose={() => setActiveEvent(null)} event={activeEvent} />
 
         {/* Header */}

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Radar, Loader2, CheckCircle2, ShieldAlert, Cpu } from "lucide-react";
+import { X, Search, Radar, Loader2 } from "lucide-react";
 import { networkApi } from "@/lib/api";
 
 interface NetworkScannerModalProps {
@@ -17,39 +17,48 @@ export function NetworkScannerModal({ isOpen, onClose, onSuccess }: NetworkScann
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [discoveredCount, setDiscoveredCount] = useState(0);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleStartScan = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsScanning(true);
-    setProgress(15);
+    setProgress(5);
+    setDiscoveredCount(0);
+    setStatusMessage("Initializing multi-threaded subnet sweep...");
 
     try {
-      // Trigger scan API
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(interval);
-            return 90;
+      const initRes = await networkApi.triggerScan({ subnet, scanType });
+      const jobId = initRes?.job_id;
+
+      // Poll real job status
+      const pollInterval = setInterval(async () => {
+        try {
+          const status = await networkApi.getScanStatus(jobId);
+          if (status) {
+            setProgress(status.progress_percent || 0);
+            setDiscoveredCount(status.discovered_count || 0);
+            setStatusMessage(`Scanned ${status.scanned_count || 0}/${status.total_ips || '?'} IPs (${status.discovered_count || 0} online)`);
+
+            if (status.is_complete) {
+              clearInterval(pollInterval);
+              setProgress(100);
+              setStatusMessage(`Sweep complete. Found ${status.discovered_count || 0} active device(s).`);
+              setTimeout(() => {
+                setIsScanning(false);
+                if (onSuccess) onSuccess();
+                onClose();
+              }, 1200);
+            }
           }
-          return prev + 25;
-        });
-      }, 400);
-
-      await (networkApi.triggerScan as any)({ subnet, scanType });
-      
-      clearInterval(interval);
-      setProgress(100);
-      setDiscoveredCount(4);
-
-      setTimeout(() => {
-        setIsScanning(false);
-        if (onSuccess) onSuccess();
-        onClose();
-      }, 1200);
-    } catch (err) {
+        } catch {
+          // ignore transient poll error
+        }
+      }, 700);
+    } catch (err: unknown) {
       console.error("Failed to run network scan", err);
+      setStatusMessage((err as Error)?.message || "Scan failed.");
       setIsScanning(false);
       setProgress(0);
     }
@@ -126,13 +135,13 @@ export function NetworkScannerModal({ isOpen, onClose, onSuccess }: NetworkScann
 
               {/* Progress Indicator */}
               {isScanning && (
-                <div className="space-y-2 bg-muted/30 border border-border/40 p-4 rounded-2xl">
+                <div className="space-y-2.5 bg-muted/30 border border-border/40 p-4 rounded-2xl">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="flex items-center gap-1.5 text-primary">
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      Scanning {subnet}...
+                      {statusMessage || `Scanning ${subnet}...`}
                     </span>
-                    <span className="font-mono text-muted-foreground">{progress}%</span>
+                    <span className="font-mono text-foreground font-black">{progress}%</span>
                   </div>
 
                   <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
@@ -140,6 +149,13 @@ export function NetworkScannerModal({ isOpen, onClose, onSuccess }: NetworkScann
                       className="h-full bg-primary transition-all duration-300 rounded-full"
                       style={{ width: `${progress}%` }}
                     />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
+                    <span>Target: <span className="font-mono font-bold text-foreground">{subnet}</span></span>
+                    <span className="flex items-center gap-1.5">
+                      Discovered: <span className="font-mono font-black text-emerald-500">{discoveredCount}</span>
+                    </span>
                   </div>
                 </div>
               )}

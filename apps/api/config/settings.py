@@ -132,6 +132,15 @@ CORS_ALLOWED_ORIGINS = [
 ] if not DEBUG else []
 CORS_ALLOW_CREDENTIALS = True
 
+from datetime import timedelta
+
+NINJA_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

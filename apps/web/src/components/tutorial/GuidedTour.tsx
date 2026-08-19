@@ -4,9 +4,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  HelpCircle, ChevronRight, ChevronLeft, X, CheckCircle2,
+  ChevronRight, ChevronLeft, X, CheckCircle2,
   Box, ClipboardList, Wrench, Network, Server, Users, Monitor,
-  ShieldCheck, BarChart3, LayoutDashboard, Sparkles
+  ShieldCheck, BarChart3, LayoutDashboard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ export interface TourStep {
   targetSelector: string;
   title: string;
   description: string;
-  icon: any;
+  icon: React.ElementType;
   category: string;
 }
 
@@ -102,6 +102,13 @@ export const TOUR_STEPS: TourStep[] = [
   },
 ];
 
+interface TooltipPosition {
+  top?: number;
+  bottom?: number;
+  left: number;
+  placement: "top" | "bottom" | "center";
+}
+
 export function GuidedTour({
   isOpen,
   onClose,
@@ -116,36 +123,83 @@ export function GuidedTour({
 
   const [activeStepIndex, setActiveStepIndex] = useState(initialStepIndex);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-  const [isActive, setIsActive] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState<TooltipPosition>({ left: 0, placement: "center" });
+  const [autoActive, setAutoActive] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
-  // Auto-start on first visit if not manually controlled
+  // Auto-start on first visit on Dashboard ONLY if not manually controlled
   useEffect(() => {
-    if (isOpen !== undefined) {
-      setIsActive(isOpen);
-    } else if (typeof window !== "undefined") {
+    if (isOpen === undefined && typeof window !== "undefined") {
+      const isExemptRoute = pathname === "/setup" || pathname === "/login" || pathname === "/welcome" || pathname === "/portal";
       const hasCompleted = localStorage.getItem("pulse_tour_completed");
-      if (!hasCompleted) {
-        setIsActive(true);
+      if (!hasCompleted && !isExemptRoute && pathname === "/") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setAutoActive(true);
       }
     }
-  }, [isOpen]);
+  }, [isOpen, pathname]);
+
+  const isActive = isOpen !== undefined ? isOpen : autoActive;
 
   const currentStep = TOUR_STEPS[activeStepIndex];
 
-  // Route & Element position listener
+  // Calculate intelligent tooltip position relative to target element with strict viewport bounds
+  const calculatePosition = useCallback((rect: DOMRect | null) => {
+    if (!rect || typeof window === "undefined") {
+      setTooltipPos({ left: 0, placement: "center" });
+      return;
+    }
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const cardWidth = Math.min(480, viewportWidth - 32);
+    const cardHeight = 320;
+
+    // Horizontal centering clamped within screen margins
+    let left = rect.left + rect.width / 2 - cardWidth / 2;
+    left = Math.max(16, Math.min(left, Math.max(16, viewportWidth - cardWidth - 16)));
+
+    // Vertical placement: choose above or below depending on available clearance
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow >= cardHeight + 20) {
+      setTooltipPos({
+        top: Math.max(16, Math.min(viewportHeight - cardHeight - 20, rect.bottom + 16)),
+        left,
+        placement: "bottom",
+      });
+    } else if (spaceAbove >= cardHeight + 20) {
+      setTooltipPos({
+        bottom: Math.max(16, Math.min(viewportHeight - 20, viewportHeight - rect.top + 16)),
+        left,
+        placement: "top",
+      });
+    } else {
+      // Fallback: place in center of screen
+      setTooltipPos({ left, placement: "center" });
+    }
+  }, []);
+
+  // Update target element coordinates and smooth-scroll to it
   const updateTargetPosition = useCallback(() => {
     if (!isActive || !currentStep) return;
 
     const el = document.querySelector(currentStep.targetSelector);
     if (el) {
-      setTargetRect(el.getBoundingClientRect());
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => {
+        const rect = el.getBoundingClientRect();
+        setTargetRect(rect);
+        calculatePosition(rect);
+      }, 250);
     } else {
-      // Fallback center box if element not mounted yet
       setTargetRect(null);
+      calculatePosition(null);
     }
-  }, [isActive, currentStep]);
+  }, [isActive, currentStep, calculatePosition]);
 
-  // Navigate across pages as step changes
+  // Route across pages as step changes
   useEffect(() => {
     if (!isActive || !currentStep) return;
 
@@ -153,20 +207,54 @@ export function GuidedTour({
       router.push(currentStep.route);
     }
 
-    const timer = setTimeout(updateTargetPosition, 400);
+    const timer = setTimeout(updateTargetPosition, 450);
     return () => clearTimeout(timer);
   }, [activeStepIndex, isActive, currentStep, pathname, router, updateTargetPosition]);
 
   // Window resize & scroll listeners
   useEffect(() => {
     if (!isActive) return;
-    window.addEventListener("resize", updateTargetPosition);
-    window.addEventListener("scroll", updateTargetPosition, true);
-    return () => {
-      window.removeEventListener("resize", updateTargetPosition);
-      window.removeEventListener("scroll", updateTargetPosition, true);
+    const handleReposition = () => {
+      const el = document.querySelector(currentStep.targetSelector);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setTargetRect(rect);
+        calculatePosition(rect);
+      }
     };
-  }, [isActive, updateTargetPosition]);
+
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+    return () => {
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+    };
+  }, [isActive, currentStep, calculatePosition]);
+
+  const handleClose = useCallback(() => {
+    setAutoActive(false);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pulse_tour_completed", "true");
+    }
+    if (onClose) onClose();
+  }, [onClose]);
+
+  const handleNext = useCallback(() => {
+    if (activeStepIndex < TOUR_STEPS.length - 1) {
+      setActiveStepIndex((prev) => prev + 1);
+    } else {
+      setIsCompleted(true);
+      setTimeout(() => {
+        handleClose();
+      }, 1400);
+    }
+  }, [activeStepIndex, handleClose]);
+
+  const handlePrev = useCallback(() => {
+    if (activeStepIndex > 0) {
+      setActiveStepIndex((prev) => prev - 1);
+    }
+  }, [activeStepIndex]);
 
   // Keyboard Navigation Listener
   useEffect(() => {
@@ -182,29 +270,7 @@ export function GuidedTour({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isActive, activeStepIndex]);
-
-  const handleNext = () => {
-    if (activeStepIndex < TOUR_STEPS.length - 1) {
-      setActiveStepIndex((prev) => prev + 1);
-    } else {
-      handleClose();
-    }
-  };
-
-  const handlePrev = () => {
-    if (activeStepIndex > 0) {
-      setActiveStepIndex((prev) => prev - 1);
-    }
-  };
-
-  const handleClose = () => {
-    setIsActive(false);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("pulse_tour_completed", "true");
-    }
-    if (onClose) onClose();
-  };
+  }, [isActive, handleNext, handlePrev, handleClose]);
 
   if (!isActive || !currentStep) return null;
 
@@ -212,13 +278,13 @@ export function GuidedTour({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 pointer-events-none select-none">
-        {/* Dark Backdrop Overlay */}
+      <div className="fixed inset-0 z-50 pointer-events-none select-none font-sans">
+        {/* Soft Dark Backdrop Overlay */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs pointer-events-auto"
+          className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-auto"
           onClick={handleClose}
         />
 
@@ -229,102 +295,161 @@ export function GuidedTour({
             animate={{
               opacity: 1,
               scale: 1,
-              top: targetRect.top - 8,
-              left: targetRect.left - 8,
+              top: Math.max(0, targetRect.top - 8),
+              left: Math.max(0, targetRect.left - 8),
               width: targetRect.width + 16,
               height: targetRect.height + 16,
             }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="absolute rounded-2xl ring-4 ring-indigo-500 ring-offset-2 ring-offset-slate-950 bg-indigo-500/10 pointer-events-none z-50 shadow-2xl"
+            transition={{ type: "spring", damping: 26, stiffness: 220 }}
+            className="absolute rounded-2xl ring-2 ring-primary ring-offset-4 ring-offset-background bg-primary/5 pointer-events-none z-50 shadow-2xl"
           />
         )}
 
-        {/* Floating Tooltip Card */}
-        <div className="absolute inset-0 flex items-center justify-center p-4 z-50 pointer-events-auto">
+        {/* Dynamic Positioned Floating Tooltip Card */}
+        <div
+          className={cn(
+            "fixed z-50 pointer-events-auto transition-all duration-300",
+            tooltipPos.placement === "center" && "inset-0 flex items-center justify-center p-4"
+          )}
+          style={
+            tooltipPos.placement !== "center"
+              ? {
+                  top: tooltipPos.top !== undefined ? `${tooltipPos.top}px` : undefined,
+                  bottom: tooltipPos.bottom !== undefined ? `${tooltipPos.bottom}px` : undefined,
+                  left: `${tooltipPos.left}px`,
+                  width: "min(480px, calc(100vw - 32px))",
+                }
+              : undefined
+          }
+        >
           <motion.div
             key={activeStepIndex}
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: tooltipPos.placement === "top" ? -12 : 12, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="bg-slate-900/95 border border-indigo-500/30 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl text-white relative flex flex-col"
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.25 }}
+            className="bg-card border border-border/80 text-card-foreground backdrop-blur-2xl rounded-3xl p-6 sm:p-7 shadow-2xl relative flex flex-col w-full"
           >
-            {/* Header / Category Badge */}
-            <div className="flex items-center justify-between gap-3 mb-4 border-b border-slate-800 pb-4">
+            {/* Header / Category Badge & Step Indicator */}
+            <div className="flex items-center justify-between gap-3 mb-3.5 border-b border-border/50 pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600 border border-indigo-400/30 flex items-center justify-center shadow-md">
-                  <StepIcon className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-black shadow-sm shrink-0">
+                  <StepIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block">
-                    {currentStep.category} • Step {activeStepIndex + 1} of {TOUR_STEPS.length}
-                  </span>
-                  <h3 className="text-lg font-black text-white tracking-tight">{currentStep.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                      {currentStep.category}
+                    </span>
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                      Step {activeStepIndex + 1} of {TOUR_STEPS.length}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-black text-foreground tracking-tight mt-0.5">
+                    {currentStep.title}
+                  </h3>
                 </div>
               </div>
+
               <button
                 onClick={handleClose}
-                className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                title="Exit Tour"
+                aria-label="Exit Tour"
+                className="p-1.5 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                title="Exit Tour (ESC)"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Step Description Body */}
-            <p className="text-sm text-slate-300 leading-relaxed mb-6 font-medium">
+            <p className="text-xs text-muted-foreground leading-relaxed mb-5 font-medium">
               {currentStep.description}
             </p>
 
-            {/* Progress Dots */}
-            <div className="flex items-center justify-center gap-1.5 mb-6">
-              {TOUR_STEPS.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveStepIndex(idx)}
-                  className={cn(
-                    "h-1.5 rounded-full transition-all cursor-pointer",
-                    idx === activeStepIndex
-                      ? "w-8 bg-indigo-500 shadow-sm"
-                      : "w-2 bg-slate-700 hover:bg-slate-500"
-                  )}
-                  title={`Go to step ${idx + 1}`}
-                />
-              ))}
+            {/* Interactive Step Jump Pills */}
+            <div className="flex items-center justify-between gap-1 mb-5 p-1 bg-muted/40 rounded-xl border border-border/40 overflow-x-auto custom-scrollbar">
+              {TOUR_STEPS.map((s, idx) => {
+                const isCurrent = idx === activeStepIndex;
+                const isPassed = idx < activeStepIndex;
+                return (
+                  <button
+                    key={s.title}
+                    onClick={() => setActiveStepIndex(idx)}
+                    aria-label={`Step ${idx + 1}: ${s.title}`}
+                    className={cn(
+                      "flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer truncate text-center shrink-0 min-w-8.5",
+                      isCurrent
+                        ? "bg-primary text-primary-foreground shadow-xs font-black"
+                        : isPassed
+                        ? "text-foreground hover:bg-muted"
+                        : "text-muted-foreground/50 hover:text-muted-foreground"
+                    )}
+                    title={`${idx + 1}. ${s.title}`}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Bottom Controls */}
-            <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-800">
-              <button
-                onClick={handleClose}
-                className="text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                Skip Tour
-              </button>
+            {/* Bottom Controls & Keyboard Shortcut Badges */}
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/50">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleClose}
+                  aria-label="Skip Tour"
+                  className="text-[11px] font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  Skip Tour
+                </button>
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-muted-foreground/60 font-mono">
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[9px]">ESC</kbd>
+                </span>
+              </div>
 
               <div className="flex items-center gap-2">
                 {activeStepIndex > 0 && (
                   <button
                     onClick={handlePrev}
-                    className="flex items-center gap-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    aria-label="Previous tour step"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-muted hover:bg-muted/80 text-foreground border border-border/60 rounded-xl text-xs font-bold transition-all cursor-pointer"
                   >
-                    <ChevronLeft className="w-4 h-4" /> Back
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Back</span>
                   </button>
                 )}
 
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+                  aria-label={activeStepIndex === TOUR_STEPS.length - 1 ? "Finish Tour" : "Next tour step"}
+                  className="flex items-center gap-1.5 px-4 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
                 >
-                  <span>{activeStepIndex === TOUR_STEPS.length - 1 ? "Finish Tour" : "Next Step"}</span>
+                  <span>{activeStepIndex === TOUR_STEPS.length - 1 ? "Finish Tour" : "Next"}</span>
                   {activeStepIndex === TOUR_STEPS.length - 1 ? (
-                    <CheckCircle2 className="w-4 h-4" />
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                   ) : (
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   )}
                 </button>
               </div>
             </div>
+
+            {/* Completion Modal Pop */}
+            {isCompleted && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute inset-0 bg-card rounded-3xl p-8 flex flex-col items-center justify-center text-center z-10"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3 border border-emerald-500/20">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-black text-foreground">Onboarding Tour Complete!</h3>
+                <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                  You are now ready to operate the PULSE IT platform. You can relaunch this tour anytime from the header.
+                </p>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </div>

@@ -3,24 +3,26 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Edit2, Archive, Repeat, Laptop, Calendar, User, Building, MapPin,
-  Tag, ShieldCheck, Server, Wrench, FileText, Network, Clock, CheckCircle2, AlertCircle
+  X, Edit2, Archive, Repeat, Laptop,
+  Tag, Wrench, FileText, Network, Clock
 } from "lucide-react";
-import Link from "next/link";
 import { AssetFormModal } from "./AssetFormModal";
 import { ReassignAssetModal } from "./ReassignAssetModal";
 import { RetireAssetDialog } from "./RetireAssetDialog";
 import { UpdateRepairStatusModal } from "@/components/repairs/UpdateRepairStatusModal";
+import { type Asset } from "@/lib/api";
 import { cn } from "@/lib/utils";
+
+type TabType = "overview" | "history" | "maintenance" | "documents" | "relations";
 
 interface AssetProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  asset?: any;
+  asset?: Asset | null;
 }
 
 export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawerProps) {
-  const [activeTab, setActiveTab] = useState<"overview" | "history" | "maintenance" | "documents" | "relations">("overview");
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
 
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -28,7 +30,7 @@ export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawe
   const [isRetireModalOpen, setIsRetireModalOpen] = useState(false);
   const [isRepairModalOpen, setIsRepairModalOpen] = useState(false);
 
-  const tabs = [
+  const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
     { id: "overview", label: "Overview", icon: Tag },
     { id: "history", label: "History", icon: Clock },
     { id: "maintenance", label: "Maintenance", icon: Wrench },
@@ -58,7 +60,7 @@ export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawe
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed top-0 right-0 h-screen w-[520px] max-w-[95vw] bg-card z-50 flex flex-col border-l border-border/60 shadow-2xl overflow-hidden"
+              className="fixed top-0 right-0 h-screen w-130 max-w-[95vw] bg-card z-50 flex flex-col border-l border-border/60 shadow-2xl overflow-hidden"
             >
               {/* Top Header */}
               <div className="p-6 border-b border-border/40 bg-card/60 backdrop-blur-md">
@@ -132,7 +134,7 @@ export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawe
                   return (
                     <button
                       key={t.id}
-                      onClick={() => setActiveTab(t.id as any)}
+                      onClick={() => setActiveTab(t.id)}
                       className={cn(
                         "flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 cursor-pointer shrink-0",
                         isActive
@@ -326,7 +328,7 @@ export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawe
           setIsReassignModalOpen(false);
           onClose();
         }}
-        assetId={asset?.id}
+        assetId={asset?.id || ""}
         currentAssigneeId={asset?.assigneeId || asset?.assignedUser?.id}
       />
 
@@ -337,7 +339,7 @@ export function AssetProfileDrawer({ isOpen, onClose, asset }: AssetProfileDrawe
           setIsRetireModalOpen(false);
           onClose();
         }}
-        assetId={asset?.id}
+        assetId={asset?.id || ""}
         assetName={asset?.name || "Hardware Asset"}
       />
 

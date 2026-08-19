@@ -3,15 +3,29 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, ShieldAlert, Check, Copy, User, Clock, MapPin, Globe,
-  FileCode, ArrowRight, ShieldCheck, AlertTriangle, Info, Terminal
+  X, ShieldAlert, Check, Copy, User, Globe,
+  FileCode, Terminal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+export interface AuditDrawerEvent {
+  id?: string | number;
+  title?: string;
+  action?: string;
+  user?: string;
+  actor?: string;
+  ip?: string;
+  timestamp?: string;
+  severity?: string;
+  before_state?: Record<string, unknown>;
+  after_state?: Record<string, unknown>;
+  [key: string]: unknown;
+}
 
 interface AuditEventDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  event: any;
+  event: AuditDrawerEvent | null;
 }
 
 export function AuditEventDrawer({
@@ -57,7 +71,7 @@ export function AuditEventDrawer({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getSeverityBadge = (severity: string) => {
+  const getSeverityBadge = (severity?: string) => {
     switch (severity?.toUpperCase()) {
       case "CRITICAL":
         return "bg-rose-500/10 text-rose-500 border-rose-500/20";
@@ -87,7 +101,7 @@ export function AuditEventDrawer({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="fixed top-0 right-0 h-screen w-[600px] max-w-[95vw] bg-card z-50 flex flex-col border-l border-border/60 shadow-2xl overflow-hidden"
+            className="fixed top-0 right-0 h-screen w-150 max-w-[95vw] bg-card z-50 flex flex-col border-l border-border/60 shadow-2xl overflow-hidden"
           >
             {/* Header */}
             <div className="p-6 border-b border-border/40 bg-card/60 backdrop-blur-md">

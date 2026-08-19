@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
   ReactFlow, Controls, Background, useNodesState, useEdgesState,
-  addEdge, type Connection, type Edge, Handle, Position,
+  addEdge, type Connection, type Edge, type Node, Handle, Position,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { cn } from "@/lib/utils";

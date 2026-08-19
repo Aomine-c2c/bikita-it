@@ -3,6 +3,28 @@
 
 @plugin "tailwindcss-animate";
 
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
 :root {
   --background: #ffffff;
   --foreground: #09090b;
@@ -119,6 +141,7 @@
 @layer utilities {
   .glass {
     background-color: var(--card);
+    -webkit-backdrop-filter: blur(32px);
     backdrop-filter: blur(32px);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-glass);
@@ -127,8 +150,8 @@
     border-color: rgba(255, 255, 255, 0.05);
   }
   .text-gradient {
-    background-clip: text;
     -webkit-background-clip: text;
+    background-clip: text;
     color: transparent;
     background-image: linear-gradient(to bottom right, var(--foreground), var(--muted-foreground));
   }
@@ -147,5 +170,26 @@
     font-size: 11px;
     line-height: 1.4;
     font-weight: 600;
+  }
+
+  /* Thin, styled scrollbar for sidebar and panels */
+  @supports (scrollbar-width: thin) {
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
   }
 }

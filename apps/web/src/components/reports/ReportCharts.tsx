@@ -1,29 +1,40 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, Legend
+  BarChart, Bar, PieChart, Pie, Cell, Legend
 } from "recharts";
 import { apiFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
-import { PieChart as PieIcon, TrendingUp, Clock, Box } from "lucide-react";
 
-const CustomTooltip = React.memo(({ active, payload, label }: any) => {
+interface TooltipPayloadItem {
+  name: string;
+  value: number | string;
+  color?: string;
+  [key: string]: unknown;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+}
+
+const CustomTooltip = React.memo(({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card text-foreground text-xs p-3 rounded-xl shadow-xl border border-border/60">
         <p className="font-bold mb-2">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index) => (
           <div key={index} className="flex items-center justify-between gap-4">
             <span style={{ color: entry.color }}>{entry.name}:</span>
             <span className="font-mono font-bold">
-              {entry.name.toLowerCase().includes("cost") ||
-              entry.name.toLowerCase().includes("spend") ||
-              entry.name.toLowerCase().includes("value")
-                ? `$${entry.value.toLocaleString()}`
-                : entry.value.toLocaleString()}
+              {String(entry.name).toLowerCase().includes("cost") ||
+              String(entry.name).toLowerCase().includes("spend") ||
+              String(entry.name).toLowerCase().includes("value")
+                ? `$${Number(entry.value).toLocaleString()}`
+                : Number(entry.value).toLocaleString()}
             </span>
           </div>
         ))}
@@ -36,15 +47,29 @@ CustomTooltip.displayName = "CustomTooltip";
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
+export interface DepartmentSpendItem {
+  name: string;
+  value: number;
+  [key: string]: unknown;
+}
+
+export interface ReportsData {
+  departmentSpend?: DepartmentSpendItem[];
+  assetAge?: Array<{ age: string; count: number }>;
+  ticketTrend?: Array<{ month: string; tickets: number }>;
+  stockConsumption?: Array<{ category: string; consumed: number; reorderLevel: number }>;
+  [key: string]: unknown;
+}
+
 interface ReportChartsProps {
   activeTab?: string;
 }
 
 export function ReportCharts({ activeTab = "overview" }: ReportChartsProps) {
-  const { data = {} } = useQuery({
+  const { data = {} } = useQuery<ReportsData>({
     queryKey: ["reportChartsData"],
     queryFn: async () => {
-      const res = await apiFetch<any>("/reports");
+      const res = await apiFetch<ReportsData>("/reports");
       return res || {};
     },
   });
@@ -64,7 +89,7 @@ export function ReportCharts({ activeTab = "overview" }: ReportChartsProps) {
             <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-4">
               Department IT Spend Allocation
             </h3>
-            <div className="h-[300px]">
+            <div className="h-75">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -76,7 +101,7 @@ export function ReportCharts({ activeTab = "overview" }: ReportChartsProps) {
                     paddingAngle={3}
                     dataKey="value"
                   >
-                    {departmentSpend.map((entry: any, index: number) => (
+                    {departmentSpend.map((_entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -92,7 +117,7 @@ export function ReportCharts({ activeTab = "overview" }: ReportChartsProps) {
             <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-4">
               Hardware Fleet Age Breakdown
             </h3>
-            <div className="h-[300px]">
+            <div className="h-75">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={assetAge} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />
@@ -113,7 +138,7 @@ export function ReportCharts({ activeTab = "overview" }: ReportChartsProps) {
           <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-4">
             Incident Ticket Volume & Maintenance Costs Trend
           </h3>
-          <div className="h-[300px]">
+          <div className="h-75">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={ticketTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -139,7 +164,7 @@ export function ReportCharts({ activeTab = "overview" }: ReportChartsProps) {
           <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-4">
             Consumable Stock Consumption vs. Safety Thresholds
           </h3>
-          <div className="h-[300px]">
+          <div className="h-75">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stockConsumption} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />

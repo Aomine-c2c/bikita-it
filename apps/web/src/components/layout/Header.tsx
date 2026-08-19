@@ -104,8 +104,8 @@ export function Header({ onToggleAI, isAIOpen, onMenuToggle, onStartTour }: Head
             className={cn(
               "h-10 px-3 rounded-xl transition-all border shadow-sm flex items-center gap-2 font-bold text-xs",
               isAIOpen
-                ? "bg-primary text-white border-primary shadow-premium"
-                : "bg-white hover:bg-zinc-50 border-border/50 text-muted-foreground hover:text-foreground shadow-xs"
+                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                : "bg-card hover:bg-muted/60 border-border/50 text-muted-foreground hover:text-foreground shadow-xs"
             )}
             title="Ask AI Assistant"
             aria-label="Ask AI Assistant"
@@ -124,11 +124,11 @@ export function Header({ onToggleAI, isAIOpen, onMenuToggle, onStartTour }: Head
                 window.location.reload();
               }
             }}
-            className="h-10 px-3 rounded-xl transition-all border border-indigo-500/30 bg-indigo-50/50 hover:bg-indigo-100/80 text-indigo-600 shadow-xs flex items-center gap-1.5 font-bold text-xs cursor-pointer"
+            className="h-10 px-3 rounded-xl transition-all border border-border bg-muted/50 hover:bg-muted text-foreground shadow-xs flex items-center gap-1.5 font-bold text-xs cursor-pointer"
             title="Start Guided Tour"
             aria-label="Start Guided Tour"
           >
-            <HelpCircle className="w-4 h-4 text-indigo-600 shrink-0" />
+            <HelpCircle className="w-4 h-4 text-foreground shrink-0" />
             <span className="hidden md:inline">Take Tour</span>
           </button>
 

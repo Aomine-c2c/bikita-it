@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { accessoriesApi, type AccessoryItem } from "@/lib/api";
 import {
   Package, Plus, Minus, Send, Download, RefreshCw, LayoutGrid, Table,
-  AlertTriangle, DollarSign, Layers, CheckCircle2,
+  AlertTriangle, DollarSign, Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +39,23 @@ export default function AccessoriesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    let isMounted = true;
+    accessoriesApi
+      .getAll()
+      .then((data) => {
+        if (isMounted) setAccessories(data);
+      })
+      .catch(() => {
+        if (isMounted) setAccessories([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleAdjustStock = async (id: string, delta: number) => {
     try {
@@ -76,7 +92,7 @@ export default function AccessoriesPage() {
 
   const totalStock   = accessories.reduce((s, i) => s + i.stock, 0);
   const lowCount     = accessories.filter((i) => i.stock <= i.reorderLevel).length;
-  const totalValue   = accessories.reduce((s, i) => s + i.stock * i.unitCost, 0);
+  const totalValue   = accessories.reduce((s, i) => s + i.stock * (i.unitCost || 0), 0);
 
   const kpiCards = [
     { label: "Total Peripheral Units",    value: loading ? "…" : totalStock, icon: Package,      color: "text-blue-500",   bg: "bg-blue-500/10"   },
@@ -87,7 +103,7 @@ export default function AccessoriesPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-375 mx-auto">
         {dispatchItem && (
           <DispatchAccessoryModal
             isOpen={!!dispatchItem}

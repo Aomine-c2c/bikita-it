@@ -7,26 +7,51 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ChevronRight, Mail, Phone, Building, UserCircle, DownloadCloud } from "lucide-react";
 import Link from "next/link";
-import { cn, exportToCSV } from "@/lib/utils";
+import { exportToCSV } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 
 interface EmployeeHeroProps {
   employeeId: string;
 }
 
+export interface EmployeeHeroData {
+  id: string | number;
+  name: string;
+  role: string;
+  department: string;
+  email: string;
+  phone: string;
+  manager: string;
+  avatar: string;
+  status: string;
+  equipmentValue: string;
+  activeAssets: number;
+}
+
+interface RawUserData {
+  id: string | number;
+  name?: string;
+  position?: string;
+  role?: string;
+  department?: string;
+  email?: string;
+  office?: string;
+  assets?: number;
+}
+
 export function EmployeeHero({ employeeId }: EmployeeHeroProps) {
-  const [emp, setEmp] = React.useState<any>(null);
+  const [emp, setEmp] = React.useState<EmployeeHeroData | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    apiFetch<any>(`/users/${employeeId}`)
+    apiFetch<RawUserData>(`/users/${employeeId}`)
       .then(data => {
         setEmp({
           id: data.id,
-          name: data.name,
+          name: data.name || "Employee",
           role: data.position ?? data.role ?? 'Employee',
           department: data.department ?? '—',
-          email: data.email,
+          email: data.email || "—",
           phone: data.office ?? '—',
           manager: '—', // Or fetch from a manager relation if added later
           avatar: data.name ? data.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "?",
@@ -138,7 +163,7 @@ export function EmployeeHero({ employeeId }: EmployeeHeroProps) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="bg-white border border-border/60 rounded-2xl p-6 min-w-[240px] shadow-sm relative overflow-hidden"
+          className="bg-white border border-border/60 rounded-2xl p-6 min-w-60 shadow-sm relative overflow-hidden"
         >
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1 relative z-10">Total Equipment Value</p>

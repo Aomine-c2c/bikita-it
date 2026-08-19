@@ -6,16 +6,17 @@ import { AssetSidebar } from "@/components/assets/AssetSidebar";
 import { AssetTable } from "@/components/assets/AssetTable";
 import { AssetFormModal } from "@/components/assets/AssetFormModal";
 import { motion } from "framer-motion";
-import { Plus, Box, ShieldCheck, Wrench, Archive, RefreshCw } from "lucide-react";
+import { Plus, Box, ShieldCheck, Wrench, Archive, RefreshCw, FileSpreadsheet, Printer } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { assetApi } from "@/lib/api";
+import { assetApi, Asset } from "@/lib/api";
+import { exportAssetsExcel, printAssetsSheet } from "@/lib/excelExport";
 
 export default function AssetsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All Assets");
 
   // Query Real Assets Stats
-  const { data: rawAssets = [], refetch } = useQuery({
+  const { data: rawAssets = [], refetch } = useQuery<Asset[]>({
     queryKey: ["assets"],
     queryFn: async () => {
       return await assetApi.getAll();
@@ -23,9 +24,9 @@ export default function AssetsPage() {
   });
 
   const totalAssets = rawAssets.length;
-  const activeAssets = rawAssets.filter((a: any) => a.status === "Active" || a.status === "In Use").length;
-  const inRepair = rawAssets.filter((a: any) => a.status === "In Maintenance" || a.status === "Repair").length;
-  const retired = rawAssets.filter((a: any) => a.status === "Retired" || a.status === "Disposed").length;
+  const activeAssets = rawAssets.filter((a: Asset) => a.status === "ACTIVE" || a.status === "Active" || a.status === "In Use").length;
+  const inRepair = rawAssets.filter((a: Asset) => a.status === "IN_REPAIR" || a.status === "In Maintenance" || a.status === "Repair").length;
+  const retired = rawAssets.filter((a: Asset) => a.status === "RETIRED" || a.status === "Retired" || a.status === "Disposed").length;
 
   const kpis = [
     { label: "Total Hardware", value: totalAssets, icon: Box, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -36,7 +37,7 @@ export default function AssetsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-375 mx-auto">
         {/* Modals */}
         <AssetFormModal
           isOpen={isAddModalOpen}
@@ -62,10 +63,28 @@ export default function AssetsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap gap-2.5">
+            <button
+              onClick={() => exportAssetsExcel(rawAssets)}
+              title="Export all hardware devices to Excel spreadsheet"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-muted-foreground hover:text-emerald-600 hover:border-emerald-500/40 transition-all cursor-pointer shadow-xs"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Excel Export</span>
+            </button>
+
+            <button
+              onClick={() => printAssetsSheet(rawAssets)}
+              title="Generate printable physical copy"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-xs"
+            >
+              <Printer className="w-3.5 h-3.5 text-primary" />
+              <span>Print Sheet</span>
+            </button>
+
             <button
               onClick={() => refetch()}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card/60 border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-xs"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Refresh</span>
@@ -107,7 +126,7 @@ export default function AssetsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex-1 flex gap-6 overflow-hidden min-h-[500px]"
+          className="flex-1 flex gap-6 overflow-hidden min-h-125"
         >
           {/* Left Sidebar Category Tree */}
           <AssetSidebar activeCategory={activeCategory} onSelectCategory={setActiveCategory} />

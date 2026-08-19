@@ -26,8 +26,9 @@ export function RetireAssetModal({ isOpen, onClose, onSuccess, asset }: RetireAs
       await assetApi.retire(asset.id, reason, notes);
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to retire asset");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to retire asset";
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +89,7 @@ export function RetireAssetModal({ isOpen, onClose, onSuccess, asset }: RetireAs
                   <textarea 
                     value={notes} 
                     onChange={e => setNotes(e.target.value)} 
-                    className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-red-500 min-h-[100px]"
+                    className="w-full px-3 py-2 bg-white border border-border/60 rounded-md text-sm outline-none focus:border-red-500 min-h-25"
                     placeholder="Additional context..."
                   />
                 </div>

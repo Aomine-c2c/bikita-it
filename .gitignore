@@ -34,3 +34,10 @@ server-err.txt
 server-err2.txt
 server-out.txt
 server-out2.txt
+
+# Backups & IDE
+.vscode/
+apps/web/.vscode/
+apps/backups/
+*.bak
+apps/web/src-tauri/target_check/

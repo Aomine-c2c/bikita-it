@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SetupGuard } from "@/components/auth/SetupGuard";
-import { AuthGuard } from "@/components/auth/AuthGuard";
 import { UpdateNotification } from "@/components/updater/UpdateNotification";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
@@ -27,9 +26,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>
           <SetupGuard>
-            <AuthGuard>
-              {children}
-            </AuthGuard>
+            {children}
           </SetupGuard>
           <UpdateNotification />
           <Toaster position="top-right" richColors />

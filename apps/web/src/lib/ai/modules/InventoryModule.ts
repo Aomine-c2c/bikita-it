@@ -1,5 +1,5 @@
 import { AIModule, AIIntent, AIContext, AIResponse } from '../types';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, type InventoryItem } from '@/lib/api';
 
 export class InventoryModule implements AIModule {
   name = 'InventoryModule';
@@ -9,15 +9,15 @@ export class InventoryModule implements AIModule {
   async execute(intent: AIIntent, _context: AIContext): Promise<AIResponse> {
     const query = intent.originalQuery.toLowerCase();
     let message = "I can help with inventory reports.";
-    let data = null;
+    let data: unknown = null;
     
     try {
-      const inventory = await apiFetch('/inventory') as any[];
+      const inventory = await apiFetch<InventoryItem[]>('/inventory');
       data = inventory;
       
       if (query.includes("inventory report")) {
         const totalItems = inventory.length;
-        const lowStock = inventory.filter((item: any) => item.quantity < (item.min_quantity || 5));
+        const lowStock = inventory.filter((item) => item.quantity < (item.min_stock || 5));
         
         message = `Generating the inventory report for you now. You have ${totalItems} items in inventory, with ${lowStock.length} items currently low on stock.`;
       }

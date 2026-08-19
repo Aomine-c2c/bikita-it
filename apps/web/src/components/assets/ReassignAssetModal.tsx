@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, AlertCircle, Search, User } from "lucide-react";
-import { assetApi, apiFetch } from "@/lib/api";
+import { X, Loader2, Search, User } from "lucide-react";
+import { assetApi, employeesApi, type Employee } from "@/lib/api";
 
 interface ReassignAssetModalProps {
   isOpen: boolean;
@@ -17,7 +17,7 @@ interface ReassignAssetModalProps {
 export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, currentAssigneeId }: ReassignAssetModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [_error, setError] = useState<string | null>(null);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -32,9 +32,9 @@ export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, curren
   const fetchEmployees = async () => {
     try {
       setLoadingEmployees(true);
-      const data = await apiFetch<any>('/employees');
-      setEmployees(Array.isArray(data) ? data : data.data || []);
-    } catch (err: any) {
+      const data = await employeesApi.getAll();
+      setEmployees(Array.isArray(data) ? data : []);
+    } catch (err: unknown) {
       console.error("Failed to load employees:", err);
     } finally {
       setLoadingEmployees(false);
@@ -57,8 +57,9 @@ export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, curren
       await assetApi.reassign(assetId, selectedId);
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to reassign asset");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to reassign asset";
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -111,7 +112,7 @@ export function ReassignAssetModal({ isOpen, onClose, onSuccess, assetId, curren
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-              <div className="p-2 flex-1 overflow-y-auto min-h-[200px]">
+              <div className="p-2 flex-1 overflow-y-auto min-h-50">
                 {loadingEmployees ? (
                   <div className="h-full flex items-center justify-center">
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

@@ -19,7 +19,7 @@ export interface Ticket {
   updatedAt: string;
 }
 
-function calculateSlaDueDate(priority: string, startDate: Date): string {
+export function calculateSlaDueDate(priority: string, startDate: Date): string {
   const date = new Date(startDate);
   switch (priority) {
     case 'Critical': date.setHours(date.getHours() + 4); break;

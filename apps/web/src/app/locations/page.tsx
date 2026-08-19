@@ -8,23 +8,32 @@ import { NewLocationModal } from "@/components/locations/NewLocationModal";
 import { motion } from "framer-motion";
 import { Layers, Plus, RefreshCw, Server, MapPin, Zap, Thermometer } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { locationsApi } from "@/lib/api";
+import { locationsApi, racksApi, type Location, type RackRecord } from "@/lib/api";
 
 export default function LocationsPage() {
-  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Query Locations
-  const { data: rawLocations = [], refetch } = useQuery({
+  const { data: rawLocations = [], refetch: refetchLocations } = useQuery({
     queryKey: ["locations"],
     queryFn: async () => {
       return await locationsApi.getAll();
     },
   });
 
-  const totalNodes = Array.isArray(rawLocations) ? rawLocations.length : 12;
-  const rackCount = 6;
-  const powerKw = "18.4 kW";
+  // Query All Racks
+  const { data: allRacks = [], refetch: refetchRacks } = useQuery<RackRecord[]>({
+    queryKey: ["racks"],
+    queryFn: async () => {
+      return await racksApi.getAll();
+    },
+  });
+
+  const totalNodes = Array.isArray(rawLocations) ? rawLocations.length : 0;
+  const rackCount = Array.isArray(allRacks) ? allRacks.length : 0;
+  const totalPowerWatts = Array.isArray(allRacks) ? allRacks.reduce((sum: number, r: RackRecord) => sum + (r.total_power_draw_watts || 0), 0) : 0;
+  const powerKw = `${(totalPowerWatts / 1000).toFixed(2)} kW`;
 
   const kpis = [
     { label: "Total Location Nodes", value: totalNodes, icon: MapPin, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -33,16 +42,21 @@ export default function LocationsPage() {
     { label: "Environmental Status", value: "21.8°C (Optimal)", icon: Thermometer, color: "text-emerald-500", bg: "bg-emerald-500/10" },
   ];
 
+  const handleSyncSensors = () => {
+    refetchLocations();
+    refetchRacks();
+  };
+
   return (
     <DashboardLayout>
-      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-375 mx-auto">
         {/* New Location Modal */}
         <NewLocationModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
-            refetch();
+            handleSyncSensors();
           }}
         />
 
@@ -60,7 +74,7 @@ export default function LocationsPage() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => refetch()}
+              onClick={handleSyncSensors}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card/60 border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-sm"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -103,10 +117,10 @@ export default function LocationsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex gap-6 flex-1 min-h-[550px]"
+          className="flex gap-6 flex-1 min-h-137.5"
         >
           {/* Left Location Tree Sidebar */}
-          <div className="w-[350px] shrink-0">
+          <div className="w-87.5 shrink-0">
             <LocationTree onSelectLocation={setSelectedLocation} />
           </div>
 

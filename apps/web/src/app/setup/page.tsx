@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { ShieldCheck, Loader2 } from "lucide-react";
 export default function SetupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -20,6 +21,25 @@ export default function SetupPage() {
     confirmPassword: "",
     orgName: ""
   });
+
+  useEffect(() => {
+    let active = true;
+    async function checkStatus() {
+      try {
+        const data = await apiFetch<{ isSetupComplete?: boolean; initialized?: boolean }>('/setup/check');
+        if (data && (data.isSetupComplete || data.initialized)) {
+          router.replace("/login");
+          return;
+        }
+      } catch (_err) {
+        // Backend offline or error; allow rendering setup form
+      } finally {
+        if (active) setCheckingStatus(false);
+      }
+    }
+    checkStatus();
+    return () => { active = false; };
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,17 +68,25 @@ export default function SetupPage() {
       });
 
       if (data.success) {
-        // First time setup complete, redirect to dashboard
-        router.push("/");
+        // First time setup complete, redirect to login
+        router.push("/login");
       } else {
         setError(data.message || "Failed to initialize system.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : typeof err === 'string' ? err : "Network error. Could not reach server.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (checkingStatus) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">

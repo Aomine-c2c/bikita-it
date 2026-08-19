@@ -1,9 +1,9 @@
 {
   "name": "web",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
+    "dev": "next dev --webpack -H 0.0.0.0",
     "dev:django": "cd ../api && .\\venv\\Scripts\\activate && python manage.py runserver 3001",
     "dev:full": "concurrently -n NEXT,DJANGO -c magenta,cyan \"npm run dev\" \"npm run dev:django\"",
     "build": "next build",
@@ -12,6 +12,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "bump:patch": "node ../../scripts/bump_version.js patch",
+    "bump:minor": "node ../../scripts/bump_version.js minor",
+    "bump:major": "node ../../scripts/bump_version.js major",
+    "build:protected": "powershell -ExecutionPolicy Bypass -File ../../scripts/build_protected.ps1",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
@@ -65,6 +69,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "jsdom": "^29.1.1",
+    "lightningcss": "^1.33.0",
+    "lightningcss-win32-x64-msvc": "^1.33.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5",
     "vitest": "^4.1.10"

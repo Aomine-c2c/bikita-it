@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, notFound } from "next/navigation";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AssetHero } from "@/components/assets/AssetHero";
 import { AssetTabs } from "@/components/assets/AssetTabs";
@@ -41,7 +41,12 @@ function AssetDetailsContent() {
     return () => { active = false; };
   }, [id]);
 
+  if (state === "missing") {
+    notFound();
+  }
+
   const renderTab = () => {
+    if (!asset) return null;
     switch (activeTab) {
       case "Overview": return <AssetOverviewTab asset={asset} />;
       case "History": return <AssetHistoryTab asset={asset} />;
@@ -57,7 +62,7 @@ function AssetDetailsContent() {
   return (
     <DashboardLayout>
       {state === "loading" && <div className="h-[60vh] grid place-items-center"><Loader2 className="w-7 h-7 animate-spin" aria-label="Loading asset" /></div>}
-      {(state === "missing" || state === "error") && <section role="alert" className="h-[60vh] grid place-items-center text-center"><div><h1 className="text-xl font-bold">{state === "missing" ? "Asset not found" : "Unable to load asset"}</h1><p className="text-sm text-muted-foreground mt-2">{state === "missing" ? "This asset does not exist or has been removed." : "Check the API connection and try again."}</p></div></section>}
+      {state === "error" && <section role="alert" className="h-[60vh] grid place-items-center text-center"><div><h1 className="text-xl font-bold">Unable to load asset</h1><p className="text-sm text-muted-foreground mt-2">Check the API connection and try again.</p></div></section>}
       {state === "ready" && asset && <div className="flex flex-col -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
         <div className="shrink-0 bg-white">
           <AssetHero 

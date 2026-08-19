@@ -103,50 +103,57 @@ export function ActivityFeed() {
           </div>
         ) : (
           <div className="divide-y divide-border/30">
-            {events.map((evt) => (
-              <div key={evt.id} className="p-4 hover:bg-slate-50/50 transition-colors flex gap-4">
-                {/* Icon */}
-                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0 border", getModuleColor(evt.module || evt.type || "UNKNOWN"))}>
-                  {getModuleIcon(evt.module || evt.type || "UNKNOWN")}
-                </div>
+            {events.map((evt) => {
+              const eventDate = new Date(String(evt.createdAt || evt.created_at || evt.timestamp || Date.now()));
+              const moduleKey = String(evt.module || evt.type || "UNKNOWN");
+              const entityId = String(evt.entityId || evt.entity_id || evt.id || "").substring(0, 8);
+              return (
+                <div key={String(evt.id)} className="p-4 hover:bg-slate-50/50 transition-colors flex gap-4">
+                  {/* Icon */}
+                  <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0 border", getModuleColor(moduleKey))}>
+                    {getModuleIcon(moduleKey)}
+                  </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        <span className="font-bold text-slate-900">System Admin</span>
-                        <span className="text-muted-foreground mx-1">•</span>
-                        {evt.description}
-                      </p>
-                    </div>
-                    <div className="text-xs text-muted-foreground whitespace-nowrap text-right shrink-0">
-                      {formatDistanceToNow(new Date((evt as any).createdAt || evt.created_at), { addSuffix: true })}
-                      <div className="text-[10px] opacity-70 mt-0.5">
-                        {format(new Date((evt as any).createdAt || evt.created_at), "MMM d, h:mm a")}
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          <span className="font-bold text-slate-900">{String(evt.user || "System Admin")}</span>
+                          <span className="text-muted-foreground mx-1">•</span>
+                          {evt.description ? String(evt.description) : "System event processed"}
+                        </p>
+                      </div>
+                      <div className="text-xs text-muted-foreground whitespace-nowrap text-right shrink-0">
+                        {formatDistanceToNow(eventDate, { addSuffix: true })}
+                        <div className="text-[10px] opacity-70 mt-0.5">
+                          {format(eventDate, "MMM d, h:mm a")}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Metadata Chips */}
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <span className="inline-flex text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
-                      {evt.module}
-                    </span>
-                    <span className="inline-flex text-[10px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100">
-                      ID: {(evt as any).entityId || (evt as any).entity_id || evt.id.substring(0,8)}...
-                    </span>
-                    <span className={cn("inline-flex text-[10px] font-bold uppercase px-2 py-0.5 rounded border", 
-                      evt.action === "CREATED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                      evt.action === "DELETED" ? "bg-rose-50 text-rose-700 border-rose-200" :
-                      "bg-blue-50 text-blue-700 border-blue-200"
-                    )}>
-                      {evt.action}
-                    </span>
+                    {/* Metadata Chips */}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <span className="inline-flex text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                        {moduleKey}
+                      </span>
+                      {entityId && (
+                        <span className="inline-flex text-[10px] font-mono bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100">
+                          ID: {entityId}...
+                        </span>
+                      )}
+                      <span className={cn("inline-flex text-[10px] font-bold uppercase px-2 py-0.5 rounded border", 
+                        evt.action === "CREATED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                        evt.action === "DELETED" ? "bg-rose-50 text-rose-700 border-rose-200" :
+                        "bg-blue-50 text-blue-700 border-blue-200"
+                      )}>
+                        {String(evt.action || "LOG")}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

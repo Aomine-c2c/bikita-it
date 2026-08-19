@@ -3,17 +3,19 @@
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import dynamic from "next/dynamic";
-import { FileText, Download, Calendar, DollarSign, TrendingUp, ShieldCheck, Layers, RefreshCw } from "lucide-react";
+import { DollarSign, TrendingUp, ShieldCheck, Layers, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch, assetApi } from "@/lib/api";
 import { exportAssetsPDF, exportAssetsCSV } from "@/lib/reportExport";
+import { exportAssetsExcel, printAssetsSheet } from "@/lib/excelExport";
+import { ReportFilters, ReportFilterState } from "@/components/reports/ReportFilters";
 
 const ReportCharts = dynamic(
   () => import("@/components/reports/ReportCharts").then((m) => m.ReportCharts),
   {
     ssr: false,
     loading: () => (
-      <div className="h-[300px] flex items-center justify-center border border-border/50 rounded-3xl bg-card/40 backdrop-blur-xl">
+      <div className="h-75 flex items-center justify-center border border-border/50 rounded-3xl bg-card/40 backdrop-blur-xl">
         <span className="text-xs font-bold text-muted-foreground animate-pulse">Loading analytics engine…</span>
       </div>
     ),
@@ -32,17 +34,55 @@ const fmt$ = (n: number) =>
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [dateRange, setDateRange] = useState("30");
   const [exporting, setExporting] = useState(false);
   const [kpis, setKpis] = useState<ReportKpis | null>(null);
   const [kpisLoading, setKpisLoading] = useState(true);
+  const [filterState, setFilterState] = useState<ReportFilterState>({
+    dateRange: "30",
+    department: "all",
+    category: "all",
+    reportType: "executive",
+  });
+
+  const fetchKpis = async () => {
+    setKpisLoading(true);
+    try {
+      const data = await apiFetch<ReportKpis>("/reports/kpis");
+      setKpis(data);
+    } catch {
+      setKpis(null);
+    } finally {
+      setKpisLoading(false);
+    }
+  };
 
   useEffect(() => {
-    apiFetch<ReportKpis>("/reports/kpis")
-      .then((data) => setKpis(data))
-      .catch(() => setKpis(null))
-      .finally(() => setKpisLoading(false));
+    let ignore = false;
+    async function load() {
+      setKpisLoading(true);
+      try {
+        const data = await apiFetch<ReportKpis>("/reports/kpis");
+        if (!ignore) setKpis(data);
+      } catch {
+        if (!ignore) setKpis(null);
+      } finally {
+        if (!ignore) setKpisLoading(false);
+      }
+    }
+    load();
+    return () => {
+      ignore = true;
+    };
   }, []);
+
+  const handleExportExcel = async () => {
+    try {
+      const assets = await assetApi.getAll();
+      exportAssetsExcel(assets);
+    } catch (err) {
+      console.error("Excel export failed", err);
+    }
+  };
 
   const handleExportPDF = async () => {
     setExporting(true);
@@ -65,34 +105,43 @@ export default function ReportsPage() {
     }
   };
 
+  const handlePrint = async () => {
+    try {
+      const assets = await assetApi.getAll();
+      printAssetsSheet(assets);
+    } catch {
+      window.print();
+    }
+  };
+
   const kpiCards = [
     {
       label: "Total Fleet Asset Value",
       value: kpisLoading ? "…" : fmt$(kpis?.totalAssetValue ?? 0),
       icon: DollarSign,
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
+      color: "text-foreground",
+      bg: "bg-primary/10",
     },
     {
       label: "Monthly Maintenance Expense",
       value: kpisLoading ? "…" : fmt$(kpis?.monthlyMaintenance ?? 0),
       icon: TrendingUp,
-      color: "text-amber-500",
-      bg: "bg-amber-500/10",
+      color: "text-foreground",
+      bg: "bg-primary/10",
     },
     {
       label: "SLA Resolution Rate",
       value: kpisLoading ? "…" : `${kpis?.slaResolutionRate ?? 100}%`,
       icon: ShieldCheck,
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-500/10",
     },
     {
       label: "Inventory SKUs Tracked",
       value: kpisLoading ? "…" : (kpis?.inventoryItems ?? 0).toLocaleString(),
       icon: Layers,
-      color: "text-indigo-500",
-      bg: "bg-indigo-500/10",
+      color: "text-foreground",
+      bg: "bg-primary/10",
     },
   ];
 
@@ -105,43 +154,22 @@ export default function ReportsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
-        {/* Title */}
+      <div className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-375 mx-auto">
+        {/* Title Area */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-foreground">Executive Analytics & Reports</h1>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">Executive Analytics & Reports</h1>
             <p className="text-xs font-medium text-muted-foreground mt-1">
               Business Intelligence, Financial Depreciation Curves, SLA Metrics & Printable Reports
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border/60 text-xs font-bold shadow-sm">
-              <Calendar className="w-3.5 h-3.5 text-primary" />
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="bg-transparent outline-none cursor-pointer text-foreground"
-              >
-                <option value="30">Last 30 Days</option>
-                <option value="90">Last 90 Days</option>
-                <option value="YTD">Year to Date (YTD)</option>
-                <option value="ALL">All Time</option>
-              </select>
-            </div>
+          <div className="flex items-center gap-2.5">
             <button
-              onClick={handleExportCSV}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-foreground hover:bg-muted/60 transition-all cursor-pointer shadow-sm"
+              onClick={fetchKpis}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-sm"
             >
-              <Download className="w-3.5 h-3.5 text-primary" />
-              Export CSV
-            </button>
-            <button
-              onClick={handleExportPDF}
-              disabled={exporting}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary/90 transition-all shadow-md cursor-pointer disabled:opacity-50"
-            >
-              {exporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-              {exporting ? "Generating…" : "Export PDF Report"}
+              <RefreshCw className={cn("w-3.5 h-3.5", kpisLoading && "animate-spin")} />
+              <span>Refresh Metrics</span>
             </button>
           </div>
         </div>
@@ -169,6 +197,17 @@ export default function ReportsPage() {
           })}
         </div>
 
+        {/* Filter Controls Bar */}
+        <ReportFilters
+          filters={filterState}
+          onFilterChange={setFilterState}
+          onExportExcel={handleExportExcel}
+          onExportCSV={handleExportCSV}
+          onExportPDF={handleExportPDF}
+          onPrint={handlePrint}
+          isExporting={exporting}
+        />
+
         {/* Tab Nav */}
         <div className="flex items-center border-b border-border/40 bg-muted/20 px-4 pt-2 gap-2 rounded-2xl border overflow-x-auto">
           {tabs.map((t) => (
@@ -187,6 +226,7 @@ export default function ReportsPage() {
           ))}
         </div>
 
+        {/* Dynamic Charts Section */}
         <section className="mt-6">
           <ReportCharts activeTab={activeTab} />
         </section>

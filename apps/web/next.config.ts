@@ -1,10 +1,13 @@
 import type { NextConfig } from 'next';
-
-const AXUM_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://127.0.0.1:3001';
+import path from 'path';
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: path.resolve(__dirname, '../../'),
+  },
   output: 'export',
   poweredByHeader: false,
+  productionBrowserSourceMaps: false,
 
   // Image optimization for static export
   images: {
@@ -19,23 +22,11 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // Proxy all /api/* calls to the local Axum HTTP server in dev mode.
-  // Static export (production/Tauri build) ignores rewrites — direct fetch is used instead.
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${AXUM_URL}/api/:path*`,
-      },
-    ];
-  },
-
   // Experimental performance features
   experimental: {
     // Optimize package imports for large icon/component libraries (tree-shaking)
     optimizePackageImports: [
       'lucide-react',
-      'framer-motion',
       'recharts',
       '@radix-ui/react-label',
       '@radix-ui/react-slot',

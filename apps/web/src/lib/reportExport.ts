@@ -11,7 +11,6 @@ import type {
   InventoryItem,
   Repair,
   NetworkDevice,
-  Employee,
   Location,
   OperationHistoryRecord,
 } from "./api";
@@ -159,16 +158,23 @@ export function exportNetworkPDF(devices: NetworkDevice[]) {
   const rows = devices.map((d) => ({
     ...d,
     locationName: d.locationId ?? "",
-    lastSeenFmt: fmtDate(d.lastSeen),
+    lastSeenFmt: fmtDate(d.lastSeen || d.last_seen),
   }));
   generateTablePdf("Network Report", columns, rows, "network_report");
 }
 
 export function exportNetworkCSV(devices: NetworkDevice[]) {
   const headers = ["Hostname", "IP Address", "MAC Address", "Device Type", "OS", "Status", "Network", "Location", "Last Seen"];
-  const rows = devices.map((d) => [
-    d.hostname, d.ipAddress, d.macAddress, d.deviceType, d.os,
-    d.connectionStatus, d.networkName, d.locationId, fmtDate(d.lastSeen),
+  const rows: (string | number | null | undefined)[][] = devices.map((d) => [
+    d.hostname,
+    d.ipAddress || d.ip_address,
+    d.macAddress || d.mac_address,
+    d.deviceType || d.device_type,
+    d.os,
+    d.connectionStatus || d.status,
+    d.networkName,
+    d.locationId,
+    fmtDate(d.lastSeen || d.last_seen),
   ]);
   downloadCSV(toCSV(headers, rows), "network_report");
 }

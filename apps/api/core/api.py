@@ -10,6 +10,8 @@ from .routers.locations_cameras import router as locations_cameras_router
 from .routers.system import router as system_router
 from .routers.accessories_software import router as accessories_software_router
 from .routers.reports import router as reports_router
+from .routers.racks import router as racks_router
+from .routers.portal import router as portal_router
 
 router = Router(auth=JWTAuth())
 
@@ -22,3 +24,5 @@ router.add_router("", locations_cameras_router)
 router.add_router("", system_router)
 router.add_router("", accessories_software_router)
 router.add_router("/reports", reports_router)
+router.add_router("/racks", racks_router)
+router.add_router("", portal_router)

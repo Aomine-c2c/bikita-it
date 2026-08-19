@@ -1,7 +1,7 @@
 {
   "$schema": "https://githubusercontent.com",
   "productName": "Pulse",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "identifier": "com.pulse.itops",
   "build": {
     "frontendDist": "../out",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Pulse IT Operations v0.3.2",
+        "title": "Pulse IT Operations v0.3.3",
         "width": 1400,
         "height": 900,
         "minWidth": 1024,
@@ -30,7 +30,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
+    "targets": [
+      "nsis",
+      "msi"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -41,5 +44,3 @@
   },
   "plugins": {}
 }
-
-

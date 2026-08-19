@@ -180,7 +180,7 @@ fn scan_cameras(app: tauri::AppHandle) -> Result<(), String> {
         let start_time = std::time::Instant::now();
         while start_time.elapsed() < Duration::from_secs(5) {
             match timeout(Duration::from_millis(500), socket.recv_from(&mut buf)).await {
-                Ok(Ok((size, addr))) => {
+                Ok(Ok((size, _addr))) => {
                     let xml = String::from_utf8_lossy(&buf[..size]);
                     
                     let mut reader = Reader::from_str(&xml);
@@ -226,6 +226,7 @@ fn scan_cameras(app: tauri::AppHandle) -> Result<(), String> {
                             "vendor": "Hikvision",
                             "status": "Online",
                             "os": software_version,
+                            "serial_number": serial_number,
                             "deviceType": "Camera"
                         });
                         let _ = app.emit("device_discovered", device);

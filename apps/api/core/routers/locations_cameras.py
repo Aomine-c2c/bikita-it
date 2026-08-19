@@ -7,50 +7,29 @@ from .schemas import LocationSchema, LocationInSchema, CameraSchema, RackAssignm
 
 router = Router()
 
-# ─── Locations ─────────────────────────────────────────────────────────────────
+from .utils import safe_fk_id, log_operation
 
-@router.get("/locations", response=List[LocationSchema])
-def get_locations(request):
-    return list(Location.objects.select_related('parent').all())
+def normalize_location_payload(payload_dict: dict) -> dict:
+    data = {}
+    if "name" in payload_dict and payload_dict["name"]:
+        data["name"] = payload_dict["name"]
+    if "type" in payload_dict and payload_dict["type"]:
+        data["type"] = payload_dict["type"]
+        
+    parent_val = (
+        payload_dict.get("parent_id") or 
+        payload_dict.get("parentId") or 
+        payload_dict.get("parent_location_id") or 
+        payload_dict.get("parentLocationId") or
+        payload_dict.get("parent") or
+        payload_dict.get("parent_location")
+    )
+    if parent_val is not None:
+        data["parent_id"] = safe_fk_id(parent_val)
+        
+    return data
 
-@router.get("/locations/{location_id}", response=LocationSchema)
-def get_location(request, location_id: int):
-    return get_object_or_404(Location, id=location_id)
-
-@router.post("/locations", response=LocationSchema)
-def create_location(request, payload: LocationInSchema):
-    data = payload.dict(exclude_unset=True)
-    data.pop('id', None)
-    data.pop('created_at', None)
-    data.pop('updated_at', None)
-    location = Location.objects.create(**data)
-    return location
-
-@router.patch("/locations/{location_id}", response=LocationSchema)
-def update_location(request, location_id: int, payload: LocationInSchema):
-    location = get_object_or_404(Location, id=location_id)
-    data = payload.dict(exclude_unset=True)
-    data.pop('id', None)
-    data.pop('created_at', None)
-    data.pop('updated_at', None)
-    for attr, value in data.items():
-        setattr(location, attr, value)
-    location.save()
-    return location
-
-@router.delete("/locations/{location_id}")
-@require_admin
-def delete_location(request, location_id: int):
-    location = get_object_or_404(Location, id=location_id)
-    location.delete()
-    return {"success": True}
-
-@router.get("/locations/{location_id}/rack-map", response=List[RackAssignmentSchema])
-def get_rack_map(request, location_id: int):
-    location = get_object_or_404(Location, id=location_id)
-    return list(RackAssignment.objects.filter(location=location).select_related('device').all())
-
-# ─── Location tree & details ───────────────────────────────────────────────────
+# ─── Location tree & details helper ───────────────────────────────────────────
 
 def _build_tree(locations, parent_id=None):
     """Recursively build a nested tree structure."""
@@ -68,11 +47,68 @@ def _build_tree(locations, parent_id=None):
             })
     return nodes
 
+# ─── Locations ─────────────────────────────────────────────────────────────────
+
+@router.get("/locations", response=List[LocationSchema])
+def get_locations(request):
+    return list(Location.objects.select_related('parent').all())
+
 @router.get("/locations/tree")
 def get_location_tree(request):
     """Return all locations as a nested tree."""
     locations = list(Location.objects.select_related('parent').all())
     return _build_tree(locations, parent_id=None)
+
+@router.get("/locations/{location_id}", response=LocationSchema)
+def get_location(request, location_id: int):
+    return get_object_or_404(Location.objects.select_related('parent'), id=location_id)
+
+@router.post("/locations", response=LocationSchema)
+def create_location(request, payload: LocationInSchema):
+    raw_data = payload.dict(exclude_unset=True)
+    data = normalize_location_payload(raw_data)
+    location = Location.objects.create(**data)
+    log_operation(
+        action="CREATE",
+        resource_type="Location",
+        resource_id=str(location.id),
+        details={"name": location.name, "type": location.type},
+    )
+    return location
+
+@router.patch("/locations/{location_id}", response=LocationSchema)
+def update_location(request, location_id: int, payload: LocationInSchema):
+    location = get_object_or_404(Location, id=location_id)
+    raw_data = payload.dict(exclude_unset=True)
+    data = normalize_location_payload(raw_data)
+    for attr, value in data.items():
+        setattr(location, attr, value)
+    location.save()
+    log_operation(
+        action="UPDATE",
+        resource_type="Location",
+        resource_id=str(location.id),
+        details={"updated_fields": list(data.keys()), "name": location.name},
+    )
+    return location
+
+@router.delete("/locations/{location_id}")
+@require_admin
+def delete_location(request, location_id: int):
+    location = get_object_or_404(Location, id=location_id)
+    log_operation(
+        action="DELETE",
+        resource_type="Location",
+        resource_id=str(location.id),
+        details={"name": location.name},
+    )
+    location.delete()
+    return {"success": True}
+
+@router.get("/locations/{location_id}/rack-map", response=List[RackAssignmentSchema])
+def get_rack_map(request, location_id: int):
+    location = get_object_or_404(Location, id=location_id)
+    return list(RackAssignment.objects.filter(location=location).select_related('device').all())
 
 @router.get("/locations/{location_id}/details")
 def get_location_details(request, location_id: int):

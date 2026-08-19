@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, LayoutGrid, Table, RefreshCw, AlertCircle, Clock, CheckCircle2, ShieldAlert } from "lucide-react";
+import { Plus, LayoutGrid, Table, RefreshCw, AlertCircle, Clock, CheckCircle2, ShieldAlert, FileSpreadsheet, Printer } from "lucide-react";
 import { TicketDetailsDrawer } from "@/components/helpdesk/TicketDetailsDrawer";
 import { NewTicketModal } from "@/components/helpdesk/NewTicketModal";
 import { KanbanBoard } from "@/components/service-desk/KanbanBoard";
 import { TicketTable } from "@/components/helpdesk/TicketTable";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useQuery } from "@tanstack/react-query";
-import { ticketsApi } from "@/lib/api";
+import { ticketsApi, type Ticket } from "@/lib/api";
+import { exportTicketsExcel, printTicketsSheet } from "@/lib/excelExport";
 
 export default function HelpDeskPage() {
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
@@ -16,7 +17,7 @@ export default function HelpDeskPage() {
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
 
   // Query Tickets
-  const { data: tickets = [], refetch } = useQuery({
+  const { data: tickets = [], refetch } = useQuery<Ticket[]>({
     queryKey: ["tickets"],
     queryFn: async () => {
       return await ticketsApi.getAll();
@@ -24,9 +25,9 @@ export default function HelpDeskPage() {
   });
 
   const totalTickets = tickets.length;
-  const inProgress = tickets.filter((t: any) => t.status === "In Progress" || t.status === "Open").length;
-  const criticalCount = tickets.filter((t: any) => t.priority === "Critical" || t.priority === "High").length;
-  const resolvedCount = tickets.filter((t: any) => t.status === "Resolved" || t.status === "Closed").length;
+  const inProgress = tickets.filter((t: Ticket) => t.status === "In Progress" || t.status === "Open" || t.status === "NEW" || t.status === "IN_PROGRESS").length;
+  const criticalCount = tickets.filter((t: Ticket) => t.priority === "Critical" || t.priority === "High").length;
+  const resolvedCount = tickets.filter((t: Ticket) => t.status === "Resolved" || t.status === "Closed" || t.status === "RESOLVED" || t.status === "CLOSED").length;
 
   const kpis = [
     { label: "Total Active Tickets", value: totalTickets, icon: AlertCircle, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -37,7 +38,7 @@ export default function HelpDeskPage() {
 
   return (
     <DashboardLayout>
-      <div data-tour="helpdesk-tickets" className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-[1500px] mx-auto">
+      <div data-tour="helpdesk-tickets" className="space-y-6 pb-12 relative min-h-[calc(100vh-4rem)] max-w-375 mx-auto">
         {/* Modals & Slide-over Drawer */}
         <TicketDetailsDrawer
           isOpen={!!selectedTicketId}
@@ -66,10 +67,28 @@ export default function HelpDeskPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap gap-2.5">
+            <button
+              onClick={() => exportTicketsExcel(tickets)}
+              title="Export tickets roster to Excel spreadsheet"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-muted-foreground hover:text-emerald-600 hover:border-emerald-500/40 transition-all cursor-pointer shadow-xs"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Excel Export</span>
+            </button>
+
+            <button
+              onClick={() => printTicketsSheet(tickets)}
+              title="Generate printable support tickets copy"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border/60 text-xs font-bold text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-xs"
+            >
+              <Printer className="w-3.5 h-3.5 text-primary" />
+              <span>Print Sheet</span>
+            </button>
+
             <button
               onClick={() => refetch()}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card/60 border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-sm"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Refresh</span>
@@ -139,7 +158,7 @@ export default function HelpDeskPage() {
 
         {/* Main Content Area */}
         {viewMode === "kanban" ? (
-          <div className="flex-1 overflow-hidden min-h-[500px]">
+          <div className="flex-1 overflow-hidden min-h-125">
             <KanbanBoard onTicketClick={(id) => setSelectedTicketId(id)} />
           </div>
         ) : (

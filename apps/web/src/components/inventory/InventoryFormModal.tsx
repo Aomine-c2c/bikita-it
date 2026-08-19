@@ -10,7 +10,7 @@ interface InventoryFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  itemToEdit?: InventoryItem | null;
+  itemToEdit?: InventoryItem | { id: string | number; name?: string; sku?: string; category?: string; quantity?: number; minStock?: number; unitCost?: number | string; binLocation?: string; supplier?: string; [key: string]: unknown } | null;
 }
 
 export function InventoryFormModal({ isOpen, onClose, onSuccess, itemToEdit }: InventoryFormModalProps) {
@@ -36,10 +36,10 @@ export function InventoryFormModal({ isOpen, onClose, onSuccess, itemToEdit }: I
         name: itemToEdit.name || "",
         sku: itemToEdit.sku || "",
         category: itemToEdit.category || "Cables",
-        stock: (itemToEdit as any).stock || (itemToEdit as any).quantity || 0,
-        minStock: itemToEdit.minStock || 0,
-        maxStock: itemToEdit.maxStock || 0,
-        unitCost: itemToEdit.unitCost || 0,
+        stock: Number((itemToEdit as Record<string, unknown>).stock ?? (itemToEdit as Record<string, unknown>).quantity ?? itemToEdit.quantity ?? 0),
+        minStock: Number(itemToEdit.minStock || 0),
+        maxStock: Number((itemToEdit as Record<string, unknown>).maxStock || 0),
+        unitCost: Number(itemToEdit.unitCost || 0),
         binLocation: itemToEdit.binLocation || "",
         supplier: itemToEdit.supplier || "",
       });
@@ -87,14 +87,14 @@ export function InventoryFormModal({ isOpen, onClose, onSuccess, itemToEdit }: I
       };
 
       if (itemToEdit) {
-        await inventoryApi.update(itemToEdit.id, payload);
+        await inventoryApi.update(String(itemToEdit.id), payload);
       } else {
         await inventoryApi.create(payload);
       }
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.message || `Failed to ${itemToEdit ? 'update' : 'create'} inventory item`);
+    } catch (err: unknown) {
+      setError((err as Error)?.message || `Failed to ${itemToEdit ? 'update' : 'create'} inventory item`);
     } finally {
       setIsSubmitting(false);
     }

@@ -14,7 +14,7 @@ export interface AIContext {
 
 export interface AIResponse {
   message: string;
-  data?: any;
+  data?: unknown;
   handledBy?: string;
   intent?: AIIntent;
 }
