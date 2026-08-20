@@ -156,6 +156,9 @@ class NetworkDevice(TimeStampedSoftDeleteModel):
     snmp_sys_descr = models.TextField(blank=True, default="")
     os_fingerprint = models.CharField(max_length=255, blank=True, default="")
     monitoring_enabled = models.BooleanField(default=True)
+    is_rogue = models.BooleanField(default=False, db_index=True)
+    quarantined = models.BooleanField(default=False, db_index=True)
+    vlan_id = models.PositiveIntegerField(default=1, blank=True, null=True)
 
     def __str__(self):
         return f"{self.hostname or self.ip_address} ({self.mac_address})"

@@ -8,10 +8,11 @@ import { NetworkAlerts } from "@/components/network/NetworkAlerts";
 import { DiscoveryStagingTable } from "@/components/network/DiscoveryStagingTable";
 import { NetworkScannerModal } from "@/components/network/NetworkScannerModal";
 import { NetworkTable } from "@/components/network/NetworkTable";
+import { RogueDeviceAlertBanner } from "@/components/network/RogueDeviceAlertBanner";
 import { motion } from "framer-motion";
 import { Radar, RefreshCw, Table, LayoutGrid, FileSpreadsheet, Printer, Activity } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { networkApi, NetworkDevice } from "@/lib/api";
+import { networkApi, nocApi, NetworkDevice, TopologyNode } from "@/lib/api";
 import { exportNetworkDevicesExcel, printNetworkDevicesSheet } from "@/lib/excelExport";
 
 const NetworkTopology = dynamic(
@@ -36,6 +37,16 @@ export default function NetworkOperationsPage() {
       return await networkApi.getAll();
     },
   });
+
+  // Query Topology Graph (for rogue detection)
+  const { data: topologyData, refetch: refetchTopology } = useQuery({
+    queryKey: ["network-topology"],
+    queryFn: async () => {
+      return await nocApi.getTopologyGraph();
+    },
+  });
+
+  const rogueDevices = (topologyData?.nodes || []).filter((n) => n.is_rogue);
 
   const handlePollHealthNow = async () => {
     setIsPolling(true);
@@ -125,6 +136,17 @@ export default function NetworkOperationsPage() {
             </button>
           </div>
         </div>
+
+        {/* Rogue Intrusion Defense Alert */}
+        {rogueDevices.length > 0 && (
+          <RogueDeviceAlertBanner
+            rogueDevices={rogueDevices}
+            onRefresh={() => {
+              refetch();
+              refetchTopology();
+            }}
+          />
+        )}
 
         {/* Top NOC KPI Row */}
         <NetworkHealth />

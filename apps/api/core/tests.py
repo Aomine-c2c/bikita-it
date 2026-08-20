@@ -826,6 +826,126 @@ class PortalSuiteTests(TestCase):
         self.assertIn("Wi-Fi", suggestions[0]['title'])
 
 
+class NOCAndTopologySuiteTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.super_user = User.objects.create_superuser(
+            username='admin_noc', password='password123', email='admin_noc@bikita.test'
+        )
+        resp = self.client.post(
+            '/api/auth/login',
+            json.dumps({'username': 'admin_noc', 'password': 'password123'}),
+            content_type='application/json'
+        )
+        self.token = resp.json()['access_token']
+        self.auth_headers = {'HTTP_AUTHORIZATION': f'Bearer {self.token}'}
+
+        # Create topology hierarchy
+        self.router_dev = NetworkDevice.objects.create(
+            ip_address="192.168.1.1",
+            mac_address="00:00:0C:01:02:03",
+            hostname="gw-core-01",
+            vendor="Cisco Systems",
+            device_type="ROUTER",
+            status="ONLINE",
+            latency_ms=1.2,
+            is_staged=False,
+        )
+        self.switch_dev = NetworkDevice.objects.create(
+            ip_address="192.168.1.2",
+            mac_address="24:A4:3C:11:22:33",
+            hostname="sw-dist-01",
+            vendor="Ubiquiti Inc.",
+            device_type="SWITCH",
+            status="ONLINE",
+            latency_ms=2.5,
+            is_staged=False,
+        )
+        self.server_dev = NetworkDevice.objects.create(
+            ip_address="192.168.1.50",
+            mac_address="00:1A:A0:44:55:66",
+            hostname="srv-datacenter-01",
+            vendor="Dell Inc.",
+            device_type="SERVER",
+            status="ONLINE",
+            latency_ms=1.8,
+            is_staged=False,
+        )
+        self.rogue_dev = NetworkDevice.objects.create(
+            ip_address="192.168.1.199",
+            mac_address="AA:BB:CC:DD:EE:FF",
+            hostname="unknown-host",
+            vendor="Generic",
+            device_type="GENERIC",
+            status="ONLINE",
+            latency_ms=14.2,
+            is_staged=False,
+            is_rogue=True,
+            quarantined=False,
+        )
+
+    def test_topology_graph_generation(self):
+        resp = self.client.get('/api/devices/topology', **self.auth_headers)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data['total_nodes'] >= 4)
+        self.assertEqual(data['gateway_node_id'], self.router_dev.id)
+        
+        # Verify node properties
+        gw_node = next((n for n in data['nodes'] if n['id'] == self.router_dev.id), None)
+        self.assertIsNotNone(gw_node)
+        self.assertEqual(gw_node['cluster'], "GATEWAY")
+        
+        rogue_node = next((n for n in data['nodes'] if n['id'] == self.rogue_dev.id), None)
+        self.assertIsNotNone(rogue_node)
+        self.assertTrue(rogue_node['is_rogue'])
+
+    def test_noc_summary_kpis(self):
+        resp = self.client.get('/api/devices/noc/summary', **self.auth_headers)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertGreaterEqual(data['total_managed'], 4)
+        self.assertGreaterEqual(data['online_count'], 4)
+        self.assertEqual(data['rogue_count'], 1)
+        self.assertEqual(data['gateway_status'], "ONLINE")
+
+    def test_single_device_probe(self):
+        resp = self.client.post(f'/api/devices/{self.server_dev.id}/probe', **self.auth_headers)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data['id'], self.server_dev.id)
+        self.assertIn("status", data)
+
+    def test_rogue_quarantine_and_auto_ticket(self):
+        # 1. Quarantine
+        quar_resp = self.client.post(
+            f'/api/devices/{self.rogue_dev.id}/quarantine',
+            json.dumps({"reason": "Unrecognized MAC on switch port 8"}),
+            content_type='application/json',
+            **self.auth_headers
+        )
+        self.assertEqual(quar_resp.status_code, 200)
+        self.assertTrue(quar_resp.json()['quarantined'])
+        
+        self.rogue_dev.refresh_from_db()
+        self.assertTrue(self.rogue_dev.quarantined)
+
+        # 2. Auto-ticket
+        ticket_resp = self.client.post(
+            f'/api/devices/{self.rogue_dev.id}/auto-ticket',
+            json.dumps({"priority": "CRITICAL", "notes": "Port isolated."}),
+            content_type='application/json',
+            **self.auth_headers
+        )
+        self.assertEqual(ticket_resp.status_code, 200)
+        ticket_id = ticket_resp.json()['ticket_id']
+        
+        ticket = Ticket.objects.get(id=ticket_id)
+        self.assertEqual(ticket.priority, "CRITICAL")
+        self.assertIn("SECURITY ALERT", ticket.title)
+
+
+
 
 
 

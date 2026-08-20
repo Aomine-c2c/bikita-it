@@ -187,7 +187,16 @@ def login(request, payload: LoginIn):
     }
 
 
-# ─── Setup ────────────────────────────────────────────────────────────────────
+# ─── Health & Setup ───────────────────────────────────────────────────────────
+
+@router.get("/health", auth=None)
+def health_check(request):
+    return {
+        "status": "ok",
+        "version": "0.4.0",
+        "service": "Pulse IT Operations API",
+    }
+
 
 @router.get("/setup/check", auth=None)
 def check_setup(request):

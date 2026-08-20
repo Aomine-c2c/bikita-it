@@ -42,7 +42,17 @@ OUI_VENDOR_MAP = {
     "00:00:48": "Epson Corporation",
 }
 
-SIGNATURE_PORTS = [22, 80, 443, 161, 445, 9100, 8080]
+# Extended service signature ports
+SIGNATURE_PORTS = [
+    {"port": 22, "service": "SSH"},
+    {"port": 80, "service": "HTTP"},
+    {"port": 443, "service": "HTTPS"},
+    {"port": 554, "service": "RTSP"},
+    {"port": 161, "service": "SNMP"},
+    {"port": 3389, "service": "RDP"},
+    {"port": 445, "service": "SMB"},
+    {"port": 9100, "service": "PRINTER_RAW"},
+]
 
 def resolve_vendor_by_mac(mac_address: Optional[str]) -> str:
     if not mac_address:
@@ -59,7 +69,6 @@ def get_mac_from_arp(ip_str: str) -> Optional[str]:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=1.5)
         out = res.stdout
         
-        # Look for standard MAC pattern XX-XX-XX-XX-XX-XX or XX:XX:XX:XX:XX:XX
         mac_match = re.search(r"([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})", out)
         if mac_match:
             return mac_match.group(0).replace("-", ":").upper()
@@ -67,7 +76,9 @@ def get_mac_from_arp(ip_str: str) -> Optional[str]:
         pass
     return None
 
-def probe_port(ip_str: str, port: int, timeout: float = 0.08) -> Optional[tuple]:
+def probe_port(ip_str: str, port_info: dict, timeout: float = 0.15) -> Optional[dict]:
+    port = port_info["port"]
+    service = port_info["service"]
     t_start = time.perf_counter()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(timeout)
@@ -75,14 +86,14 @@ def probe_port(ip_str: str, port: int, timeout: float = 0.08) -> Optional[tuple]
         res = s.connect_ex((ip_str, port))
         if res == 0:
             latency = (time.perf_counter() - t_start) * 1000.0
-            return (port, latency)
+            return {"port": port, "service": service, "latency_ms": round(latency, 2)}
     except Exception:
         pass
     finally:
         s.close()
     return None
 
-def probe_host(ip_str: str, timeout: float = 0.08) -> Optional[Dict[str, Any]]:
+def probe_host(ip_str: str, timeout: float = 0.15) -> Optional[Dict[str, Any]]:
     """Probes an IP for availability, latency, open signature ports, and hostname."""
     open_ports = []
     min_latency = None
@@ -94,19 +105,19 @@ def probe_host(ip_str: str, timeout: float = 0.08) -> Optional[Dict[str, Any]]:
         for f in as_completed(futures):
             res = f.result()
             if res:
-                port, latency = res
-                open_ports.append(port)
+                open_ports.append(res)
                 is_alive = True
-                if min_latency is None or latency < min_latency:
-                    min_latency = latency
+                lat = res.get("latency_ms", 1.0)
+                if min_latency is None or lat < min_latency:
+                    min_latency = lat
 
-    # 2. If no ports responded, try fast ping fallback
+    # 2. If no ports responded, try fast ICMP ping fallback
     if not is_alive:
         is_windows = platform.system().lower() == "windows"
-        ping_cmd = ["ping", "-n", "1", "-w", "100", ip_str] if is_windows else ["ping", "-c", "1", "-W", "1", ip_str]
+        ping_cmd = ["ping", "-n", "1", "-w", "150", ip_str] if is_windows else ["ping", "-c", "1", "-W", "1", ip_str]
         try:
             t_start = time.perf_counter()
-            p = subprocess.run(ping_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.15)
+            p = subprocess.run(ping_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.25)
             if p.returncode == 0:
                 is_alive = True
                 min_latency = (time.perf_counter() - t_start) * 1000.0
@@ -128,24 +139,31 @@ def probe_host(ip_str: str, timeout: float = 0.08) -> Optional[Dict[str, Any]]:
     # 4. Resolve MAC & Vendor
     mac = get_mac_from_arp(ip_str)
     if not mac:
-        # Construct deterministic MAC for virtual/loopback test environments
         last_octet = ip_str.split(".")[-1] if "." in ip_str else "1"
         mac = f"02:00:00:00:00:{int(last_octet) % 256:02X}"
     
     vendor = resolve_vendor_by_mac(mac)
 
-    # 5. Classify Device Type
+    # 5. Classify Device Type based on port signatures and MAC OUI
+    port_nums = [p["port"] for p in open_ports]
     device_type = "WORKSTATION"
-    if 9100 in open_ports:
+    if 554 in port_nums:
+        device_type = "CAMERA"
+    elif 9100 in port_nums:
         device_type = "PRINTER"
-    elif 161 in open_ports or (22 in open_ports and ("Cisco" in vendor or "Ubiquiti" in vendor or "TP-Link" in vendor)):
+    elif 161 in port_nums or (22 in port_nums and ("Cisco" in vendor or "Ubiquiti" in vendor or "TP-Link" in vendor)):
         device_type = "SWITCH"
-    elif "Ubiquiti" in vendor and (80 in open_ports or 443 in open_ports):
+    elif "Ubiquiti" in vendor and (80 in port_nums or 443 in port_nums):
         device_type = "ACCESS_POINT"
-    elif 445 in open_ports or (22 in open_ports and 80 in open_ports):
+    elif 445 in port_nums or 3389 in port_nums or (22 in port_nums and (80 in port_nums or 443 in port_nums)):
         device_type = "SERVER"
-    elif 80 in open_ports or 443 in open_ports:
+    elif 80 in port_nums or 443 in port_nums:
         device_type = "ROUTER"
+
+    # 6. Check Rogue status: is MAC known in Asset or managed NetworkDevice?
+    is_known_asset = Asset.objects.filter(mac_address__iexact=mac).exists()
+    is_known_managed = NetworkDevice.objects.filter(mac_address__iexact=mac, is_staged=False, is_rogue=False).exists()
+    is_rogue = not (is_known_asset or is_known_managed)
 
     return {
         "ip_address": ip_str,
@@ -155,6 +173,7 @@ def probe_host(ip_str: str, timeout: float = 0.08) -> Optional[Dict[str, Any]]:
         "device_type": device_type,
         "latency_ms": round(min_latency or 1.0, 2),
         "open_ports": open_ports,
+        "is_rogue": is_rogue,
         "status": "ONLINE",
     }
 
@@ -236,11 +255,12 @@ def run_subnet_sweep(job_id: str, subnet_cidr: str):
                                 "latency_ms": result["latency_ms"],
                                 "open_ports": result["open_ports"],
                                 "is_staged": True,
+                                "is_rogue": result.get("is_rogue", False),
                                 "status": "ONLINE",
                                 "last_ping_at": timezone.now(),
                             }
                         )
-                except Exception as e:
+                except Exception:
                     pass
 
         job.is_complete = True
@@ -336,4 +356,33 @@ def poll_all_managed_devices() -> Dict[str, Any]:
         "degraded_count": degraded_count,
         "offline_count": offline_count,
         "tickets_created": tickets_created,
+    }
+
+
+def probe_single_device(device: NetworkDevice) -> Dict[str, Any]:
+    """Execute an instant on-demand socket probe on a specific network device."""
+    res = probe_host(device.ip_address, timeout=0.6)
+    now = timezone.now()
+    device.last_ping_at = now
+
+    if res:
+        device.latency_ms = res["latency_ms"]
+        device.consecutive_failures = 0
+        device.status = "ONLINE"
+        if res.get("open_ports"):
+            device.open_ports = res["open_ports"]
+    else:
+        device.consecutive_failures += 1
+        device.status = "DEGRADED" if device.consecutive_failures == 1 else "OFFLINE"
+
+    device.save()
+    return {
+        "id": device.id,
+        "ip_address": device.ip_address,
+        "status": device.status,
+        "latency_ms": device.latency_ms,
+        "open_ports": device.open_ports,
+        "consecutive_failures": device.consecutive_failures,
+        "last_ping_at": device.last_ping_at.isoformat() if device.last_ping_at else None,
+        "is_online": device.status == "ONLINE",
     }

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Database, Download, RefreshCw, HardDrive, AlertCircle, CheckCircle2, ShieldCheck, History } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Database, Download, RefreshCw, AlertCircle, CheckCircle2, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BackupFile {
@@ -17,11 +17,7 @@ export function BackupSettings() {
   const [isRestoring, setIsRestoring] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  useEffect(() => {
-    loadBackups();
-  }, []);
-
-  const loadBackups = async () => {
+  const loadBackups = useCallback(async () => {
     setLoading(true);
     try {
       const { invoke } = await import("@tauri-apps/api/core");
@@ -36,7 +32,11 @@ export function BackupSettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadBackups();
+  }, [loadBackups]);
 
   const handleCreateBackup = async () => {
     setIsBackingUp(true);

@@ -110,6 +110,11 @@ class NetworkDeviceInSchema(BaseModel):
     osFingerprint: Optional[str] = None
     monitoring_enabled: Optional[bool] = None
     monitoringEnabled: Optional[bool] = None
+    is_rogue: Optional[bool] = None
+    isRogue: Optional[bool] = None
+    quarantined: Optional[bool] = None
+    vlan_id: Optional[int] = None
+    vlanId: Optional[int] = None
 
 class RackAssignmentSchema(ModelSchema):
     class Meta:
@@ -550,5 +555,77 @@ class KnowledgeSuggestOutSchema(BaseModel):
     summary: str
     tags: List[str]
     match_score: float
+
+
+# ─── NOC & Topology Schemas ──────────────────────────────────────────────────
+
+class TopologyNodeSchema(BaseModel):
+    id: int
+    label: str
+    ip_address: str
+    mac_address: str
+    device_type: str
+    status: str
+    latency_ms: Optional[float] = 0.0
+    vlan_id: Optional[int] = 1
+    is_rogue: bool = False
+    quarantined: bool = False
+    open_ports: List[Any] = []
+    vendor: Optional[str] = ""
+    cluster: str = "ENDPOINT"  # GATEWAY, CORE_SWITCH, ACCESS_POINT, SERVER, CAMERA, PRINTER, ENDPOINT
+    asset_tag: Optional[str] = None
+
+
+class TopologyLinkSchema(BaseModel):
+    id: str
+    source: int
+    target: int
+    link_type: str = "ETHERNET"  # ETHERNET, FIBER, WIRELESS, UPLINK
+    speed_mbps: Optional[int] = 1000
+    status: str = "ACTIVE"
+    traffic_load_pct: Optional[int] = 35
+    port_source_label: Optional[str] = None
+    port_target_label: Optional[str] = None
+
+
+class TopologyGraphOutSchema(BaseModel):
+    nodes: List[TopologyNodeSchema]
+    links: List[TopologyLinkSchema]
+    total_nodes: int
+    total_links: int
+    gateway_node_id: Optional[int] = None
+
+
+class NOCSummaryOutSchema(BaseModel):
+    total_managed: int
+    online_count: int
+    degraded_count: int
+    offline_count: int
+    rogue_count: int
+    quarantined_count: int
+    average_latency_ms: float
+    gateway_status: str
+    last_sweep_at: Optional[str] = None
+
+
+class ProbeResultOutSchema(BaseModel):
+    id: int
+    ip_address: str
+    status: str
+    latency_ms: float
+    open_ports: List[Any] = []
+    consecutive_failures: int
+    last_ping_at: Optional[str] = None
+    is_online: bool
+
+
+class QuarantineDeviceInSchema(BaseModel):
+    reason: Optional[str] = "Unauthorized or suspicious rogue device"
+
+
+class AutoTicketInSchema(BaseModel):
+    priority: Optional[str] = "HIGH"
+    notes: Optional[str] = None
+
 
 

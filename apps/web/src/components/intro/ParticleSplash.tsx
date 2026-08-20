@@ -40,6 +40,9 @@ export function ParticleSplash() {
   const handleSkip = useCallback(async () => {
     if (isNavigating) return;
     setIsNavigating(true);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("has_seen_welcome", "true");
+    }
     try {
       const data = await apiFetch<{ isSetupComplete: boolean }>("/setup/check");
       if (!data?.isSetupComplete) {

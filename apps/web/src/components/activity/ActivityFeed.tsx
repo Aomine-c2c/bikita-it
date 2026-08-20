@@ -38,6 +38,12 @@ const getModuleColor = (type: string) => {
   }
 };
 
+function parseSafeDate(raw?: string | number | Date | null): Date {
+  if (!raw) return new Date(0);
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? new Date(0) : d;
+}
+
 export function ActivityFeed() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,9 +58,7 @@ export function ActivityFeed() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadEvents();
-    // Poll every 10 seconds for live updates
     const interval = setInterval(loadEvents, 10000);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,7 +108,8 @@ export function ActivityFeed() {
         ) : (
           <div className="divide-y divide-border/30">
             {events.map((evt) => {
-              const eventDate = new Date(String(evt.createdAt || evt.created_at || evt.timestamp || Date.now()));
+              const eventDate = parseSafeDate(evt.createdAt || evt.created_at || evt.timestamp);
+              const isZeroDate = eventDate.getTime() === 0;
               const moduleKey = String(evt.module || evt.type || "UNKNOWN");
               const entityId = String(evt.entityId || evt.entity_id || evt.id || "").substring(0, 8);
               return (
@@ -125,9 +130,9 @@ export function ActivityFeed() {
                         </p>
                       </div>
                       <div className="text-xs text-muted-foreground whitespace-nowrap text-right shrink-0">
-                        {formatDistanceToNow(eventDate, { addSuffix: true })}
+                        {isZeroDate ? "Just now" : formatDistanceToNow(eventDate, { addSuffix: true })}
                         <div className="text-[10px] opacity-70 mt-0.5">
-                          {format(eventDate, "MMM d, h:mm a")}
+                          {isZeroDate ? "Recently" : format(eventDate, "MMM d, h:mm a")}
                         </div>
                       </div>
                     </div>

@@ -16,6 +16,8 @@ vi.mock('next/navigation', () => ({
 // Mock the api library
 vi.mock('@/lib/api', () => ({
   getApiBase: vi.fn(() => Promise.resolve('http://localhost:3000/api')),
+  getSavedApiBaseUrl: vi.fn(() => 'http://127.0.0.1:3001/api'),
+  saveApiBaseUrl: vi.fn(),
   apiFetch: vi.fn(),
 }))
 

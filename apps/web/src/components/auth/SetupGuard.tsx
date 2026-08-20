@@ -28,32 +28,47 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Auth-enabled mode — enforce setup and login flows
-        if (pathname === "/setup") {
-          if (data.isSetupComplete) router.replace("/");
-          else setState("ready");
-          return;
-        }
-
-        if (!data.isSetupComplete) {
-          router.replace("/setup");
-          return;
-        }
-
-        if (pathname !== "/login" && !pathname.startsWith("/portal") && !pathname.startsWith("/welcome")) {
-          const hasToken = document.cookie.includes("token=") || !!localStorage.getItem("token");
-          if (!hasToken) {
-            router.replace("/login");
+        // If user has valid token, allow authenticated routes
+        const hasToken = document.cookie.includes("token=") || (typeof window !== "undefined" && !!localStorage.getItem("token"));
+        if (hasToken) {
+          if (pathname === "/login" || pathname === "/setup") {
+            router.replace("/");
             return;
           }
+          setState("ready");
+          return;
+        }
+
+        // Check if client setup has been performed on this device
+        const isClientSetupCompleted = typeof window !== "undefined" && localStorage.getItem("pulse_client_setup_completed") === "true";
+
+        if (pathname === "/setup") {
+          setState("ready");
+          return;
+        }
+
+        if (!data.isSetupComplete || !isClientSetupCompleted) {
+          if (pathname !== "/setup" && !pathname.startsWith("/portal")) {
+            router.replace("/setup");
+            return;
+          }
+        }
+
+        if (pathname !== "/login" && !pathname.startsWith("/portal") && !pathname.startsWith("/welcome") && !pathname.startsWith("/setup")) {
+          router.replace("/login");
+          return;
         }
 
         setState("ready");
       } catch (__err) {
         if (!active) return;
-        // API unreachable — fall through to show the page anyway
-        if (pathname === "/setup") setState("ready");
-        else setState("ready");
+        // If API is unreachable and setup not completed, route to /setup to configure server
+        const isClientSetupCompleted = typeof window !== "undefined" && localStorage.getItem("pulse_client_setup_completed") === "true";
+        if (!isClientSetupCompleted && pathname !== "/setup" && !pathname.startsWith("/portal")) {
+          router.replace("/setup");
+          return;
+        }
+        setState("ready");
       }
     };
 

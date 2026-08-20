@@ -29,13 +29,12 @@ def normalize_location_payload(payload_dict: dict) -> dict:
         
     return data
 
-# ─── Location tree & details helper ───────────────────────────────────────────
-
 def _build_tree(locations, parent_id=None):
-    """Recursively build a nested tree structure."""
+    """Recursively build a nested tree structure, treating non-existent parents as root nodes."""
     nodes = []
+    known_ids = {loc.id for loc in locations}
     for loc in locations:
-        pid = loc.parent_id if loc.parent_id else None
+        pid = loc.parent_id if (loc.parent_id and loc.parent_id in known_ids) else None
         if pid == parent_id:
             children = _build_tree(locations, parent_id=loc.id)
             nodes.append({

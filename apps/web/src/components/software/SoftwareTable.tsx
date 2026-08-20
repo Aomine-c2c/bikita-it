@@ -35,17 +35,19 @@ export function SoftwareTable({ onEdit, activeFilter }: SoftwareTableProps) {
 
   useEffect(() => {
     let ignore = false;
-    setLoading(true);
     softwareApi
       .getAll()
       .then((data) => {
-        if (!ignore) setSoftware(data);
+        if (!ignore) {
+          setSoftware(data);
+          setLoading(false);
+        }
       })
       .catch(() => {
-        if (!ignore) setSoftware([]);
-      })
-      .finally(() => {
-        if (!ignore) setLoading(false);
+        if (!ignore) {
+          setSoftware([]);
+          setLoading(false);
+        }
       });
     return () => {
       ignore = true;

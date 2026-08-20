@@ -10,12 +10,28 @@
 
 
 
-async function getApiBase(): Promise<string> {
-  // If we are running inside Tauri, use 3001 to comply with CSP
-  if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
-    return 'http://127.0.0.1:3001/api';
+export function getSavedApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const custom = localStorage.getItem('pulse_api_base_url');
+    if (custom && custom.trim()) {
+      return custom.trim().replace(/\/+$/, '');
+    }
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001/api';
+}
+
+export function saveApiBaseUrl(url: string) {
+  if (typeof window !== 'undefined') {
+    let cleanUrl = url.trim().replace(/\/+$/, '');
+    if (!cleanUrl.endsWith('/api')) {
+      cleanUrl = `${cleanUrl}/api`;
+    }
+    localStorage.setItem('pulse_api_base_url', cleanUrl);
+  }
+}
+
+async function getApiBase(): Promise<string> {
+  return getSavedApiBaseUrl();
 }
 
 function getAuthToken() {
@@ -424,6 +440,87 @@ function serializeNetworkPayload(data: Partial<NetworkDevice>): Record<string, a
   if (data.deviceType !== undefined) payload.device_type = data.deviceType;
   return payload;
 }
+
+export interface TopologyNode {
+  id: number;
+  label: string;
+  ip_address: string;
+  mac_address: string;
+  device_type: string;
+  status: string;
+  latency_ms?: number;
+  vlan_id?: number;
+  is_rogue?: boolean;
+  quarantined?: boolean;
+  open_ports?: Array<{ port: number; service: string; latency_ms?: number }>;
+  vendor?: string;
+  cluster: "GATEWAY" | "CORE_SWITCH" | "ACCESS_POINT" | "SERVER" | "CAMERA" | "PRINTER" | "ENDPOINT";
+  asset_tag?: string | null;
+  x?: number;
+  y?: number;
+  vx?: number;
+  vy?: number;
+}
+
+export interface TopologyLink {
+  id: string;
+  source: number | TopologyNode;
+  target: number | TopologyNode;
+  link_type: "ETHERNET" | "FIBER" | "WIRELESS" | "UPLINK";
+  speed_mbps?: number;
+  status: "ACTIVE" | "DEGRADED" | "DOWN";
+  traffic_load_pct?: number;
+  port_source_label?: string;
+  port_target_label?: string;
+}
+
+export interface TopologyGraphData {
+  nodes: TopologyNode[];
+  links: TopologyLink[];
+  total_nodes: number;
+  total_links: number;
+  gateway_node_id?: number | null;
+}
+
+export interface NOCSummaryData {
+  total_managed: number;
+  online_count: number;
+  degraded_count: number;
+  offline_count: number;
+  rogue_count: number;
+  quarantined_count: number;
+  average_latency_ms: number;
+  gateway_status: string;
+  last_sweep_at?: string | null;
+}
+
+export interface ProbeResultData {
+  id: number;
+  ip_address: string;
+  status: string;
+  latency_ms: number;
+  open_ports: Array<{ port: number; service: string; latency_ms?: number }>;
+  consecutive_failures: number;
+  last_ping_at?: string | null;
+  is_online: boolean;
+}
+
+export const nocApi = {
+  getTopologyGraph: () => apiFetch<TopologyGraphData>('/devices/topology'),
+  getNocSummary: () => apiFetch<NOCSummaryData>('/devices/noc/summary'),
+  probeDevice: (id: number | string) =>
+    apiFetch<ProbeResultData>(`/devices/${id}/probe`, { method: 'POST' }),
+  quarantineDevice: (id: number | string, reason?: string) =>
+    apiFetch<{ success: boolean; quarantined: boolean; message: string }>(`/devices/${id}/quarantine`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  autoFileRogueTicket: (id: number | string, priority = 'HIGH', notes?: string) =>
+    apiFetch<{ success: boolean; ticket_id: number; tracking_code: string; message: string }>(
+      `/devices/${id}/auto-ticket`,
+      { method: 'POST', body: JSON.stringify({ priority, notes }) }
+    ),
+};
 
 export const networkApi = {
   getAll: async () => {
