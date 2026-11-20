@@ -187,21 +187,6 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Quick Credentials Info Badge */}
-        <div className="mb-5 p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs flex items-center justify-between">
-          <div>
-            <p className="font-bold text-primary">Default Admin Credentials</p>
-            <p className="font-mono text-[11px] text-muted-foreground mt-0.5">admin@bikitaminerals.com • password123</p>
-          </div>
-          <button
-            type="button"
-            onClick={handleQuickFill}
-            className="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-bold transition-colors cursor-pointer"
-          >
-            Fill
-          </button>
-        </div>
-
         <form onSubmit={handleLogin} className="space-y-4">
           {error && (
             <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg text-center backdrop-blur-sm space-y-2">
