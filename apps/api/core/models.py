@@ -416,3 +416,27 @@ class EquipmentLoan(TimeStampedSoftDeleteModel):
     def __str__(self):
         return f"{self.tracking_code} - {self.equipment_category} ({self.requester_name})"
 
+
+class MaintenanceTask(TimeStampedSoftDeleteModel):
+    code = models.CharField(max_length=20, unique=True, db_index=True)
+    frequency = models.CharField(max_length=32, db_index=True)  # Daily, Weekly, Monthly, Quarterly, Semi-annual, Annual, Event-driven
+    system_asset = models.CharField(max_length=255)
+    activity = models.CharField(max_length=255)
+    procedure = models.TextField(blank=True, default="")
+    suggested_owner = models.CharField(max_length=255, blank=True, default="")
+    assigned_owner = models.CharField(max_length=255, blank=True, default="")
+    recommended_timing = models.CharField(max_length=128, blank=True, default="")
+    priority = models.CharField(max_length=32, default="Medium", db_index=True)  # Critical, High, Medium, Low
+    evidence_record = models.CharField(max_length=255, blank=True, default="")
+    status = models.CharField(max_length=32, default="Not Started", db_index=True)  # Not Started, In Progress, Completed, Deferred, Overdue
+    last_completed = models.DateField(null=True, blank=True)
+    next_due = models.DateField(null=True, blank=True)
+    work_order = models.CharField(max_length=128, blank=True, default="")
+    comments = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.code} - {self.activity}"
+

@@ -1258,3 +1258,85 @@ export const racksApi = {
     apiFetch<{ success: boolean; message: string }>(`/racks/cables/unlink/${linkId}`, { method: 'DELETE' }),
 };
 
+export interface MaintenanceTask {
+  id: number;
+  code: string;
+  frequency: string;
+  system_asset: string;
+  activity: string;
+  procedure: string;
+  suggested_owner: string;
+  assigned_owner: string;
+  recommended_timing: string;
+  priority: string;
+  evidence_record: string;
+  status: string;
+  last_completed: string | null;
+  next_due: string | null;
+  work_order: string;
+  comments: string;
+}
+
+async function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T | null> {
+  if (typeof window === 'undefined' || !('__TAURI_INTERNALS__' in window)) {
+    return null;
+  }
+  const { invoke } = await import('@tauri-apps/api/core');
+  return invoke<T>(cmd, args);
+}
+
+export const maintenanceApi = {
+  getAll: async (): Promise<MaintenanceTask[]> => {
+    try {
+      return await apiFetch<MaintenanceTask[]>('/maintenance/', {}, 1);
+    } catch (err) {
+      const local = await tauriInvoke<MaintenanceTask[]>('maintenance_list');
+      if (local) return local;
+      throw err;
+    }
+  },
+  create: async (data: Omit<MaintenanceTask, 'id'>): Promise<MaintenanceTask> => {
+    try {
+      return await apiFetch<MaintenanceTask>('/maintenance/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }, 1);
+    } catch (err) {
+      const local = await tauriInvoke<MaintenanceTask>('maintenance_create', { payload: data });
+      if (local) return local;
+      throw err;
+    }
+  },
+  update: async (id: number, data: Partial<Omit<MaintenanceTask, 'id' | 'code'>>): Promise<MaintenanceTask> => {
+    try {
+      return await apiFetch<MaintenanceTask>(`/maintenance/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }, 1);
+    } catch (err) {
+      const local = await tauriInvoke<MaintenanceTask>('maintenance_update', { id, payload: data });
+      if (local) return local;
+      throw err;
+    }
+  },
+  complete: async (id: number): Promise<MaintenanceTask> => {
+    try {
+      return await apiFetch<MaintenanceTask>(`/maintenance/${id}/complete`, { method: 'POST' }, 1);
+    } catch (err) {
+      const local = await tauriInvoke<MaintenanceTask>('maintenance_complete', { id });
+      if (local) return local;
+      throw err;
+    }
+  },
+  delete: async (id: number): Promise<void> => {
+    try {
+      await apiFetch<{ deleted: boolean }>(`/maintenance/${id}`, { method: 'DELETE' }, 1);
+    } catch (err) {
+      const local = await tauriInvoke<boolean>('maintenance_delete', { id });
+      if (local !== null) return;
+      throw err;
+    }
+  },
+};
+
+

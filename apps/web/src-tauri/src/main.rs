@@ -1,6 +1,8 @@
 // Prevents additional console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod maintenance;
+
 use tauri::Manager;
 use simplelog::*;
 use std::fs::File;
@@ -248,10 +250,22 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
-        .invoke_handler(tauri::generate_handler![ping_network, scan_cameras])
+        .invoke_handler(tauri::generate_handler![
+            ping_network,
+            scan_cameras,
+            maintenance::maintenance_list,
+            maintenance::maintenance_create,
+            maintenance::maintenance_update,
+            maintenance::maintenance_complete,
+            maintenance::maintenance_delete
+        ])
         .setup(|app| {
             let app_dir = app.path().app_data_dir().expect("failed to get app data dir");
             std::fs::create_dir_all(&app_dir)?;
+
+            let maint_store = maintenance::MaintenanceStore::init(app_dir.clone())
+                .expect("failed to initialize maintenance store");
+            app.manage(maint_store);
 
             let log_file_path = app_dir.join("pulse.log");
             let _ = WriteLogger::init(

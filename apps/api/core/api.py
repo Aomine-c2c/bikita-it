@@ -12,6 +12,7 @@ from .routers.accessories_software import router as accessories_software_router
 from .routers.reports import router as reports_router
 from .routers.racks import router as racks_router
 from .routers.portal import router as portal_router
+from .routers.maintenance import router as maintenance_router
 
 router = Router(auth=JWTAuth())
 
@@ -26,3 +27,4 @@ router.add_router("", accessories_software_router)
 router.add_router("/reports", reports_router)
 router.add_router("/racks", racks_router)
 router.add_router("", portal_router)
+router.add_router("/maintenance", maintenance_router)

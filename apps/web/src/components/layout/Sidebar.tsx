@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard, Box, ClipboardList, Network, Server,
   Wrench, BarChart3, ShieldAlert, Users, Settings, Book,
-  Activity, X, Video, Monitor, Package, ShieldCheck, Cpu
+  Activity, X, Video, Monitor, Package, ShieldCheck, Cpu, CalendarCheck2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ const ALL_SIDEBAR_ITEMS = [
   { icon: ClipboardList,   label: "Inventory",       labelKey: "inventory",      href: "/inventory" },
   { icon: Package,         label: "Accessories",     labelKey: "accessories",    href: "/accessories" },
   { icon: Wrench,          label: "Repairs",         labelKey: "repairQueue",    href: "/repairs" },
+  { icon: CalendarCheck2,  label: "Maintenance",     labelKey: "maintenance",    href: "/maintenance" },
   { icon: Activity,        label: "Helpdesk",        labelKey: "helpdesk",       href: "/helpdesk" },
   { icon: Network,         label: "Network",         labelKey: "networkDevices", href: "/network" },
   { icon: Video,           label: "Cameras",         labelKey: "cameras",        href: "/cameras" },
@@ -81,10 +82,10 @@ export function Sidebar({ isMobileOpen, onMobileClose }: { isMobileOpen?: boolea
   const visibleItems = ALL_SIDEBAR_ITEMS.filter((item) => {
     if (userRole === "SUPER_ADMIN" || userRole === "ADMIN") return true;
     if (userRole === "HOD") {
-      return ["/", "/assets", "/inventory", "/helpdesk", "/employees", "/locations", "/docs", "/operations", "/reports", "/activity"].includes(item.href);
+      return ["/", "/assets", "/inventory", "/maintenance", "/helpdesk", "/employees", "/locations", "/docs", "/operations", "/reports", "/activity"].includes(item.href);
     }
     if (userRole === "TECHNICIAN" || userRole === "TECH") {
-      return ["/", "/assets", "/inventory", "/accessories", "/repairs", "/helpdesk", "/network", "/cameras", "/locations", "/software", "/docs", "/operations", "/activity"].includes(item.href);
+      return ["/", "/assets", "/inventory", "/accessories", "/repairs", "/maintenance", "/helpdesk", "/network", "/cameras", "/locations", "/software", "/docs", "/operations", "/activity"].includes(item.href);
     }
     if (userRole === "EMPLOYEE") {
       return ["/", "/assets", "/helpdesk", "/docs", "/activity"].includes(item.href);
