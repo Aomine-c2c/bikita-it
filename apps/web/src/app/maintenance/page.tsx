@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { maintenanceApi, type MaintenanceTask } from "@/lib/api";
 import {
-  CalendarCheck2, CheckCircle2, Clock, AlertTriangle, ShieldAlert,
+  CalendarCheck2, CheckCircle2, AlertTriangle, ShieldAlert,
   Search, Download, Plus, X, Trash2, Save, Filter, BookOpen, Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -95,22 +95,23 @@ export default function MaintenancePage() {
     comments: "",
   });
 
-  const loadTasks = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await maintenanceApi.getAll();
-      setTasks(data);
-    } catch (err) {
-      setError((err as Error)?.message || "Failed to load maintenance plan");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+    let active = true;
+    maintenanceApi
+      .getAll()
+      .then((data) => {
+        if (active) setTasks(data);
+      })
+      .catch((err) => {
+        if (active) setError((err as Error)?.message || "Failed to load maintenance plan");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredTasks = useMemo(() => {
     const q = search.trim().toLowerCase();

@@ -27,6 +27,13 @@ describe('LoginPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    const store: Record<string, string> = {}
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store[k] ?? null,
+      setItem: (k: string, v: string) => { store[k] = String(v) },
+      removeItem: (k: string) => { delete store[k] },
+      clear: () => { Object.keys(store).forEach((k) => delete store[k]) },
+    })
     ;(useRouter as any).mockReturnValue({
       push: mockPush,
       refresh: mockRefresh,
